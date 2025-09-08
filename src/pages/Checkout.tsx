@@ -69,28 +69,31 @@ const Checkout = () => {
                     AI Conversation Engine • Smart Follow-ups
                   </p>
                 </div>
-                <span className="font-semibold iridescent-text">Free Trial</span>
+                <span className="font-semibold iridescent-text">$9.99</span>
               </div>
               
               <div className="border-t border-border pt-2 mt-4">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="iridescent-text">7-Day Free Trial</span>
-                  <span className="iridescent-text">$0.00</span>
+                  <span className="iridescent-text">Upfront Payment</span>
+                  <span className="iridescent-text">$9.99</span>
                 </div>
                 <div className="flex justify-between items-center text-sm mt-1">
                   <span className="iridescent-text">Then $2.99/month</span>
                   <span className="text-xs text-muted-foreground iridescent-text">recurring</span>
                 </div>
                 <div className="flex justify-between items-center text-sm mt-1">
-                  <span className="iridescent-text text-primary">Refer 5 friends → First month free</span>
+                  <span className="iridescent-text text-primary">Refer 5 friends → First month free*</span>
                   <span className="text-xs text-primary iridescent-text">bonus</span>
+                </div>
+                <div className="flex justify-between items-center text-xs mt-2 text-muted-foreground">
+                  <span className="iridescent-text">*$9.99 upfront payment still required</span>
                 </div>
               </div>
               
               <div className="border-t border-border pt-4 mt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span className="iridescent-text">Due Today</span>
-                  <span className="iridescent-text">$0.00</span>
+                  <span className="iridescent-text">$9.99</span>
                 </div>
               </div>
             </div>
@@ -239,7 +242,7 @@ const Checkout = () => {
               
               <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4 mb-4">
                 <p className="text-sm text-muted-foreground iridescent-text text-center">
-                  Start your 7-day free trial • No payment required today
+                  $9.99 upfront payment required • Then $2.99/month
                 </p>
               </div>
               
@@ -247,7 +250,7 @@ const Checkout = () => {
                 type="submit"
                 className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200 py-4 text-lg font-semibold"
               >
-                Start Free Trial
+                Pay $9.99 & Start Subscription
               </Button>
             </form>
           </Card>
