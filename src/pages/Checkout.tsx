@@ -4,7 +4,6 @@ import { StarField } from "@/components/StarField";
 import { ArrowLeft, CreditCard, Shield, Zap, Smartphone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-
 const Checkout = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -16,22 +15,18 @@ const Checkout = () => {
     expiry: "",
     cvv: ""
   });
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Mock subscription success
     alert("Free trial started! You'll be billed $2.99 monthly after 7 days. Refer 5 friends to get your first month free!");
   };
-
-  return (
-    <div className="min-h-screen bg-background relative">
+  return <div className="min-h-screen bg-background relative">
       <StarField />
       
       {/* Header */}
@@ -54,46 +49,37 @@ const Checkout = () => {
             
             {/* Product Image */}
             <div className="flex justify-center mb-6">
-              <img 
-                src="/lovable-uploads/9ee1d542-a2fe-4a76-8fef-8094c127a879.png" 
-                alt="NFC Ping Ring - Black ring with metallic NFC chip"
-                className="w-64 h-64 object-contain"
-              />
+              <img src="/lovable-uploads/9ee1d542-a2fe-4a76-8fef-8094c127a879.png" alt="NFC Ping Ring - Black ring with metallic NFC chip" className="w-64 h-64 object-contain" />
             </div>
             
             <div className="space-y-4 mb-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="font-semibold iridescent-text">ping! Premium</h3>
-                  <p className="text-sm text-muted-foreground iridescent-text">
-                    AI Conversation Engine • Smart Follow-ups
-                  </p>
+                  <h3 className="font-semibold iridescent-text">ping! </h3>
+                  <p className="text-sm text-muted-foreground iridescent-text">Access your new network today</p>
                 </div>
-                <span className="font-semibold iridescent-text">$9.99</span>
+                <span className="font-semibold iridescent-text">Free Trial</span>
               </div>
               
               <div className="border-t border-border pt-2 mt-4">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="iridescent-text">Upfront Payment</span>
-                  <span className="iridescent-text">$9.99</span>
+                  <span className="iridescent-text">7-Day Free Trial</span>
+                  <span className="iridescent-text">$0.00</span>
                 </div>
                 <div className="flex justify-between items-center text-sm mt-1">
                   <span className="iridescent-text">Then $2.99/month</span>
                   <span className="text-xs text-muted-foreground iridescent-text">recurring</span>
                 </div>
                 <div className="flex justify-between items-center text-sm mt-1">
-                  <span className="iridescent-text text-primary">Refer 5 friends → First month free*</span>
+                  <span className="iridescent-text text-primary">Refer 5 friends → First month free</span>
                   <span className="text-xs text-primary iridescent-text">bonus</span>
-                </div>
-                <div className="flex justify-between items-center text-xs mt-2 text-muted-foreground">
-                  <span className="iridescent-text">*$9.99 upfront payment still required</span>
                 </div>
               </div>
               
               <div className="border-t border-border pt-4 mt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span className="iridescent-text">Due Today</span>
-                  <span className="iridescent-text">$9.99</span>
+                  <span className="iridescent-text">$0.00</span>
                 </div>
               </div>
             </div>
@@ -127,27 +113,13 @@ const Checkout = () => {
                   <label className="block text-sm font-medium iridescent-text mb-2">
                     Email
                   </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                    required
-                  />
+                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium iridescent-text mb-2">
                     Full Name
                   </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                    required
-                  />
+                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
                 </div>
               </div>
               
@@ -155,14 +127,7 @@ const Checkout = () => {
                 <label className="block text-sm font-medium iridescent-text mb-2">
                   Address
                 </label>
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                  required
-                />
+                <input type="text" name="address" value={formData.address} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
@@ -170,27 +135,13 @@ const Checkout = () => {
                   <label className="block text-sm font-medium iridescent-text mb-2">
                     City
                   </label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                    required
-                  />
+                  <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium iridescent-text mb-2">
                     ZIP Code
                   </label>
-                  <input
-                    type="text"
-                    name="zipCode"
-                    value={formData.zipCode}
-                    onChange={handleInputChange}
-                    className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                    required
-                  />
+                  <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
                 </div>
               </div>
               
@@ -198,15 +149,7 @@ const Checkout = () => {
                 <label className="block text-sm font-medium iridescent-text mb-2">
                   Card Number
                 </label>
-                <input
-                  type="text"
-                  name="cardNumber"
-                  value={formData.cardNumber}
-                  onChange={handleInputChange}
-                  placeholder="1234 5678 9012 3456"
-                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                  required
-                />
+                <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} placeholder="1234 5678 9012 3456" className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
@@ -214,50 +157,29 @@ const Checkout = () => {
                   <label className="block text-sm font-medium iridescent-text mb-2">
                     Expiry Date
                   </label>
-                  <input
-                    type="text"
-                    name="expiry"
-                    value={formData.expiry}
-                    onChange={handleInputChange}
-                    placeholder="MM/YY"
-                    className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                    required
-                  />
+                  <input type="text" name="expiry" value={formData.expiry} onChange={handleInputChange} placeholder="MM/YY" className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium iridescent-text mb-2">
                     CVV
                   </label>
-                  <input
-                    type="text"
-                    name="cvv"
-                    value={formData.cvv}
-                    onChange={handleInputChange}
-                    placeholder="123"
-                    className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                    required
-                  />
+                  <input type="text" name="cvv" value={formData.cvv} onChange={handleInputChange} placeholder="123" className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
                 </div>
               </div>
               
               <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4 mb-4">
                 <p className="text-sm text-muted-foreground iridescent-text text-center">
-                  $9.99 upfront payment required • Then $2.99/month
+                  Start your 7-day free trial • No payment required today
                 </p>
               </div>
               
-              <Button 
-                type="submit"
-                className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200 py-4 text-lg font-semibold"
-              >
-                Pay $9.99 & Start Subscription
+              <Button type="submit" className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200 py-4 text-lg font-semibold">
+                Start Free Trial
               </Button>
             </form>
           </Card>
         </div>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Checkout;
