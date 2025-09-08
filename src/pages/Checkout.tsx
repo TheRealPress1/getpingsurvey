@@ -49,7 +49,7 @@ const Checkout = () => {
             
             {/* Product Image */}
             <div className="flex justify-center mb-6">
-              <img src="/lovable-uploads/9ee1d542-a2fe-4a76-8fef-8094c127a879.png" alt="NFC Ping Ring - Black ring with metallic NFC chip" className="w-64 h-64 object-contain" />
+              <img src="/lovable-uploads/24f9558e-2e66-4995-a89a-bbb3477fcc1e.png" alt="NFC Ping Ring - Black ring with silver edges and NFC symbol" className="w-64 h-64 object-contain" />
             </div>
             
             <div className="space-y-4 mb-6">
