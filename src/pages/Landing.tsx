@@ -3,19 +3,15 @@ import { Button } from "@/components/ui/button";
 import { StarField } from "@/components/StarField";
 import { Link } from "react-router-dom";
 import Ring3D from "@/components/Ring3D";
-
 const Landing = () => {
   const [visibleText, setVisibleText] = useState(false);
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisibleText(true);
     }, 500);
     return () => clearTimeout(timer);
   }, []);
-
-  return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+  return <div className="min-h-screen bg-background relative overflow-hidden">
       <StarField />
       
       {/* Header */}
@@ -38,19 +34,14 @@ const Landing = () => {
             <h1 className="text-5xl md:text-7xl font-bold iridescent-text leading-tight">
               Ping!
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground iridescent-text max-w-2xl mx-auto">
-              Share your contact, portfolio, and social links instantly with just a tap. 
-              The future of networking is here.
-            </p>
+            <p className="text-xl md:text-2xl text-muted-foreground iridescent-text max-w-2xl mx-auto">The future of networking is here.
+Your new network is waiting</p>
           </div>
 
           {/* CTA Button */}
           <div className={`transition-all duration-1000 delay-500 ${visibleText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <Link to="/signup">
-              <Button 
-                size="lg"
-                className="shimmer bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 px-12 py-6 text-xl font-semibold"
-              >
+              <Button size="lg" className="shimmer bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 px-12 py-6 text-xl font-semibold">
                 Get Your Ping - $9.99
               </Button>
             </Link>
@@ -91,8 +82,6 @@ const Landing = () => {
           </div>
         </div>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Landing;
