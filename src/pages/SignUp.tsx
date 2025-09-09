@@ -34,7 +34,7 @@ const SignUp = () => {
     
     setLoading(true);
     
-    const redirectUrl = `${window.location.origin}/`;
+const redirectUrl = `${window.location.origin}/profile-setup`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -199,8 +199,8 @@ const SignUp = () => {
           </form>
 
           <div className="mt-6 text-center space-y-4">
-            <Link
-              to="/signin"
+<Link
+              to="/auth"
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               Already have an account? Sign in

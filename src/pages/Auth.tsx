@@ -13,9 +13,10 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showResend, setShowResend] = useState(false);
+  const [resending, setResending] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
@@ -27,54 +28,68 @@ const Auth = () => {
     checkUser();
   }, [navigate]);
 
-  const handleSignUp = async () => {
-    setLoading(true);
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          display_name: displayName
-        }
-      }
+const handleSignUp = async () => {
+  setLoading(true);
+
+  const redirectUrl = `${window.location.origin}/profile-setup`;
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: redirectUrl,
+      data: {
+        display_name: displayName,
+      },
+    },
+  });
+
+  if (error) {
+    toast({
+      variant: 'destructive',
+      title: 'Sign Up Error',
+      description: error.message,
     });
-
-    if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Sign Up Error',
-        description: error.message
-      });
-    } else if (data.user) {
-      toast({
-        title: 'Account created!',
-        description: 'Welcome to Ping! Setting up your profile...'
-      });
-      // Navigate directly to profile setup since email confirmation is disabled
-      navigate('/profile-setup');
-    }
-    setLoading(false);
-  };
-
-  const handleSignIn = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
+  } else {
+    toast({
+      title: 'Confirm your email',
+      description:
+        'We sent a confirmation link. After confirming, you’ll be redirected to profile setup.',
     });
+    setIsLogin(true);
+    setShowResend(true);
+  }
+  setLoading(false);
+};
 
-    if (error) {
+const handleSignIn = async () => {
+  setLoading(true);
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    const msg = error.message || 'Sign in failed';
+    const unconfirmed = msg.toLowerCase().includes('email not confirmed');
+    if (unconfirmed) {
+      setShowResend(true);
+      toast({
+        title: 'Please confirm your email',
+        description: 'Check your inbox for the confirmation link or resend it below.',
+      });
+    } else {
       toast({
         variant: 'destructive',
         title: 'Sign In Error',
-        description: error.message
+        description: msg,
       });
-    } else {
-      navigate('/');
     }
-    setLoading(false);
-  };
+  } else {
+    navigate('/');
+  }
+  setLoading(false);
+};
 
   const handleGoogleAuth = async () => {
     setLoading(true);
@@ -94,16 +109,42 @@ const Auth = () => {
       setLoading(false);
     }
     // Note: loading state will be managed by redirect
-  };
+};
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isLogin) {
-      handleSignIn();
-    } else {
-      handleSignUp();
-    }
-  };
+const handleResend = async () => {
+  if (!email) {
+    toast({
+      variant: 'destructive',
+      title: 'Email required',
+      description: 'Enter your email above to resend the confirmation link.',
+    });
+    return;
+  }
+  setResending(true);
+  const { error } = await supabase.auth.resend({ type: 'signup', email });
+  if (error) {
+    toast({
+      variant: 'destructive',
+      title: 'Resend failed',
+      description: error.message,
+    });
+  } else {
+    toast({
+      title: 'Confirmation email sent',
+      description: 'Check your inbox (and spam) for the new link.',
+    });
+  }
+  setResending(false);
+};
+
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (isLogin) {
+    handleSignIn();
+  } else {
+    handleSignUp();
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -208,18 +249,35 @@ const Auth = () => {
             Continue with Google
           </Button>
 
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {isLogin 
-                ? "Don't have an account? Sign up" 
-                : 'Already have an account? Sign in'
-              }
-            </button>
-          </div>
+{showResend && (
+  <div className="mt-4 text-center">
+    <p className="text-sm text-muted-foreground mb-2">
+      Didn't get the email? Resend the confirmation link.
+    </p>
+    <Button
+      type="button"
+      variant="secondary"
+      className="w-full"
+      onClick={handleResend}
+      disabled={resending || !email}
+    >
+      {resending ? 'Resending...' : 'Resend confirmation email'}
+    </Button>
+  </div>
+)}
+
+<div className="mt-6 text-center">
+  <button
+    type="button"
+    onClick={() => setIsLogin(!isLogin)}
+    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+  >
+    {isLogin 
+      ? "Don't have an account? Sign up" 
+      : 'Already have an account? Sign in'
+    }
+  </button>
+</div>
         </CardContent>
       </Card>
     </div>
