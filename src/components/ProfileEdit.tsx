@@ -106,7 +106,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, processedBlob);
+        .upload(filePath, processedBlob, { contentType: 'image/png', upsert: true });
 
       if (uploadError) throw uploadError;
 

@@ -186,6 +186,13 @@ const Profile = () => {
             <Button 
               variant="outline" 
               className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
+              onClick={() => navigate('/network')}
+            >
+              Network
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
               onClick={() => navigate('/profile/analytics')}
             >
               <BarChart3 className="w-4 h-4" />
@@ -210,7 +217,7 @@ const Profile = () => {
           </div>
           
           <h1 
-            className="text-3xl font-bold iridescent-text mb-2 cursor-pointer hover:text-primary transition-colors duration-200 animate-fade-in hover-scale"
+            className="text-3xl font-bold iridescent-text mb-2 cursor-pointer story-link animate-enter hover-scale transition-all duration-500 ease-out"
             onClick={() => navigate('/profile/details')}
           >
             {displayName}

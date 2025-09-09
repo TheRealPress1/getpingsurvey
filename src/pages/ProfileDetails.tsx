@@ -177,7 +177,7 @@ const ProfileDetails = () => {
               />
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold iridescent-text mb-2 animate-fade-in hover-scale">
+              <h1 className="text-3xl font-bold iridescent-text mb-2 story-link animate-enter hover-scale transition-all duration-500 ease-out">
                 {displayName}
               </h1>
               <p className="text-lg text-muted-foreground mb-4">
