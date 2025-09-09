@@ -16,7 +16,11 @@ const ProfileSetup = () => {
     name: "",
     email: "",
     phone: "",
-    bio: "",
+    question1: "",
+    question2: "",
+    question3: "",
+    question4: "",
+    question5: "",
     linkedin: "",
     instagram: "",
     twitter: "",
@@ -112,7 +116,7 @@ const ProfileSetup = () => {
         .upsert({
           user_id: user.id,
           display_name: profileData.name || user.user_metadata.display_name,
-          bio: profileData.bio,
+          bio: `Q1: ${profileData.question1}\n\nQ2: ${profileData.question2}\n\nQ3: ${profileData.question3}\n\nQ4: ${profileData.question4}\n\nQ5: ${profileData.question5}`,
           avatar_url: profileData.avatarUrl,
           linkedin_url: profileData.linkedin,
           social_links: {
@@ -152,7 +156,7 @@ const ProfileSetup = () => {
               platforms: [],
               seedProfile: {
                 displayName: profileData.name || user.user_metadata?.display_name,
-                bio: profileData.bio,
+                bio: `Q1: ${profileData.question1}\n\nQ2: ${profileData.question2}\n\nQ3: ${profileData.question3}\n\nQ4: ${profileData.question4}\n\nQ5: ${profileData.question5}`,
                 linkedin: profileData.linkedin,
                 instagram: profileData.instagram,
                 social_links: {
@@ -222,21 +226,75 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold iridescent-text mb-2">Write Your Bio</h2>
-              <p className="text-muted-foreground iridescent-text">Tell people about yourself</p>
+              <h2 className="text-2xl font-bold iridescent-text mb-2">Let's get to know you</h2>
+              <p className="text-muted-foreground iridescent-text">Answer a few questions to help us create your perfect profile</p>
             </div>
-            <div>
-              <textarea
-                name="bio"
-                value={profileData.bio}
-                onChange={handleInputChange}
-                className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text resize-none"
-                rows={4}
-                placeholder="Creative director passionate about design and innovation..."
-              />
-              <p className="text-xs text-muted-foreground mt-2 iridescent-text">
-                {profileData.bio.length}/200 characters
-              </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium iridescent-text mb-2">
+                  What do you do professionally, and what's one thing about your work that most people don't realize or find surprising?
+                </label>
+                <textarea
+                  name="question1"
+                  value={profileData.question1}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text resize-none"
+                  rows={3}
+                  placeholder="I'm a UX designer and most people don't realize how much psychology goes into every button placement..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium iridescent-text mb-2">
+                  Outside of work, what's something you're genuinely excited about right now?
+                </label>
+                <textarea
+                  name="question2"
+                  value={profileData.question2}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text resize-none"
+                  rows={3}
+                  placeholder="I'm learning to make sourdough bread and experimenting with different fermentation techniques..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium iridescent-text mb-2">
+                  What's a cause, principle, or type of impact that you care deeply about?
+                </label>
+                <textarea
+                  name="question3"
+                  value={profileData.question3}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text resize-none"
+                  rows={3}
+                  placeholder="I'm passionate about digital accessibility and making technology inclusive for everyone..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium iridescent-text mb-2">
+                  What's something you're currently learning, building, or working toward?
+                </label>
+                <textarea
+                  name="question4"
+                  value={profileData.question4}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text resize-none"
+                  rows={3}
+                  placeholder="I'm building a mobile app to help people track their carbon footprint..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium iridescent-text mb-2">
+                  What's an experience or perspective you have that tends to lead to interesting conversations?
+                </label>
+                <textarea
+                  name="question5"
+                  value={profileData.question5}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text resize-none"
+                  rows={3}
+                  placeholder="I lived in 5 different countries before turning 25, which gives me a unique perspective on..."
+                />
+              </div>
             </div>
           </div>
         );
