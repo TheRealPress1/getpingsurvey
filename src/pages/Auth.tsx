@@ -80,11 +80,12 @@ const handleSignIn = async () => {
         description: 'Finishing verification and signing you in.',
       });
       try {
-        await fetch('/functions/v1/confirm-user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: normalizedEmail }),
+        const { error: confirmError } = await supabase.functions.invoke('confirm-user', {
+          body: { email: normalizedEmail },
         });
+        if (confirmError) {
+          throw confirmError;
+        }
         // retry sign-in immediately
         const retry = await supabase.auth.signInWithPassword({
           email: normalizedEmail,
