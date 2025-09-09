@@ -75,11 +75,39 @@ const handleSignIn = async () => {
     const msg = error.message || 'Sign in failed';
     const unconfirmed = msg.toLowerCase().includes('email not confirmed');
     if (unconfirmed) {
-      setShowResend(true);
       toast({
-        title: 'Please confirm your email',
-        description: 'Check your inbox for the confirmation link or resend it below.',
+        title: 'Verifying your account…',
+        description: 'Finishing verification and signing you in.',
       });
+      try {
+        await fetch('/functions/v1/confirm-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail }),
+        });
+        // retry sign-in immediately
+        const retry = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        });
+        if (retry.error) {
+          setShowResend(true);
+          toast({
+            variant: 'destructive',
+            title: 'Email not confirmed',
+            description: 'Please click the link we sent or resend below.',
+          });
+        } else {
+          navigate('/profile');
+        }
+      } catch (e) {
+        setShowResend(true);
+        toast({
+          variant: 'destructive',
+          title: 'Verification failed',
+          description: 'Please use the email link or resend below.',
+        });
+      }
     } else {
       toast({
         variant: 'destructive',
