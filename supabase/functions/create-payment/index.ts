@@ -15,14 +15,10 @@ serve(async (req) => {
   try {
     console.log("Payment function called");
     
-    // Initialize Stripe with the secret key
-    const stripeKey = Deno.env.get("The 1 and only key");
-    console.log("Stripe key exists:", !!stripeKey);
+    // Initialize Stripe with the provided key
+    const stripeKey = "pk_live_51RvsVGE1cXZQghLFyHUMacLwqShYnKSmqyDKcMsLbdvulfMF2omrH5Qhg17ZbAOas19WBLLqPYrH4utWtYOhH6XL00qCMRFtZO";
+    console.log("Using Stripe key");
     
-    if (!stripeKey) {
-      throw new Error("Stripe API key not found");
-    }
-
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
