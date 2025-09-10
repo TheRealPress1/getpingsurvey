@@ -4,7 +4,11 @@ import { StarField } from "@/components/StarField";
 import { ArrowLeft, CreditCard, Shield, Zap, Smartphone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 const Checkout = () => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -21,12 +25,34 @@ const Checkout = () => {
       [e.target.name]: e.target.value
     });
   };
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate successful transaction
-    alert("Payment successful! Welcome to Ping!");
-    // Redirect to signup to create account
-    window.location.href = "/signup";
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          email: formData.email,
+          name: formData.name,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Error",
+        description: "There was an issue processing your payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   return <div className="min-h-screen bg-background relative">
       <StarField />
@@ -175,8 +201,12 @@ const Checkout = () => {
                 </p>
               </div>
               
-              <Button type="submit" className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200 py-4 text-lg font-semibold">
-                Get Ping Today - $9.99
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200 py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Processing..." : "Get Ping Today - $9.99"}
               </Button>
             </form>
           </Card>
