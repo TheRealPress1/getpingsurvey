@@ -9,7 +9,7 @@ import { StarField } from '@/components/StarField';
 import { ArrowLeft, MessageSquare, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-interface ConnectionRow {
+interface Connection {
   id: string;
   user_id: string;
   target_user_id: string;
@@ -21,7 +21,7 @@ const Network = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [connections, setConnections] = useState<ConnectionRow[]>([]);
+  const [connections, setConnections] = useState<Connection[]>([]);
   const [profiles, setProfiles] = useState<Record<string, { name: string; avatar: string | null }>>({});
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const Network = () => {
       setLoading(true);
 
       // Fetch connections where current user participates
-      const { data: rows, error } = await supabase
+      const { data: connectionRows, error } = await supabase
         .from('connections')
         .select('*')
         .or(`user_id.eq.${user.id},target_user_id.eq.${user.id})`);
@@ -40,10 +40,11 @@ const Network = () => {
         setLoading(false);
         return;
       }
-      setConnections(rows || []);
+      
+      setConnections(connectionRows || []);
 
       // Fetch counterpart profiles
-      const otherIds = (rows || []).map(r => r.user_id === user.id ? r.target_user_id : r.user_id);
+      const otherIds = (connectionRows || []).map(r => r.user_id === user.id ? r.target_user_id : r.user_id);
       const unique = Array.from(new Set(otherIds));
       if (unique.length) {
         const { data: profs } = await supabase

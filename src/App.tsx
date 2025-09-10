@@ -36,8 +36,8 @@ const App = () => (
             <Route path="/profile/details" element={<ProfileDetails />} />
             <Route path="/profile/analytics" element={<ProfileView />} />
             <Route path="/chat" element={<Chat />} />
-            <Route path="/chat/:id" element={<ChatThread />} />
             <Route path="/network" element={<Network />} />
+            <Route path="/chat/:conversationId" element={<ChatThread />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
