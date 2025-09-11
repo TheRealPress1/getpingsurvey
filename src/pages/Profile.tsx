@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProfileSetup } from "@/components/ProfileSetup";
 import { ProfileEdit } from "@/components/ProfileEdit";
 import { useToast } from "@/hooks/use-toast";
+import { SaveContactButton } from "@/components/SaveContactButton";
+import { ChatSystem } from "@/components/ChatSystem";
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -170,10 +172,7 @@ const Profile = () => {
       {/* Header */}
       <header className="border-b border-border p-4 relative z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:scale-105 transition-transform duration-200">
-            <ArrowLeft className="w-5 h-5 text-primary" />
-            <span className="text-xl font-bold iridescent-text">ping!</span>
-          </Link>
+          <span className="text-xl font-bold iridescent-text">ping!</span>
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
@@ -247,7 +246,11 @@ const Profile = () => {
             Ping {displayName.split(' ')[0] || 'User'}
           </Button>
           
-          <p className="text-sm text-muted-foreground mt-4 iridescent-text">
+          <div className="mt-4">
+            <SaveContactButton profile={profile} userEmail={user.email || ''} />
+          </div>
+          
+          <p className="text-sm text-muted-foreground mt-2 iridescent-text">
             Click name or photo to learn more
           </p>
         </Card>
@@ -257,19 +260,6 @@ const Profile = () => {
           <h2 className="text-2xl font-bold iridescent-text mb-6 text-center">Connect & Learn More</h2>
           
           <div className="space-y-4">
-            {user.email && (
-              <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="font-medium iridescent-text">Email</p>
-                      <p className="text-sm text-muted-foreground iridescent-text truncate">{user.email}</p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            )}
             {profile.phone_number && (
               <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
                 <div className="flex items-center justify-between">
@@ -278,6 +268,19 @@ const Profile = () => {
                     <div>
                       <p className="font-medium iridescent-text">Phone</p>
                       <p className="text-sm text-muted-foreground iridescent-text truncate">{profile.phone_number}</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+            {user.email && (
+              <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium iridescent-text">Email</p>
+                      <p className="text-sm text-muted-foreground iridescent-text truncate">{user.email}</p>
                     </div>
                   </div>
                 </div>
@@ -323,6 +326,16 @@ const Profile = () => {
           </div>
         </div>
       </main>
+      
+      {/* Chat System */}
+      <ChatSystem 
+        targetUserId={profile.user_id} 
+        targetProfile={{
+          user_id: profile.user_id,
+          display_name: profile.display_name,
+          avatar_url: profile.avatar_url
+        }} 
+      />
     </div>
   );
 };
