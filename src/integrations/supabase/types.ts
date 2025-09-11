@@ -300,6 +300,10 @@ export type Database = {
           website_url: string
         }[]
       }
+      get_user_email_for_contact: {
+        Args: { target_user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

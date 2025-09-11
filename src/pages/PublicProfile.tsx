@@ -57,18 +57,16 @@ const PublicProfile = () => {
 
       setProfile(profileData[0]);
 
-      // Get user email from auth.users (we'll need to create an edge function for this)
-      // For now, we'll use a placeholder or try to get it from the profile
-      const { data: authData } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('user_id', userId)
-        .single();
+      // Get user email for contact saving
+      const { data: emailData, error: emailError } = await supabase.rpc(
+        'get_user_email_for_contact',
+        { target_user_id: userId }
+      );
 
-      if (authData) {
-        // In a real scenario, you'd get the email from the auth.users table via an edge function
-        // For now, we'll use a placeholder
-        setUserEmail('contact@pingapp.com'); // This should be fetched from auth.users
+      if (!emailError && emailData) {
+        setUserEmail(emailData);
+      } else {
+        setUserEmail('contact@pingapp.com'); // Fallback
       }
 
     } catch (error: any) {
