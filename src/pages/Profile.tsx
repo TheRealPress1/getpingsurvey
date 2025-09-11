@@ -171,32 +171,44 @@ const Profile = () => {
       
       {/* Header */}
       <header className="border-b border-border p-4 relative z-10">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-xl font-bold iridescent-text">ping!</span>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
-              onClick={() => setShowProfileEdit(true)}
-            >
-              <Edit className="w-4 h-4" />
-              <span className="iridescent-text">Edit Profile</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
-              onClick={() => navigate('/network')}
-            >
-              <span className="iridescent-text">Network</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
-              onClick={() => navigate('/profile/analytics')}
-            >
-              <BarChart3 className="w-4 h-4" />
-            </Button>
-          </div>
+        <div className="max-w-6xl mx-auto">
+          {/* Glossy header card */}
+          <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 backdrop-blur-sm bg-opacity-80 p-4 rounded-2xl shadow-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-xl font-bold iridescent-text">ping!</span>
+              
+              {/* Network in center for mobile */}
+              <div className="flex-1 flex justify-center">
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center gap-2 hover:scale-105 transition-transform duration-200 bg-primary/10 hover:bg-primary/20 rounded-full px-6"
+                  onClick={() => navigate('/network')}
+                >
+                  <span className="iridescent-text font-medium">Network</span>
+                </Button>
+              </div>
+              
+              {/* Right side buttons */}
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="hover:scale-105 transition-transform duration-200 bg-primary/10 hover:bg-primary/20 rounded-full"
+                  onClick={() => setShowProfileEdit(true)}
+                >
+                  <Edit className="w-5 h-5 text-primary" />
+                </Button>
+                <Button 
+                  variant="ghost"
+                  size="icon" 
+                  className="hover:scale-105 transition-transform duration-200 bg-primary/10 hover:bg-primary/20 rounded-full"
+                  onClick={() => navigate('/profile/analytics')}
+                >
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                </Button>
+              </div>
+            </div>
+          </Card>
         </div>
       </header>
 
@@ -257,9 +269,9 @@ const Profile = () => {
 
         {/* Connect & Learn More */}
         <div>
-          <h2 className="text-2xl font-bold iridescent-text mb-6 text-center">Connect & Learn More</h2>
+          <h2 className="text-2xl font-bold iridescent-text mb-6 text-center animate-fade-in">Connect & Learn More</h2>
           
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-in">
             {profile.phone_number && (
               <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
                 <div className="flex items-center justify-between">
