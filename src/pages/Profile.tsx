@@ -203,7 +203,7 @@ const Profile = () => {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto p-6 pb-28 space-y-8 relative z-10">
         {/* Simplified Profile Card */}
-        <Card className="bg-card border-none p-8 text-center">
+        <div className="p-8 text-center">
           <div 
             className="w-32 h-32 mx-auto rounded-full border-4 border-primary overflow-hidden mb-6 cursor-pointer hover:scale-105 transition-transform duration-200"
             onClick={() => navigate('/profile/details')}
@@ -253,7 +253,7 @@ const Profile = () => {
           <p className="text-sm text-muted-foreground mt-2 iridescent-text">
             Click name or photo to learn more
           </p>
-        </Card>
+        </div>
 
         {/* Connect & Learn More */}
         <div>
