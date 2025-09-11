@@ -123,7 +123,7 @@ All colors MUST be HSL.
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-size: 200% 200%;
-    animation: iridescent 6s ease-in-out infinite;
+    animation: iridescent 15s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   
   .shimmer {
