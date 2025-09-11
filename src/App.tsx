@@ -16,6 +16,7 @@ import ChatThread from "./pages/ChatThread";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Network from "./pages/Network";
+import PublicProfile from "./pages/PublicProfile";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/profile/details" element={<ProfileDetails />} />
             <Route path="/profile/analytics" element={<ProfileView />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/u/:userId" element={<PublicProfile />} />
             <Route path="/network" element={<Network />} />
             <Route path="/chat/:conversationId" element={<ChatThread />} />
             <Route path="*" element={<NotFound />} />
