@@ -170,15 +170,15 @@ const Profile = () => {
       <StarField />
       
       {/* Header */}
-      <header className="border-b border-border p-4 relative z-10">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-xl font-bold iridescent-text">ping!</span>
+      <header className="border-b border-border p-2 relative z-10">
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-2">
+          <span className="text-lg font-bold iridescent-text">ping!</span>
           
           {/* Network in center */}
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <Button 
               variant="ghost" 
-              className="flex items-center gap-2 hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full px-6 py-2 backdrop-blur-sm border border-primary/20 shadow-lg"
+              className="flex items-center gap-1 hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full px-4 py-1.5 backdrop-blur-sm border border-primary/20 shadow-lg text-sm"
               onClick={() => navigate('/network')}
             >
               <span className="iridescent-text font-medium">Network</span>
@@ -186,31 +186,31 @@ const Profile = () => {
           </div>
           
           {/* Right side icon bubbles */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button 
               variant="ghost" 
               size="icon"
-              className="hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full w-10 h-10 backdrop-blur-sm border border-primary/20 shadow-lg"
+              className="hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full w-8 h-8 backdrop-blur-sm border border-primary/20 shadow-lg"
               onClick={() => setShowProfileEdit(true)}
             >
-              <Edit className="w-5 h-5 text-primary" />
+              <Edit className="w-4 h-4 text-primary" />
             </Button>
             <Button 
               variant="ghost"
               size="icon" 
-              className="hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full w-10 h-10 backdrop-blur-sm border border-primary/20 shadow-lg"
+              className="hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full w-8 h-8 backdrop-blur-sm border border-primary/20 shadow-lg"
               onClick={() => navigate('/profile/analytics')}
             >
-              <BarChart3 className="w-5 h-5 text-primary" />
+              <BarChart3 className="w-4 h-4 text-primary" />
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto p-6 pb-28 space-y-8 relative z-10">
+      <main className="max-w-4xl mx-auto p-4 pb-28 space-y-6 relative z-10">
         {/* Simplified Profile Card */}
-        <div className="p-8 text-center">
+        <div className="p-6 text-center">
           <div 
             className="w-32 h-32 mx-auto rounded-full border-4 border-primary overflow-hidden mb-6 cursor-pointer hover:scale-105 transition-transform duration-200"
             onClick={() => navigate('/profile/details')}
@@ -229,7 +229,7 @@ const Profile = () => {
             {displayName}
           </h1>
           
-          <p className="text-lg text-muted-foreground iridescent-text mb-4">
+          <p className="text-base md:text-lg text-muted-foreground iridescent-text mb-4">
             {profile.job_title || "Professional"}
           </p>
           
