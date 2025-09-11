@@ -180,14 +180,14 @@ const Profile = () => {
               onClick={() => setShowProfileEdit(true)}
             >
               <Edit className="w-4 h-4" />
-              Edit Profile
+              <span className="iridescent-text">Edit Profile</span>
             </Button>
             <Button 
               variant="outline" 
               className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
               onClick={() => navigate('/network')}
             >
-              Network
+              <span className="iridescent-text">Network</span>
             </Button>
             <Button 
               variant="outline" 
