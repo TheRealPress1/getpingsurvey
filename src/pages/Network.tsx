@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { StarField } from '@/components/StarField';
 import { ArrowLeft, MessageSquare, Users, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { buildPublicUrl } from '@/lib/utils';
 
 interface Connection {
   id: string;
@@ -106,7 +107,7 @@ const Network = () => {
   };
 
   const handleProfileClick = (userId: string) => {
-    window.open(`/ping/${userId}`, '_blank');
+    window.open(buildPublicUrl(`/ping/${userId}`), '_blank');
   };
 
   const startConversation = async (otherId: string) => {

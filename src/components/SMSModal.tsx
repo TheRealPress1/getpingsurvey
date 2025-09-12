@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X, Send, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { buildPublicUrl } from "@/lib/utils";
 
 interface SMSModalProps {
   isOpen: boolean;
@@ -20,20 +21,25 @@ const SMSModal = ({ isOpen, onClose, userProfile, isInvite = false }: SMSModalPr
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  const profileUrl = buildPublicUrl(`/ping/${userProfile?.user_id}`);
+  const signupUrl = isInvite
+    ? buildPublicUrl(`/signup?ref=${userProfile?.user_id}`)
+    : buildPublicUrl(`/signup`);
+
   const defaultMessage = isInvite 
     ? `Hey! I'm using this amazing NFC ring called ping! that lets me share my contact info instantly just by tapping it on phones.
 
-Check out my profile: ${window.location.origin}/ping/${userProfile?.user_id}
+Check out my profile: ${profileUrl}
 
 You should totally get one too! Use my referral link and we both get 1 month free:
-${window.location.origin}/signup?ref=${userProfile?.user_id}
+${signupUrl}
 
 It's so much easier than typing out contact info every time!`
-    : `Hey! Check out my ping! profile: ${window.location.origin}/ping/${userProfile?.user_id}
+    : `Hey! Check out my ping! profile: ${profileUrl}
 
 I just got this cool NFC ring that lets me share my contact info instantly. You should get one too! 
 
-Get your free trial: ${window.location.origin}/signup`;
+Get your free trial: ${signupUrl}`;
 
   useEffect(() => {
     if (isOpen) {

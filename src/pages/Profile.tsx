@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SaveContactButton } from "@/components/SaveContactButton";
 import GlobalSearch from "@/components/GlobalSearch";
 import SMSModal from "@/components/SMSModal";
+import { buildPublicUrl } from "@/lib/utils";
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -356,7 +357,7 @@ const Profile = () => {
           <Button 
             variant="outline" 
             className="w-full max-w-sm border-primary text-primary hover:bg-primary/10"
-            onClick={() => window.open(`${window.location.origin}/ping/${user.id}`, '_blank')}
+            onClick={() => window.open(buildPublicUrl(`/ping/${user.id}`), '_blank')}
           >
             Share my ping! profile
           </Button>
