@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 3;
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "",
@@ -24,7 +24,6 @@ const ProfileSetup = () => {
     linkedin: "",
     instagram: "",
     twitter: "",
-    venmo: "",
     profilePhoto: null as File | null,
     avatarUrl: "" as string
   });
@@ -41,6 +40,45 @@ const ProfileSetup = () => {
         email: user.email || ''
       }));
     }
+  }, [user]);
+
+  const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadExisting = async () => {
+      if (!user) return;
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_url, linkedin_url, instagram_handle, social_links')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile) {
+          const links = (profile.social_links as Record<string, any> | null) || {};
+          setProfileData(prev => ({
+            ...prev,
+            name: prev.name || (profile.display_name as string) || prev.name,
+            avatarUrl: (profile.avatar_url as string) || prev.avatarUrl,
+            linkedin: (profile.linkedin_url as string) || (links.linkedin as string) || prev.linkedin,
+            instagram: (links.instagram as string) || (profile.instagram_handle as string) || prev.instagram,
+            twitter: (links.twitter as string) || prev.twitter,
+          }));
+        }
+
+        const { data: social } = await supabase
+          .from('social_media_data')
+          .select('platform')
+          .eq('user_id', user.id);
+
+        if (social) {
+          setConnectedPlatforms(social.map((s: any) => s.platform));
+        }
+      } catch (e) {
+        console.error('Error preloading profile/social data', e);
+      }
+    };
+    loadExisting();
   }, [user]);
 
   const progress = (currentStep / totalSteps) * 100;
@@ -115,15 +153,15 @@ const ProfileSetup = () => {
         .from('profiles')
         .upsert({
           user_id: user.id,
-          display_name: profileData.name || user.user_metadata.display_name,
+          display_name: profileData.name || (user.user_metadata as any)?.display_name,
           bio: `Q1: ${profileData.question1}\n\nQ2: ${profileData.question2}\n\nQ3: ${profileData.question3}\n\nQ4: ${profileData.question4}\n\nQ5: ${profileData.question5}`,
           avatar_url: profileData.avatarUrl,
           linkedin_url: profileData.linkedin,
+          instagram_handle: profileData.instagram,
           social_links: {
             linkedin: profileData.linkedin,
             instagram: profileData.instagram,
-            twitter: profileData.twitter,
-            venmo: profileData.venmo
+            twitter: profileData.twitter
           },
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
@@ -149,38 +187,52 @@ const ProfileSetup = () => {
       const success = await saveProfileData();
       if (success && user) {
         try {
-          // Kick off AI profile generation using provided info
           await supabase.functions.invoke('process-profile', {
             body: {
               userId: user.id,
-              platforms: [],
+              platforms: connectedPlatforms,
               seedProfile: {
-                displayName: profileData.name || user.user_metadata?.display_name,
+                displayName: profileData.name || (user.user_metadata as any)?.display_name,
                 bio: `Q1: ${profileData.question1}\n\nQ2: ${profileData.question2}\n\nQ3: ${profileData.question3}\n\nQ4: ${profileData.question4}\n\nQ5: ${profileData.question5}`,
-                linkedin: profileData.linkedin,
-                instagram: profileData.instagram,
                 social_links: {
                   linkedin: profileData.linkedin,
                   instagram: profileData.instagram,
-                  twitter: profileData.twitter,
-                  venmo: profileData.venmo
+                  twitter: profileData.twitter
                 }
               }
             }
           });
+
+          // Wait for AI processing to complete before navigating
+          const start = Date.now();
+          let completed = false;
+          while (Date.now() - start < 90000) { // up to 90s
+            const { data: job } = await supabase
+              .from('profile_processing_jobs')
+              .select('status, progress')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+            if (job?.status === 'completed') { completed = true; break; }
+            if (job?.status === 'failed') { throw new Error('Profile generation failed'); }
+            await new Promise((r) => setTimeout(r, 1500));
+          }
+
+          toast({
+            title: completed ? 'Profile completed!' : 'Profile saved',
+            description: completed ? 'Your AI bio and details are ready.' : 'AI is still finishing up. You can edit later.'
+          });
         } catch (e) {
           console.error('AI generation failed, continuing with saved data', e);
+          toast({
+            variant: 'destructive',
+            title: 'AI generation failed',
+            description: 'We saved your details. You can retry AI generation later.'
+          });
         }
 
-        toast({
-          title: 'Profile completed!',
-          description: 'Your profile has been set up successfully.'
-        });
-        
-        // Use navigate instead of window.location.href for better React Router integration
-        setTimeout(() => {
-          window.location.href = '/profile';
-        }, 500); // Small delay to ensure toast shows and data is saved
+        window.location.href = '/profile';
       }
       setLoading(false);
     }
@@ -348,26 +400,7 @@ const ProfileSetup = () => {
           </div>
         );
       
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold iridescent-text mb-2">Payment Method</h2>
-              <p className="text-muted-foreground iridescent-text">Add how people can pay you</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium iridescent-text mb-2">Venmo</label>
-              <input
-                type="text"
-                name="venmo"
-                value={profileData.venmo}
-                onChange={handleInputChange}
-                className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                placeholder="@yourvenmo"
-              />
-            </div>
-          </div>
-        );
+          {/* Venmo/payment step removed by request */}
       
       default:
         return null;
