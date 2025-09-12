@@ -4,9 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X, Send, MessageSquare } from "lucide-react";
+import { X, Send, MessageSquare, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getShareableUrl } from "@/lib/environment";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SMSModalProps {
   isOpen: boolean;
@@ -59,14 +60,21 @@ Get your free trial: ${signupUrl}`;
 
     setLoading(true);
     try {
-      // Simulate SMS sending (in real app, this would call an SMS API)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Create iMessage URL with pre-filled content
+      const encodedMessage = encodeURIComponent(message);
+      const iMessageUrl = `sms:${phoneNumber}&body=${encodedMessage}`;
+      
+      // Open iMessage/SMS app
+      window.open(iMessageUrl, '_self');
+      
+      // For referral tracking, the signup URL includes the ref parameter
+      // which will be handled when the user signs up
       
       toast({
-        title: "Invite sent!",
+        title: "Opening Messages",
         description: isInvite 
-          ? `Your referral invitation has been sent to ${phoneNumber}. You'll both get 1 month free when they sign up!`
-          : `Your ping! profile has been shared with ${phoneNumber}`,
+          ? `Opening your messages app to send the referral invitation. You'll both get 1 month free when they sign up!`
+          : `Opening your messages app to share your ping! profile`,
       });
       
       onClose();
@@ -74,8 +82,8 @@ Get your free trial: ${signupUrl}`;
       setMessage(defaultMessage);
     } catch (error) {
       toast({
-        title: "Failed to send",
-        description: "There was an error sending your message. Please try again.",
+        title: "Failed to open messages",
+        description: "Unable to open your messages app. Please copy the message and send it manually.",
         variant: "destructive"
       });
     } finally {
@@ -122,10 +130,17 @@ Get your free trial: ${signupUrl}`;
           <div className="flex gap-3 pt-4">
             <Button
               variant="outline"
-              onClick={onClose}
+              onClick={() => {
+                navigator.clipboard.writeText(message);
+                toast({
+                  title: "Copied!",
+                  description: "Message copied to clipboard",
+                });
+              }}
               className="flex-1 border-border text-muted-foreground hover:bg-secondary/20"
             >
-              Cancel
+              <Copy className="w-4 h-4 mr-2" />
+              Copy
             </Button>
             <Button
               onClick={handleSendSMS}
@@ -135,12 +150,12 @@ Get your free trial: ${signupUrl}`;
               {loading ? (
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
-                  Sending...
+                  Opening...
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <Send className="w-4 h-4" />
-                  {isInvite ? "Send Invite" : "Send SMS"}
+                  Open Messages
                 </div>
               )}
             </Button>

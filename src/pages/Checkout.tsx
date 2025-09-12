@@ -25,15 +25,14 @@ const Checkout = () => {
       [e.target.name]: e.target.value
     });
   };
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
-          email: formData.email,
-          name: formData.name,
+          email: '',  // Stripe will collect this
+          name: '',   // Stripe will collect this
         },
       });
 
@@ -141,79 +140,19 @@ const Checkout = () => {
 
           {/* Checkout Form */}
           <Card className="bg-card border-border p-6">
-            <h2 className="text-2xl font-bold iridescent-text mb-6 flex items-center gap-2">
-              <CreditCard className="w-6 h-6 text-primary" />
-              Payment Details
+            <h2 className="text-2xl font-bold iridescent-text mb-6 text-center">
+              Complete Your Order
             </h2>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium iridescent-text mb-2">
-                    Email
-                  </label>
-                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium iridescent-text mb-2">
-                    Full Name
-                  </label>
-                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium iridescent-text mb-2">
-                  Address
-                </label>
-                <input type="text" name="address" value={formData.address} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium iridescent-text mb-2">
-                    City
-                  </label>
-                  <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium iridescent-text mb-2">
-                    ZIP Code
-                  </label>
-                  <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium iridescent-text mb-2">
-                  Card Number
-                </label>
-                <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} placeholder="1234 5678 9012 3456" className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium iridescent-text mb-2">
-                    Expiry Date
-                  </label>
-                  <input type="text" name="expiry" value={formData.expiry} onChange={handleInputChange} placeholder="MM/YY" className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium iridescent-text mb-2">
-                    CVV
-                  </label>
-                  <input type="text" name="cvv" value={formData.cvv} onChange={handleInputChange} placeholder="123" className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text" required />
-                </div>
-              </div>
-              
-              <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4 mb-4">
+            <div className="space-y-6">
+              <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4">
                 <p className="text-sm text-muted-foreground iridescent-text text-center">
                   Get your Ping ring and access to your new network • Billed $2.99/month after first month
                 </p>
               </div>
               
               <Button 
-                type="submit" 
+                onClick={handleSubmit} 
                 disabled={loading}
                 className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200 py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -224,11 +163,15 @@ const Checkout = () => {
                 type="button"
                 onClick={handleCreateAccount}
                 variant="outline"
-                className="w-full mt-3 py-4 text-lg font-semibold border-primary/30 text-primary hover:bg-primary/10"
+                className="w-full py-4 text-lg font-semibold border-primary/30 text-primary hover:bg-primary/10"
               >
                 Create My Account
               </Button>
-            </form>
+              
+              <div className="text-xs text-center text-muted-foreground iridescent-text">
+                Payment and shipping details will be collected securely through Stripe
+              </div>
+            </div>
           </Card>
         </div>
       </main>

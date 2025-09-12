@@ -132,22 +132,15 @@ const Onboarding = () => {
           <div className="space-y-6">
             <div className="text-center space-y-4">
               <UserCheck className="w-16 h-16 text-primary mx-auto" />
-              <h2 className="text-2xl font-bold iridescent-text">Invite a Friend</h2>
+              <h2 className="text-2xl font-bold iridescent-text">Invite a Friend for 1 Month Free</h2>
               <p className="text-muted-foreground iridescent-text">Get your first month free when they order</p>
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium iridescent-text mb-2">Friend's Phone Number (Optional)</label>
-                <input
-                  type="tel"
-                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
-                  placeholder="Enter friend's phone number"
-                />
-              </div>
+            <div className="flex flex-col items-center space-y-4">
               <Button 
-                variant="outline" 
-                className="w-full border-primary text-primary hover:bg-primary/10"
+                onClick={() => setShowInviteModal(true)}
+                className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
               >
+                <MessageSquare className="w-4 h-4" />
                 Send Invite via SMS
               </Button>
               <p className="text-xs text-center text-muted-foreground iridescent-text">
