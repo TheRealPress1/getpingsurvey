@@ -19,6 +19,7 @@ interface PublicProfile {
   skills: string[];
   interests: string[];
   social_links: any;
+  phone_number: string;
 }
 
 const PublicPing = () => {
@@ -36,19 +37,32 @@ const PublicPing = () => {
 
   const fetchPublicProfile = async () => {
     try {
-      // Fetch public profile data
+      console.log('Fetching profile for userId:', userId);
+      
+      // Fetch directly from profiles table
       const { data: profileData, error: profileError } = await supabase
-        .rpc('get_public_profile_secure', { target_user_id: userId });
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
 
-      if (profileError) throw profileError;
+      console.log('Profile data:', profileData);
+      console.log('Profile error:', profileError);
 
-      if (!profileData || profileData.length === 0) {
+      if (profileError) {
+        console.error('Profile error:', profileError);
         setError("Profile not found");
         setLoading(false);
         return;
       }
 
-      const profile = profileData[0];
+      if (!profileData) {
+        setError("Profile not found");
+        setLoading(false);
+        return;
+      }
+
+      const profile = profileData;
       setProfile({
         user_id: profile.user_id,
         display_name: profile.display_name,
@@ -60,12 +74,16 @@ const PublicPing = () => {
         website_url: profile.website_url,
         skills: profile.skills || [],
         interests: profile.interests || [],
-        social_links: (profile as any).social_links || {}
+        social_links: profile.social_links || {},
+        phone_number: profile.phone_number
       });
 
-      // Fetch user email for contact
+      // Fetch user email for contact  
       const { data: emailData, error: emailError } = await supabase
         .rpc('get_user_email_for_contact', { target_user_id: userId });
+
+      console.log('Email data:', emailData);
+      console.log('Email error:', emailError);
 
       if (!emailError && emailData) {
         setUserEmail(emailData);
@@ -109,6 +127,8 @@ const PublicPing = () => {
     );
   }
 
+  const displayName = (profile.display_name?.toLowerCase() === 'vgardner') ? 'Vaness Gardner' : (profile.display_name || 'User');
+
   return (
     <div className="min-h-screen bg-background relative">
       <StarField />
@@ -126,133 +146,145 @@ const PublicPing = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto p-6 pb-28 relative z-10">
-        {/* Profile Header */}
-        <Card className="bg-card border-border p-8 mb-6">
-          <div className="text-center">
-            <div className="w-32 h-32 mx-auto rounded-full border-4 border-primary overflow-hidden mb-6">
-              <img
-                src={profile.avatar_url || "/placeholder.svg"}
-                alt={profile.display_name || "Profile"}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            <h1 className="text-3xl font-bold iridescent-text mb-2">
-              {profile.display_name}
-            </h1>
-            
-            {profile.job_title && (
-              <p className="text-lg text-muted-foreground iridescent-text mb-4">
-                {profile.job_title}
-              </p>
-            )}
-            
-            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-6">
-              {profile.location && (
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <span className="iridescent-text">{profile.location}</span>
-                </div>
-              )}
-              {profile.company && (
-                <div className="flex items-center gap-1">
-                  <Building2 className="w-4 h-4 text-primary" />
-                  <span className="iridescent-text">{profile.company}</span>
-                </div>
-              )}
-            </div>
-
-            {profile.bio && (
-              <div className="bg-secondary/20 rounded-lg p-4 mb-6">
-                <p className="text-muted-foreground iridescent-text text-left whitespace-pre-wrap">
-                  {profile.bio}
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-3 justify-center mb-6">
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2">
-                <MessageCircle className="w-4 h-4" />
-                Connect
-              </Button>
-              <SaveContactButton profile={profile} userEmail={userEmail} />
-            </div>
+      <main className="max-w-4xl mx-auto p-4 pb-28 space-y-6 relative z-10">
+        {/* Profile Header - Matching internal profile layout */}
+        <div className="p-6 text-center">
+          <div className="w-32 h-32 mx-auto rounded-full border-4 border-primary overflow-hidden mb-6">
+            <img
+              src={profile.avatar_url || "/placeholder.svg"}
+              alt={profile.display_name || "Profile"}
+              className="w-full h-full object-cover"
+            />
           </div>
-        </Card>
-
-        {/* Contact Information */}
-        <div className="space-y-4 mb-6">
-          {userEmail && (
-            <Card className="bg-card border-border p-4">
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium iridescent-text">Email</p>
-                  <a 
-                    href={`mailto:${userEmail}`}
-                    className="text-sm text-muted-foreground iridescent-text hover:text-primary transition-colors"
-                  >
-                    {userEmail}
-                  </a>
-                </div>
+          
+          <h1 className="text-3xl font-bold iridescent-text mb-2">
+            {displayName}
+          </h1>
+          
+          <p className="text-base md:text-lg text-muted-foreground iridescent-text mb-4">
+            {profile.job_title || "Professional"}
+          </p>
+          
+          <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mb-4">
+            {profile.location && (
+              <div className="flex items-center gap-1">
+                <MapPin className="w-3 h-3 text-primary" />
+                <span className="iridescent-text">{profile.location}</span>
               </div>
-            </Card>
-          )}
+            )}
+            {profile.company && (
+              <div className="flex items-center gap-1">
+                <Building2 className="w-3 h-3 text-primary" />
+                <span className="iridescent-text">{profile.company}</span>
+              </div>
+            )}
+          </div>
+
+          <Button className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground text-sm mb-4 flex items-center gap-2">
+            <MessageCircle className="w-4 h-4" />
+            Connect with {displayName.split(' ')[0] || 'User'}
+          </Button>
+          
+          <div className="mb-4">
+            <SaveContactButton profile={profile} userEmail={userEmail} />
+          </div>
         </div>
 
-        {/* Social Links */}
-        {profile.social_links && Object.keys(profile.social_links).length > 0 && (
-          <Card className="bg-card border-border p-6 mb-6">
-            <h3 className="text-lg font-semibold iridescent-text mb-4">Connect with {profile.display_name}</h3>
-            <div className="space-y-3">
-              {Object.entries(profile.social_links).map(([platform, linkData]: [string, any]) => {
-                if (!linkData || (typeof linkData === 'object' && !linkData.url) || (typeof linkData === 'string' && !linkData)) {
-                  return null;
-                }
-                
-                const url = typeof linkData === 'string' ? linkData : linkData.url;
-                
-                return (
+        {/* Bio Section - if exists */}
+        {profile.bio && (
+          <Card className="bg-card border-border p-6">
+            <div className="bg-secondary/20 rounded-lg p-4">
+              <p className="text-muted-foreground iridescent-text whitespace-pre-wrap">
+                {profile.bio}
+              </p>
+            </div>
+          </Card>
+        )}
+
+        {/* Connect & Learn More - Matching internal profile layout */}
+        <div>
+          <h2 className="text-2xl font-bold iridescent-text mb-6 text-center animate-fade-in">Connect with {displayName}</h2>
+          
+          <div className="space-y-3 animate-fade-in">
+            {profile.phone_number && (
+              <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium iridescent-text">Phone</p>
+                      <p className="text-sm text-muted-foreground iridescent-text truncate">{profile.phone_number}</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+            {userEmail && (
+              <Card className="bg-card border-border p-3 hover:border-primary/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-primary" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium iridescent-text text-sm">Email</p>
+                    <a 
+                      href={`mailto:${userEmail}`}
+                      className="text-sm text-muted-foreground iridescent-text truncate hover:text-primary transition-colors cursor-pointer block"
+                    >
+                      {userEmail}
+                    </a>
+                  </div>
+                </div>
+              </Card>
+            )}
+            {profile?.social_links && Object.entries(profile.social_links).map(([platform, linkData]: [string, any]) => {
+              // Skip empty values
+              if (!linkData || (typeof linkData === 'object' && !linkData.url) || (typeof linkData === 'string' && !linkData)) {
+                return null;
+              }
+              
+              const url = typeof linkData === 'string' ? linkData : linkData.url;
+              
+              return (
+                <Card key={platform} className="bg-card border-border p-3 hover:border-primary/50 transition-colors">
                   <a 
-                    key={platform}
                     href={url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-secondary/20 rounded-lg hover:bg-secondary/30 transition-colors"
+                    className="flex items-center gap-3 w-full"
                   >
                     <div className="w-5 h-5 flex items-center justify-center">
                       {platform === 'linkedin' && <Building2 className="w-4 h-4 text-primary" />}
                       {platform === 'instagram' && <span className="text-primary font-bold text-xs">IG</span>}
                       {platform === 'twitter' && <span className="text-primary font-bold text-xs">X</span>}
+                      {platform === 'venmo' && <span className="text-primary font-bold text-xs">V</span>}
                       {platform === 'website' && <ExternalLink className="w-4 h-4 text-primary" />}
-                      {!['linkedin', 'instagram', 'twitter', 'website'].includes(platform) && <ExternalLink className="w-4 h-4 text-primary" />}
+                      {!['linkedin', 'instagram', 'twitter', 'venmo', 'website'].includes(platform) && <ExternalLink className="w-4 h-4 text-primary" />}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium iridescent-text capitalize">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium iridescent-text text-sm capitalize">
                         {platform === 'linkedin' && 'LinkedIn'}
                         {platform === 'instagram' && 'Instagram'}
                         {platform === 'twitter' && 'Twitter/X'}
+                        {platform === 'venmo' && 'Venmo'}
                         {platform === 'website' && 'Website'}
-                        {!['linkedin', 'instagram', 'twitter', 'website'].includes(platform) && platform}
+                        {!['linkedin', 'instagram', 'twitter', 'venmo', 'website'].includes(platform) && platform}
                       </p>
                       {platform === 'website' && (
-                        <p className="text-xs text-muted-foreground iridescent-text">
+                        <p className="text-xs text-muted-foreground iridescent-text truncate">
                           {url}
                         </p>
                       )}
                     </div>
-                    <ExternalLink className="w-4 h-4 text-primary" />
+                    <ExternalLink className="w-3 h-3 text-primary flex-shrink-0" />
                   </a>
-                );
-              })}
-            </div>
-          </Card>
-        )}
+                </Card>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Skills */}
         {profile.skills && profile.skills.length > 0 && (
-          <Card className="bg-card border-border p-6 mb-6">
+          <Card className="bg-card border-border p-6">
             <h3 className="text-lg font-semibold iridescent-text mb-4">Skills</h3>
             <div className="flex flex-wrap gap-2">
               {profile.skills.map((skill, index) => (
@@ -269,7 +301,7 @@ const PublicPing = () => {
 
         {/* Interests */}
         {profile.interests && profile.interests.length > 0 && (
-          <Card className="bg-card border-border p-6 mb-6">
+          <Card className="bg-card border-border p-6">
             <h3 className="text-lg font-semibold iridescent-text mb-4">Interests</h3>
             <div className="flex flex-wrap gap-2">
               {profile.interests.map((interest, index) => (
