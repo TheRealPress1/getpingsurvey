@@ -39,12 +39,11 @@ const PublicPing = () => {
     try {
       console.log('Fetching profile for userId:', userId);
       
-      // Fetch directly from profiles table
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+      // Use the secure RPC function for public access
+      const { data: profileData, error: profileError } = await supabase.rpc(
+        'get_public_profile_secure',
+        { target_user_id: userId }
+      );
 
       console.log('Profile data:', profileData);
       console.log('Profile error:', profileError);
@@ -56,13 +55,13 @@ const PublicPing = () => {
         return;
       }
 
-      if (!profileData) {
+      if (!profileData || profileData.length === 0) {
         setError("Profile not found");
         setLoading(false);
         return;
       }
 
-      const profile = profileData;
+      const profile = profileData[0];
       setProfile({
         user_id: profile.user_id,
         display_name: profile.display_name,
@@ -74,19 +73,23 @@ const PublicPing = () => {
         website_url: profile.website_url,
         skills: profile.skills || [],
         interests: profile.interests || [],
-        social_links: profile.social_links || {},
-        phone_number: profile.phone_number
+        social_links: {}, // Not included in secure function
+        phone_number: '' // Not included in secure function
       });
 
-      // Fetch user email for contact  
-      const { data: emailData, error: emailError } = await supabase
-        .rpc('get_user_email_for_contact', { target_user_id: userId });
+      // Fetch user email for contact using the secure function
+      const { data: emailData, error: emailError } = await supabase.rpc(
+        'get_user_email_for_contact',
+        { target_user_id: userId }
+      );
 
       console.log('Email data:', emailData);
       console.log('Email error:', emailError);
 
       if (!emailError && emailData) {
         setUserEmail(emailData);
+      } else {
+        setUserEmail('contact@pingapp.com'); // Fallback
       }
     } catch (error) {
       console.error('Error fetching public profile:', error);
