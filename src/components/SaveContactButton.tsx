@@ -5,6 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 interface SaveContactButtonProps {
   profile: {
     display_name?: string;
+    full_name?: string;
+    first_name?: string;
+    last_name?: string;
     phone_number?: string;
     user_id: string;
     bio?: string;
@@ -43,14 +46,49 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
 
   const saveContact = async () => {
     try {
-      const displayName = profile.display_name || 'Contact';
-      const contactFileName = `contact_name_-_${displayName.replace(/\s+/g, '_')}`;
+      // Determine person name (first and last), avoiding display handles
+      const toTitleCase = (s: string) =>
+        (s || '').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+
+      const emailLocal = (userEmail || '').split('@')[0];
+      const tokensFromEmail = emailLocal.split(/[._-]+/).filter(Boolean);
+
+      let firstName = (profile as any).first_name?.trim() || '';
+      let lastName = (profile as any).last_name?.trim() || '';
+      let middleName = '';
+
+      const fromFull = ((profile as any).full_name || profile.display_name || '').trim();
+
+      if (!firstName && !lastName && fromFull.includes(' ')) {
+        const parts = fromFull.split(/\s+/);
+        firstName = parts[0] || '';
+        lastName = parts.length > 1 ? parts[parts.length - 1] : '';
+        middleName = parts.length > 2 ? parts.slice(1, -1).join(' ') : '';
+      } else if (!firstName && !lastName && tokensFromEmail.length >= 2) {
+        firstName = tokensFromEmail[0];
+        lastName = tokensFromEmail.slice(1).join(' ');
+      } else if (!firstName && !lastName && profile.display_name) {
+        const m = profile.display_name.match(/^([a-zA-Z])(.*)$/);
+        if (m) {
+          firstName = m[1];
+          lastName = m[2];
+        } else {
+          firstName = profile.display_name;
+        }
+      }
+
+      // Title case
+      firstName && (firstName = toTitleCase(firstName));
+      middleName && (middleName = toTitleCase(middleName));
+      lastName && (lastName = toTitleCase(lastName));
+
+      const personName = [firstName, middleName, lastName].filter(Boolean).join(' ').trim() || 'Contact';
+      const contactFileName = `contact_name_-_${personName.replace(/\s+/g, '_')}`;
       
       let photoData = '';
       if (profile.avatar_url && !profile.avatar_url.includes('placeholder.svg')) {
         photoData = await imageToBase64(profile.avatar_url);
       }
-      
       // Create comprehensive vCard format with proper person fields
       const esc = (val: string) =>
         (val ?? '')
@@ -59,17 +97,13 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
           .replace(/,/g, '\\,')
           .replace(/;/g, '\\;');
 
-      const nameParts = displayName.trim().split(/\s+/);
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
-      const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
-
       // Build vCard lines and join with CRLF as per spec
       const vCard = [
         'BEGIN:VCARD',
         'VERSION:3.0',
         `N:${esc(lastName)};${esc(firstName)};${esc(middleName)};;`,
-        `FN:${esc(displayName)}`,
+        `FN:${esc(personName)}`,
+        'X-ABShowAs:PERSON',
         profile.job_title ? `TITLE:${esc(profile.job_title)}` : '',
         profile.company ? `ORG:${esc(profile.company)}` : '',
         userEmail ? `EMAIL;TYPE=INTERNET:${esc(userEmail)}` : '',
@@ -95,7 +129,7 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
 
       toast({
         title: "Contact Saved",
-        description: `${displayName}'s contact with photo has been saved to your device`,
+        description: `${personName}'s contact has been saved to your device`,
       });
     } catch (error) {
       toast({
