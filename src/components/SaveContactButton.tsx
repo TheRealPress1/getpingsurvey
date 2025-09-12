@@ -51,19 +51,35 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
         photoData = await imageToBase64(profile.avatar_url);
       }
       
-      // Create comprehensive vCard format with photo
-      const vCard = `BEGIN:VCARD
-VERSION:3.0
-FN:${displayName}
-${profile.job_title ? `TITLE:${profile.job_title}` : ''}
-${profile.company ? `ORG:${profile.company}` : ''}
-EMAIL:${userEmail}
-${profile.phone_number ? `TEL:${profile.phone_number}` : ''}
-${profile.website_url ? `URL:${profile.website_url}` : ''}
-${profile.location ? `ADR:;;;;;;${profile.location}` : ''}
-${profile.bio ? `NOTE:${profile.bio}` : ''}
-${photoData ? `PHOTO;ENCODING=BASE64;TYPE=JPEG:${photoData}` : ''}
-END:VCARD`;
+      // Create comprehensive vCard format with proper person fields
+      const esc = (val: string) =>
+        (val ?? '')
+          .replace(/\\/g, '\\\\')
+          .replace(/\n/g, '\\n')
+          .replace(/,/g, '\\,')
+          .replace(/;/g, '\\;');
+
+      const nameParts = displayName.trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+      const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
+
+      // Build vCard lines and join with CRLF as per spec
+      const vCard = [
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        `N:${esc(lastName)};${esc(firstName)};${esc(middleName)};;`,
+        `FN:${esc(displayName)}`,
+        profile.job_title ? `TITLE:${esc(profile.job_title)}` : '',
+        profile.company ? `ORG:${esc(profile.company)}` : '',
+        userEmail ? `EMAIL;TYPE=INTERNET:${esc(userEmail)}` : '',
+        profile.phone_number ? `TEL;TYPE=CELL:${esc(profile.phone_number)}` : '',
+        profile.website_url ? `URL:${esc(profile.website_url)}` : '',
+        profile.location ? `ADR:;;;;;;${esc(profile.location)}` : '',
+        profile.bio ? `NOTE:${esc(profile.bio)}` : '',
+        photoData ? `PHOTO;ENCODING=BASE64;TYPE=JPEG:${photoData}` : '',
+        'END:VCARD',
+      ].filter(Boolean).join('\r\n');
 
       // Create blob and download
       const blob = new Blob([vCard], { type: 'text/vcard' });
