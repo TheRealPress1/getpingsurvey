@@ -215,22 +215,25 @@ const Profile = () => {
       <main className="max-w-4xl mx-auto p-4 pb-28 space-y-6 relative z-10">
         {/* Simplified Profile Card */}
         <div className="p-6 text-center">
-          <div 
-            className="w-32 h-32 mx-auto rounded-full border-4 border-primary overflow-hidden mb-6 cursor-pointer hover:scale-105 transition-transform duration-200"
-            onClick={() => navigate('/profile/details')}
+          <Link 
+            to="/profile/details"
+            aria-label="View profile details"
+            className="block w-32 h-32 mx-auto rounded-full border-4 border-primary overflow-hidden mb-6 hover:scale-105 transition-transform duration-200"
           >
             <img
               src={profile.avatar_url || "/placeholder.svg"}
               alt={profile.display_name || "Profile"}
               className="w-full h-full object-cover"
             />
-          </div>
+          </Link>
           
-          <h1 
-            className="text-3xl font-bold iridescent-text mb-2 cursor-pointer story-link animate-enter hover-scale transition-all duration-500 ease-out"
-            onClick={() => navigate('/profile/details')}
-          >
-            {displayName}
+          <h1 className="text-3xl font-bold iridescent-text mb-2">
+            <Link 
+              to="/profile/details"
+              className="cursor-pointer story-link animate-enter hover-scale transition-all duration-500 ease-out"
+            >
+              {displayName}
+            </Link>
           </h1>
           
           <p className="text-base md:text-lg text-muted-foreground iridescent-text mb-4">
