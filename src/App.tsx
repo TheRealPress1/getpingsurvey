@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import Network from "./pages/Network";
 import PublicProfile from "./pages/PublicProfile";
 import PublicPing from "./pages/PublicPing";
+import PublicProfileDetails from "./pages/PublicProfileDetails";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/chat" element={<Chat />} />
             <Route path="/u/:userId" element={<PublicProfile />} />
             <Route path="/ping/:userId" element={<PublicPing />} />
+            <Route path="/ping/:userId/details" element={<PublicProfileDetails />} />
             <Route path="/network" element={<Network />} />
             <Route path="/chat/:conversationId" element={<ChatThread />} />
             <Route path="*" element={<NotFound />} />
