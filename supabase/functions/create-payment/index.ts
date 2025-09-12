@@ -69,7 +69,7 @@ serve(async (req) => {
       subscription_data: {
         trial_period_days: 7, // 7 days free trial
       },
-      success_url: `${req.headers.get("origin")}/signup?payment_success=true`,
+      success_url: `${req.headers.get("origin")}/payment-success`,
       cancel_url: `${req.headers.get("origin")}/checkout`,
       metadata: {
         customer_name: name || '',
