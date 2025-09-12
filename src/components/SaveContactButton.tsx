@@ -44,6 +44,7 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
   const saveContact = async () => {
     try {
       const displayName = profile.display_name || 'Contact';
+      const contactFileName = `contact_name_-_${displayName.replace(/\s+/g, '_')}`;
       
       let photoData = '';
       if (profile.avatar_url && !profile.avatar_url.includes('placeholder.svg')) {
@@ -70,7 +71,7 @@ END:VCARD`;
       
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${displayName.replace(/\s+/g, '_')}.vcf`;
+      link.download = `${contactFileName}.vcf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
