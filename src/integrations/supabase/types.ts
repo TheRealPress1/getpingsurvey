@@ -257,36 +257,7 @@ export type Database = {
       }
     }
     Views: {
-      safe_social_media_data: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          platform: string | null
-          processed_data: Json | null
-          raw_data: Json | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          platform?: string | null
-          processed_data?: Json | null
-          raw_data?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          platform?: string | null
-          processed_data?: Json | null
-          raw_data?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_public_profile_data: {
@@ -350,6 +321,18 @@ export type Database = {
           updated_at: string
           user_id: string
           website_url: string
+        }[]
+      }
+      get_safe_social_data: {
+        Args: { target_user_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          platform: string
+          processed_data: Json
+          raw_data: Json
+          updated_at: string
+          user_id: string
         }[]
       }
       get_user_email_for_contact: {
