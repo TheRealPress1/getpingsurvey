@@ -101,8 +101,8 @@ const ProfileSetup = () => {
     if (!file.type.startsWith('image/')) {
       toast({
         variant: 'destructive',
-        title: 'Invalid file type',
-        description: 'Please select an image file (JPG, PNG, etc.).'
+        title: 'invalid file type',
+        description: 'please select an image file (jpg, png, etc.).'
       });
       return;
     }
@@ -111,8 +111,8 @@ const ProfileSetup = () => {
     if (file.size > 5 * 1024 * 1024) {
       toast({
         variant: 'destructive',
-        title: 'File too large',
-        description: 'Please select an image smaller than 5MB.'
+        title: 'file too large',
+        description: 'please select an image smaller than 5mb.'
       });
       return;
     }
@@ -161,8 +161,8 @@ const ProfileSetup = () => {
       }));
 
       toast({
-        title: 'Photo uploaded!',
-        description: 'Your profile photo has been uploaded successfully.'
+        title: 'photo uploaded!',
+        description: 'your profile photo has been uploaded successfully.'
       });
     } catch (error: any) {
       console.error('Error uploading photo:', error);
@@ -284,8 +284,8 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold iridescent-text mb-2">Add Your Photo</h2>
-              <p className="text-muted-foreground iridescent-text">Help people recognize you</p>
+              <h2 className="text-2xl font-bold iridescent-text mb-2">add your photo</h2>
+              <p className="text-muted-foreground iridescent-text">help people recognize you</p>
             </div>
             <div className="flex flex-col items-center space-y-4">
               <div className="w-32 h-32 bg-secondary/20 rounded-full flex items-center justify-center border-2 border-dashed border-primary/50 overflow-hidden relative">
@@ -313,7 +313,7 @@ const ProfileSetup = () => {
               />
               <label htmlFor="photo-upload">
                 <Button variant="outline" className="border-primary text-primary hover:bg-primary/10" asChild>
-                  <span>{profileData.profilePhoto ? 'Change Photo' : 'Upload Photo'}</span>
+                  <span>{profileData.profilePhoto ? 'change photo' : 'upload photo'}</span>
                 </Button>
               </label>
             </div>
@@ -324,13 +324,13 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold iridescent-text mb-2">Let's get to know you</h2>
-              <p className="text-muted-foreground iridescent-text">Answer a few questions to help us create your perfect profile</p>
+              <h2 className="text-2xl font-bold iridescent-text mb-2">let's get to know you</h2>
+              <p className="text-muted-foreground iridescent-text">answer a few questions to help us create your perfect profile</p>
             </div>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium iridescent-text mb-2">
-                  What do you do professionally, and what's one thing about your work that most people don't realize or find surprising?
+                  what do you do professionally, and what's one thing about your work that most people don't realize or find surprising?
                 </label>
                 <textarea
                   name="question1"
@@ -338,12 +338,12 @@ const ProfileSetup = () => {
                   onChange={handleInputChange}
                   className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text resize-none"
                   rows={3}
-                  placeholder="Tell us about your professional work..."
+                  placeholder="tell us about your professional work..."
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium iridescent-text mb-2">
-                  Outside of work, what's something you're genuinely excited about right now?
+                  outside of work, what's something you're genuinely excited about right now?
                 </label>
                 <textarea
                   name="question2"
@@ -351,7 +351,7 @@ const ProfileSetup = () => {
                   onChange={handleInputChange}
                   className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text resize-none"
                   rows={3}
-                  placeholder="What interests you outside of work?"
+                  placeholder="what interests you outside of work?"
                 />
               </div>
               <div>
@@ -401,12 +401,12 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold iridescent-text mb-2">Social Links</h2>
-              <p className="text-muted-foreground iridescent-text">Connect your social profiles</p>
+              <h2 className="text-2xl font-bold iridescent-text mb-2">social links</h2>
+              <p className="text-muted-foreground iridescent-text">connect your social profiles</p>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium iridescent-text mb-2">LinkedIn</label>
+                <label className="block text-sm font-medium iridescent-text mb-2">linkedin</label>
                 <input
                   type="url"
                   name="linkedin"
@@ -417,7 +417,7 @@ const ProfileSetup = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium iridescent-text mb-2">Instagram</label>
+                <label className="block text-sm font-medium iridescent-text mb-2">instagram</label>
                 <input
                   type="url"
                   name="instagram"
@@ -428,7 +428,7 @@ const ProfileSetup = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium iridescent-text mb-2">X (Twitter)</label>
+                <label className="block text-sm font-medium iridescent-text mb-2">x (twitter)</label>
                 <input
                   type="url"
                   name="twitter"
@@ -466,7 +466,7 @@ const ProfileSetup = () => {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/profile" className="text-xl font-bold iridescent-text">ping!</Link>
           <div className="text-sm iridescent-text">
-            Step {currentStep} of {totalSteps} • {Math.round(progress)}% Complete
+            step {currentStep} of {totalSteps} • {Math.round(progress)}% complete
           </div>
         </div>
       </header>
@@ -482,7 +482,7 @@ const ProfileSetup = () => {
               onClick={handleSkip}
               className="flex-1 border-primary text-primary hover:bg-primary/10"
             >
-              Skip for Now
+              skip for now
             </Button>
             
               <Button 
@@ -490,7 +490,7 @@ const ProfileSetup = () => {
               disabled={loading}
               className="flex-1 shimmer bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              {loading ? 'Saving...' : (currentStep === totalSteps ? 'Complete' : 'Next')}
+              {loading ? 'saving...' : (currentStep === totalSteps ? 'complete' : 'next')}
             </Button>
           </div>
           

@@ -7,7 +7,7 @@ const Welcome = () => {
       <div className="text-center space-y-6 max-w-md w-full">
         {/* Welcome Text */}
         <h1 className="text-6xl md:text-7xl font-bold iridescent-text">
-          Welcome to ping!
+          welcome to ping!
         </h1>
 
         {/* Action Buttons */}
@@ -17,7 +17,7 @@ const Welcome = () => {
               size="lg"
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-4 text-lg font-medium"
             >
-              Sign Up
+              sign up
             </Button>
           </Link>
           <Link to="/signin" className="w-full">
@@ -26,7 +26,7 @@ const Welcome = () => {
               variant="outline"
               className="w-full border-primary text-primary hover:bg-primary/10 py-4 text-lg font-medium"
             >
-              Sign In
+              sign in
             </Button>
           </Link>
         </div>
@@ -37,7 +37,7 @@ const Welcome = () => {
             to="/" 
             className="text-muted-foreground hover:text-foreground underline transition-colors"
           >
-            Skip to main site
+            skip to main site
           </Link>
         </div>
       </div>

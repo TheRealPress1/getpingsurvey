@@ -47,8 +47,8 @@ const Checkout = () => {
     } catch (error) {
       console.error('Payment error:', error);
       toast({
-        title: "Payment Error",
-        description: "There was an issue processing your payment. Please try again.",
+        title: "payment error",
+        description: "there was an issue processing your payment. please try again.",
         variant: "destructive",
       });
     } finally {
@@ -58,8 +58,8 @@ const Checkout = () => {
 
   const handleCreateAccount = () => {
     toast({
-      title: "Welcome!",
-      description: "Let's set up your profile.",
+      title: "welcome!",
+      description: "let's set up your profile.",
     });
     
     setTimeout(() => {
@@ -76,7 +76,7 @@ const Checkout = () => {
             <ArrowLeft className="w-5 h-5 text-primary" />
             <span className="text-xl font-bold iridescent-text">ping!</span>
           </Link>
-          <div className="text-sm iridescent-text">Secure Checkout</div>
+          <div className="text-sm iridescent-text">secure checkout</div>
         </div>
       </header>
 
@@ -85,7 +85,7 @@ const Checkout = () => {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Order Summary */}
           <Card className="bg-card border-border p-6 h-fit">
-            <h2 className="text-2xl font-bold iridescent-text mb-6">Order Summary</h2>
+            <h2 className="text-2xl font-bold iridescent-text mb-6">order summary</h2>
             
             {/* Product Image */}
             <div className="flex justify-center mb-6">
@@ -96,29 +96,29 @@ const Checkout = () => {
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="font-semibold iridescent-text">ping! </h3>
-                  <p className="text-sm text-muted-foreground iridescent-text">Access your new network today</p>
+                  <p className="text-sm text-muted-foreground iridescent-text">access your new network today</p>
                 </div>
                 <span className="font-semibold iridescent-text">$9.99</span>
               </div>
               
               <div className="border-t border-border pt-2 mt-4">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="iridescent-text">Upfront Cost</span>
+                  <span className="iridescent-text">upfront cost</span>
                   <span className="iridescent-text">$9.99</span>
                 </div>
                 <div className="flex justify-between items-center text-sm mt-1">
-                  <span className="iridescent-text">Then $2.99/month</span>
+                  <span className="iridescent-text">then $2.99/month</span>
                   <span className="text-xs text-muted-foreground iridescent-text">recurring</span>
                 </div>
                 <div className="flex justify-between items-center text-sm mt-1">
-                  <span className="iridescent-text text-primary">Refer 1 friend → First month free</span>
+                  <span className="iridescent-text text-primary">refer 1 friend → first month free</span>
                   <span className="text-xs text-primary iridescent-text">bonus</span>
                 </div>
               </div>
               
               <div className="border-t border-border pt-4 mt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
-                  <span className="iridescent-text">Due Today</span>
+                  <span className="iridescent-text">due today</span>
                   <span className="iridescent-text">$9.99</span>
                 </div>
               </div>
@@ -127,11 +127,11 @@ const Checkout = () => {
             <div className="space-y-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-primary" />
-                <span className="iridescent-text">Cancel anytime</span>
+                <span className="iridescent-text">cancel anytime</span>
               </div>
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-primary" />
-                <span className="iridescent-text">Instant access</span>
+                <span className="iridescent-text">instant access</span>
               </div>
               <div className="flex items-center gap-2">
                 <Smartphone className="w-4 h-4 text-primary" />
@@ -143,7 +143,7 @@ const Checkout = () => {
           {/* Checkout Form */}
           <Card className="bg-card border-border p-6">
             <h2 className="text-2xl font-bold iridescent-text mb-6 text-center">
-              Complete Your Order
+              complete your order
             </h2>
             
             <div className="space-y-6">
@@ -152,7 +152,7 @@ const Checkout = () => {
                 disabled={loading}
                 className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200 py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Processing..." : "Get Ping Today - $9.99"}
+                {loading ? "processing..." : "get ping! today - $9.99"}
               </Button>
               
               <Button 
@@ -161,11 +161,11 @@ const Checkout = () => {
                 variant="outline"
                 className="w-full py-4 text-lg font-semibold border-primary/30 text-primary hover:bg-primary/10"
               >
-                Create My Account
+                create my account
               </Button>
               
               <div className="text-xs text-center text-muted-foreground iridescent-text">
-                Payment and shipping details will be collected securely through Stripe
+                payment and shipping details will be collected securely through stripe
               </div>
             </div>
           </Card>

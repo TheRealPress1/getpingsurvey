@@ -20,7 +20,7 @@ const Landing = () => {
           <h1 className="text-2xl font-bold iridescent-text">ping!</h1>
           <Link to="/auth">
             <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2">
-              Sign In
+              sign in
             </Button>
           </Link>
         </div>
@@ -37,21 +37,21 @@ const Landing = () => {
           {/* Hero Text */}
           <div className={`space-y-6 transition-all duration-1000 ${visibleText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <h1 className="text-5xl md:text-7xl font-bold iridescent-text leading-tight">
-              Ping!
+              ping!
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground iridescent-text max-w-2xl mx-auto">The future of networking is here.
-Your new network is waiting</p>
+            <p className="text-xl md:text-2xl text-muted-foreground iridescent-text max-w-2xl mx-auto">the future of networking is here.
+your new network is waiting</p>
           </div>
 
           {/* CTA Button */}
           <div className={`transition-all duration-1000 delay-500 ${visibleText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <Link to="/checkout">
               <Button size="lg" className="shimmer bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 px-12 py-6 text-xl font-semibold">
-                Get Your Ping - $9.99
+                get your ping! - $9.99
               </Button>
             </Link>
             <p className="text-sm text-muted-foreground mt-4 iridescent-text">
-              7-day free trial • Get 1 month free when a friend orders
+              7-day free trial • get 1 month free when a friend orders
             </p>
           </div>
 
@@ -61,27 +61,27 @@ Your new network is waiting</p>
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
                 <span className="text-2xl">📱</span>
               </div>
-              <h3 className="text-lg font-semibold iridescent-text">Instant Share</h3>
+              <h3 className="text-lg font-semibold iridescent-text">instant share</h3>
               <p className="text-sm text-muted-foreground iridescent-text">
-                Tap your ring to any NFC-enabled device to share your profile instantly
+                tap your ring to any nfc-enabled device to share your profile instantly
               </p>
             </div>
             <div className="text-center space-y-3">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
                 <span className="text-2xl">📊</span>
               </div>
-              <h3 className="text-lg font-semibold iridescent-text">Track Analytics</h3>
+              <h3 className="text-lg font-semibold iridescent-text">track analytics</h3>
               <p className="text-sm text-muted-foreground iridescent-text">
-                See who views your profile and track engagement with detailed analytics
+                see who views your profile and track engagement with detailed analytics
               </p>
             </div>
             <div className="text-center space-y-3">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
                 <span className="text-2xl">🔗</span>
               </div>
-              <h3 className="text-lg font-semibold iridescent-text">All-in-One</h3>
+              <h3 className="text-lg font-semibold iridescent-text">all-in-one</h3>
               <p className="text-sm text-muted-foreground iridescent-text">
-                LinkedIn, Instagram, X, email, phone, Venmo - all in one place
+                linkedin, instagram, x, email, phone, venmo - all in one place
               </p>
             </div>
           </div>

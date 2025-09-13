@@ -30,23 +30,23 @@ export const ProfileCard = () => {
         </div>
         
         <h1 className="text-2xl font-bold iridescent-text mb-2">
-          Profile Name
+          profile name
         </h1>
       </Link>
       
       <p className="text-muted-foreground mb-4 leading-relaxed iridescent-text">
-        Entrepreneur & Creative Director building the future of sustainable
-        design through AI-powered innovation
+        entrepreneur & creative director building the future of sustainable
+        design through ai-powered innovation
       </p>
       
       <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-6">
         <div className="flex items-center gap-1">
           <MapPin className="w-4 h-4 text-primary" />
-          <span>Boston, MA</span>
+          <span>boston, ma</span>
         </div>
         <div className="flex items-center gap-1">
           <Building2 className="w-4 h-4 text-primary" />
-          <span>Sustainable Design & AI</span>
+          <span>sustainable design & ai</span>
         </div>
       </div>
 
@@ -54,7 +54,7 @@ export const ProfileCard = () => {
         <Button 
           className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground font-medium hover:scale-105 transition-transform duration-200"
         >
-          Ping Vaness
+          ping! vaness
         </Button>
       </Link>
     </Card>

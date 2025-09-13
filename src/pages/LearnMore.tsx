@@ -17,9 +17,9 @@ const LearnMore = () => {
             <span className="text-xl font-bold iridescent-text">ping!</span>
           </Link>
           <Link to="/checkout">
-            <Button className="shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200">
-              Get Your Ping Ring - $99
-            </Button>
+              <Button className="shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200">
+                get your ping! ring - $99
+              </Button>
           </Link>
         </div>
       </header>
@@ -29,17 +29,17 @@ const LearnMore = () => {
         {/* Hero Section */}
         <section className="text-center space-y-6">
           <h1 className="text-5xl font-bold iridescent-text mb-4">
-            What is Ping?
+            what is ping!?
           </h1>
           <p className="text-xl text-muted-foreground iridescent-text leading-relaxed max-w-3xl mx-auto">
-            Ping is the future of professional networking. A beautiful, NFC-enabled ring that instantly shares 
-            your professional profile with a simple tap. No more fumbling for business cards or typing contact info.
+            ping! is the future of professional networking. a beautiful, nfc-enabled ring that instantly shares 
+            your professional profile with a simple tap. no more fumbling for business cards or typing contact info.
           </p>
         </section>
 
         {/* How It Works */}
         <Card className="bg-card border-border p-8">
-          <h2 className="text-3xl font-bold iridescent-text text-center mb-8">How It Works</h2>
+          <h2 className="text-3xl font-bold iridescent-text text-center mb-8">how it works</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto">

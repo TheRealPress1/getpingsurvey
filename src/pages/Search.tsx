@@ -37,8 +37,8 @@ const Search = () => {
 
   return (
     <div className="min-h-screen bg-background p-4 pb-28 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold iridescent-text mb-4 text-center">Search</h1>
-      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, role, or location" className="mb-4" />
+      <h1 className="text-2xl font-bold iridescent-text mb-4 text-center">search</h1>
+      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="search by name, role, or location" className="mb-4" />
       <div className="space-y-2">
         {results.map(p => (
           <Link key={p.id} to={`/chat/thread/${p.id}`}>

@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import profilePhoto from "/lovable-uploads/5cfc116f-36f7-4ba8-9859-4fdb89227406.png";
 const Index = () => {
   const [visibleWords, setVisibleWords] = useState(0);
-  const words = ['Welcome', 'to', 'Ping'];
+  const words = ['welcome', 'to', 'ping!'];
   useEffect(() => {
     const timer = setInterval(() => {
       setVisibleWords(prev => {
@@ -39,14 +39,14 @@ const Index = () => {
             {/* Animated Welcome Text */}
             <div className="space-y-4">
               <h1 className="text-4xl md:text-5xl font-bold">
-                {words.map((word, index) => <span key={index} className={`inline-block mr-4 iridescent-text transition-all duration-700 transform ${index < visibleWords ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'}`}>
-                    {word}
+            {words.map((word, index) => <span key={index} className={`inline-block mr-4 iridescent-text transition-all duration-700 transform ${index < visibleWords ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'}`}>
+                    {word.toLowerCase()}
                   </span>)}
               </h1>
               
               {/* Subtitle appears after all words */}
               <p className={`text-sm md:text-base text-muted-foreground iridescent-text transition-all duration-700 delay-1000 ${visibleWords >= words.length ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                Your creative network awaits
+                your creative network awaits
               </p>
             </div>
 
@@ -54,12 +54,12 @@ const Index = () => {
             <div className={`flex flex-col gap-3 transition-all duration-700 delay-1500 ${visibleWords >= words.length ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               <Link to="/signup">
                 <Button className="w-full shimmer bg-primary text-primary-foreground hover:bg-primary/90 border-primary hover:scale-105 transition-transform duration-200">
-                  Sign Up
+                  sign up
                 </Button>
               </Link>
               <Link to="/signin">
                 <Button variant="outline" className="w-full shimmer border-primary text-primary hover:bg-primary/10 hover:scale-105 transition-transform duration-200">
-                  Sign In
+                  sign in
                 </Button>
               </Link>
             </div>
@@ -67,7 +67,7 @@ const Index = () => {
             {/* Skip to main site from Welcome page */}
             <div className={`transition-all duration-700 delay-2000 ${visibleWords >= words.length ? 'opacity-100' : 'opacity-0'}`}>
               <Link to="/welcome" className="text-xs text-muted-foreground hover:text-primary transition-colors underline">
-                Skip to main site
+                skip to main site
               </Link>
             </div>
           </div>
@@ -86,12 +86,12 @@ const Index = () => {
         <div className="text-center space-y-6 mt-8">
           <Link to="/learn-more">
             <Button variant="outline" className="shimmer border-primary text-primary hover:bg-primary/10 hover:scale-105 transition-transform duration-200 px-8 py-3">
-              Learn More About Ping
+              learn more about ping!
             </Button>
           </Link>
           <Link to="/checkout">
             <p className="text-xs text-muted-foreground iridescent-text cursor-pointer hover:text-primary transition-colors">
-              Buy your ping now - $9.99
+              buy your ping! now - $9.99
             </p>
           </Link>
         </div>
