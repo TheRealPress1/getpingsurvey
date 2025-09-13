@@ -316,9 +316,6 @@ const ProfileSetup = () => {
                   <span>{profileData.profilePhoto ? 'Change Photo' : 'Upload Photo'}</span>
                 </Button>
               </label>
-              {profileData.profilePhoto && (
-                <p className="text-sm text-muted-foreground">{profileData.profilePhoto.name}</p>
-              )}
             </div>
           </div>
         );
