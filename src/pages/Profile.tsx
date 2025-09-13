@@ -213,7 +213,7 @@ const Profile = () => {
               onClick={() => navigate('/network')}
             >
               <Search className="w-4 h-4 text-primary" />
-              <span className="iridescent-text font-medium">Network</span>
+              <span className="iridescent-text font-medium">Tribe</span>
             </Button>
           </div>
           
