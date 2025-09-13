@@ -257,9 +257,59 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      safe_social_media_data: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          platform: string | null
+          processed_data: Json | null
+          raw_data: Json | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          platform?: string | null
+          processed_data?: Json | null
+          raw_data?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          platform?: string | null
+          processed_data?: Json | null
+          raw_data?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      get_public_profile_data: {
+        Args: { target_user_id: string }
+        Returns: {
+          ai_processed: boolean
+          avatar_url: string
+          bio: string
+          company: string
+          created_at: string
+          display_name: string
+          id: string
+          interests: string[]
+          job_title: string
+          location: string
+          profile_completeness: number
+          skills: string[]
+          social_links: Json
+          updated_at: string
+          user_id: string
+          website_url: string
+        }[]
+      }
       get_public_profile_secure: {
         Args: { target_user_id: string }
         Returns: {
