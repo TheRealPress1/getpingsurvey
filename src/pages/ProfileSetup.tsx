@@ -301,10 +301,7 @@ const ProfileSetup = () => {
                     }}
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <span className="text-3xl mb-1">📷</span>
-                    <span className="text-xs text-muted-foreground">Upload Photo</span>
-                  </div>
+                  <span className="text-4xl">📷</span>
                 )}
               </div>
               <input
