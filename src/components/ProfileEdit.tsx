@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload } from 'lucide-react';
+import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload, Eye, EyeOff } from 'lucide-react';
 
 
 interface ProfileEditProps {
@@ -30,7 +31,8 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
     job_title: profile?.job_title || '',
     phone_number: profile?.phone_number || '',
     website_url: profile?.website_url || '',
-    avatar_url: profile?.avatar_url || ''
+    avatar_url: profile?.avatar_url || '',
+    is_public: profile?.is_public !== undefined ? profile.is_public : true
   });
 
   // Update form data when profile prop changes
@@ -44,7 +46,8 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
         job_title: profile.job_title || '',
         phone_number: profile.phone_number || '',
         website_url: profile.website_url || '',
-        avatar_url: profile.avatar_url || ''
+        avatar_url: profile.avatar_url || '',
+        is_public: profile.is_public !== undefined ? profile.is_public : true
       });
     }
   }, [profile]);
@@ -77,7 +80,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
     return defaultLinks;
   });
 
-  const updateFormData = (field: string, value: string) => {
+  const updateFormData = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -114,14 +117,14 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
       setFormData(prev => ({ ...prev, avatar_url: data.publicUrl }));
 
       toast({
-        title: "Success",
-        description: "Profile photo uploaded successfully!"
+        title: "success",
+        description: "profile photo uploaded successfully!"
       });
     } catch (error) {
       console.error('Error uploading photo:', error);
       toast({
-        title: "Error",
-        description: "Failed to upload photo. Please try again.",
+        title: "error",
+        description: "failed to upload photo. please try again.",
         variant: "destructive"
       });
     } finally {
@@ -178,6 +181,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
           phone_number: formData.phone_number,
           website_url: formData.website_url,
           avatar_url: formData.avatar_url,
+          is_public: formData.is_public,
           linkedin_url: socialLinks.find(link => link.platform === 'linkedin')?.value || '',
           instagram_handle: socialLinks.find(link => link.platform === 'instagram')?.value || '',
           social_links: socialLinksData,
@@ -188,16 +192,16 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Profile updated successfully!"
+        title: "success",
+        description: "profile updated successfully!"
       });
 
       onSave();
     } catch (error) {
       console.error('Error saving profile:', error);
       toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
+        title: "error",
+        description: "failed to update profile. please try again.",
         variant: "destructive"
       });
     } finally {
@@ -208,15 +212,15 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold iridescent-text">Edit Profile</h1>
+        <h1 className="text-3xl font-bold iridescent-text">edit profile</h1>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={onCancel}>
             <X className="w-4 h-4 mr-2" />
-            Cancel
+            cancel
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Saving...' : 'Change'}
+            {saving ? 'saving...' : 'save changes'}
           </Button>
         </div>
       </div>
@@ -226,7 +230,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Camera className="w-5 h-5" />
-            Profile Photo
+            profile photo
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -239,7 +243,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
               />
             </div>
             <div className="flex-1">
-              <Label htmlFor="photo-upload">Upload Photo</Label>
+              <Label htmlFor="photo-upload">upload photo</Label>
               <div className="mt-2">
                 <input
                   id="photo-upload"
@@ -257,13 +261,41 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
                   className="w-full"
                 >
                   <Upload className="w-4 h-4 mr-2" />
-                  {uploadingPhoto ? 'Processing...' : 'Choose Photo'}
+                  {uploadingPhoto ? 'uploading...' : 'choose photo'}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Upload your profile photo
+                upload your profile photo
               </p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Privacy Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {formData.is_public ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+            profile privacy
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="is_public">public profile</Label>
+              <p className="text-sm text-muted-foreground">
+                {formData.is_public 
+                  ? 'your profile is visible to everyone and will appear in search results'
+                  : 'your profile is private and will only be visible to you'
+                }
+              </p>
+            </div>
+            <Switch
+              id="is_public"
+              checked={formData.is_public}
+              onCheckedChange={(checked) => updateFormData('is_public', checked)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -271,53 +303,53 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
       {/* Basic Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+          <CardTitle>basic information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="display_name">Display Name</Label>
+              <Label htmlFor="display_name">display name</Label>
               <Input
                 id="display_name"
                 value={formData.display_name}
                 onChange={(e) => updateFormData('display_name', e.target.value)}
-                placeholder="Your Name"
+                placeholder="your name"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="job_title">Job Title</Label>
+              <Label htmlFor="job_title">job title</Label>
               <Input
                 id="job_title"
                 value={formData.job_title}
                 onChange={(e) => updateFormData('job_title', e.target.value)}
-                placeholder="Software Engineer"
+                placeholder="software engineer"
               />
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
+              <Label htmlFor="company">company</Label>
               <div className="relative">
                 <Building2 className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="company"
                   value={formData.company}
                   onChange={(e) => updateFormData('company', e.target.value)}
-                  placeholder="Your Company"
+                  placeholder="your company"
                   className="pl-10"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location">location</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="location"
                   value={formData.location}
                   onChange={(e) => updateFormData('location', e.target.value)}
-                  placeholder="City, State"
+                  placeholder="city, state"
                   className="pl-10"
                 />
               </div>
@@ -325,19 +357,19 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
+            <Label htmlFor="bio">bio</Label>
             <Textarea
               id="bio"
               value={formData.bio}
               onChange={(e) => updateFormData('bio', e.target.value)}
-              placeholder="Tell people about yourself..."
+              placeholder="tell people about yourself..."
               rows={3}
             />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone_number">Phone Number</Label>
+              <Label htmlFor="phone_number">phone number</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -350,7 +382,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="website_url">Website</Label>
+              <Label htmlFor="website_url">website</Label>
               <div className="relative">
                 <ExternalLink className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -370,10 +402,10 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Social Links</CardTitle>
+            <CardTitle>social links</CardTitle>
             <Button onClick={addSocialLink} variant="outline" size="sm">
               <Plus className="w-4 h-4 mr-2" />
-              Add Link
+              add link
             </Button>
           </div>
         </CardHeader>
@@ -382,16 +414,16 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
             <div key={index} className="flex items-center gap-3 p-3 border border-border rounded-lg">
               <div className="grid md:grid-cols-3 gap-3 flex-1">
                 <div className="space-y-1">
-                  <Label className="text-xs">Platform</Label>
+                  <Label className="text-xs">platform</Label>
                   <Input
                     value={link.label}
                     onChange={(e) => updateSocialPlatform(index, e.target.value, e.target.value)}
-                    placeholder="LinkedIn"
+                    placeholder="linkedin"
                     className="text-sm"
                   />
                 </div>
                 <div className="md:col-span-2 space-y-1">
-                  <Label className="text-xs">URL or Handle</Label>
+                  <Label className="text-xs">url or handle</Label>
                   <Input
                     value={link.value}
                     onChange={(e) => updateSocialLink(index, e.target.value)}

@@ -153,7 +153,7 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
       className="bg-transparent border-none text-primary hover:bg-transparent hover:text-primary/80 text-sm font-medium"
     >
       <Download className="w-4 h-4 mr-2" />
-      Save Contact
+      save contact
     </Button>
   );
 };

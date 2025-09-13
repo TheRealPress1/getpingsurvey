@@ -36,16 +36,11 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
   }, [query]);
 
   const searchProfiles = async () => {
-    if (!user) return;
-    
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_id, display_name, avatar_url, job_title, location, company')
-        .neq('user_id', user.id) // Exclude current user
-        .or(`display_name.ilike.%${query}%,job_title.ilike.%${query}%,location.ilike.%${query}%,company.ilike.%${query}%`)
-        .limit(10);
+      const { data, error } = await supabase.rpc('search_public_profiles', {
+        search_term: query
+      });
 
       if (error) throw error;
       setResults(data || []);
@@ -58,7 +53,7 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
   };
 
   const handleProfileClick = (userId: string) => {
-    window.open(getShareableUrl(`/ping/${userId}`), '_blank');
+    window.open(getShareableUrl(`/ping!/${userId}`), '_blank');
     onClose();
   };
 
@@ -71,7 +66,7 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
           <div className="flex items-center gap-3">
             <Search className="w-5 h-5 text-primary" />
             <Input
-              placeholder="Search people by name, role, location, or company..."
+              placeholder="search people by name, role, location, or company..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="flex-1 border-0 focus-visible:ring-0 bg-transparent"
@@ -87,7 +82,7 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
           {loading ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-muted-foreground iridescent-text">Searching...</p>
+              <p className="text-muted-foreground iridescent-text">searching...</p>
             </div>
           ) : results.length > 0 ? (
             <div className="p-2">
@@ -104,7 +99,7 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium iridescent-text truncate">
-                      {profile.display_name || "Unknown User"}
+                      {profile.display_name || "unknown user"}
                     </h3>
                     <p className="text-sm text-muted-foreground iridescent-text truncate">
                       {profile.job_title && profile.company 
@@ -122,11 +117,11 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
             </div>
           ) : query.length > 2 ? (
             <div className="p-8 text-center">
-              <p className="text-muted-foreground iridescent-text">No profiles found</p>
+              <p className="text-muted-foreground iridescent-text">no profiles found</p>
             </div>
           ) : (
             <div className="p-8 text-center">
-              <p className="text-muted-foreground iridescent-text">Type at least 3 characters to search</p>
+              <p className="text-muted-foreground iridescent-text">type at least 3 characters to search</p>
             </div>
           )}
         </div>

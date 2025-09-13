@@ -485,8 +485,8 @@ scene.add(directionalLight);
           onPing={() => {
             if (!selectedPinger) return;
             toast({
-              title: "Added to Tribe!",
-              description: `${selectedPinger.name} has been added to your tribe`,
+              title: "ping! sent",
+              description: `${selectedPinger.name} has been ping!ed`,
               duration: 2000,
             });
             setSelectedPinger(null);

@@ -241,7 +241,7 @@ const Profile = () => {
 
           
           <Button className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground text-sm">
-            Ping {displayName.split(' ')[0] || 'User'}
+            ping! {displayName.split(' ')[0] || 'user'}
           </Button>
           
           <div className="mt-4">
@@ -249,7 +249,7 @@ const Profile = () => {
           </div>
           
           <p className="text-xs text-muted-foreground mt-2 iridescent-text">
-            Click name or photo to learn more
+            click name or photo to learn more
           </p>
         </div>
 

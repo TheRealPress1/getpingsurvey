@@ -3,10 +3,10 @@ import { Users, PlaySquare, Search, MessageCircle, User } from "lucide-react";
 
 export const BottomNav = () => {
   const items = [
-    { to: "/feed", label: "Feed", icon: PlaySquare },
-    { to: "/network", label: "Tribe", icon: Users },
-    { to: "/chat", label: "Chat", icon: MessageCircle },
-    { to: "/profile", label: "Profile", icon: User },
+    { to: "/feed", label: "feed", icon: PlaySquare },
+    { to: "/network", label: "tribe", icon: Users },
+    { to: "/chat", label: "chat", icon: MessageCircle },
+    { to: "/profile", label: "profile", icon: User },
   ];
 
   const getCls = ({ isActive }: { isActive: boolean }) =>

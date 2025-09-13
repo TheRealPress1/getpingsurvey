@@ -28,7 +28,7 @@ export const ChatBubble = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hey! Thanks for pinging me. I'd love to connect!",
+      text: "hey! thanks for ping!ing me. i'd love to connect!",
       sender: 'contact',
       timestamp: new Date(Date.now() - 300000) // 5 minutes ago
     }

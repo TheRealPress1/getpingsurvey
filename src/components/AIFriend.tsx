@@ -8,7 +8,7 @@ export const AIFriend = () => {
   const [message, setMessage] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([
     "Want an intro? I can suggest 3 questions based on shared interests.",
-    "Looking for pingers nearby? Try Search to find matches.",
+    "looking for ping!ers nearby? try search to find matches.",
   ]);
 
   const handleSend = (e: React.FormEvent) => {

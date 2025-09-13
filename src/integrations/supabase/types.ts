@@ -163,6 +163,7 @@ export type Database = {
           id: string
           instagram_handle: string | null
           interests: string[] | null
+          is_public: boolean
           job_title: string | null
           linkedin_url: string | null
           location: string | null
@@ -186,6 +187,7 @@ export type Database = {
           id?: string
           instagram_handle?: string | null
           interests?: string[] | null
+          is_public?: boolean
           job_title?: string | null
           linkedin_url?: string | null
           location?: string | null
@@ -209,6 +211,7 @@ export type Database = {
           id?: string
           instagram_handle?: string | null
           interests?: string[] | null
+          is_public?: boolean
           job_title?: string | null
           linkedin_url?: string | null
           location?: string | null
@@ -345,6 +348,26 @@ export type Database = {
       get_user_email_for_contact: {
         Args: { target_user_id: string }
         Returns: string
+      }
+      search_public_profiles: {
+        Args: { search_term: string }
+        Returns: {
+          ai_processed: boolean
+          avatar_url: string
+          bio: string
+          company: string
+          created_at: string
+          display_name: string
+          id: string
+          interests: string[]
+          job_title: string
+          location: string
+          profile_completeness: number
+          skills: string[]
+          updated_at: string
+          user_id: string
+          website_url: string
+        }[]
       }
     }
     Enums: {
