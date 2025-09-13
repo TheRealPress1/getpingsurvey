@@ -21,7 +21,6 @@ interface PublicProfile {
   skills?: string[];
   interests?: string[];
   social_links?: any;
-  phone_number?: string;
 }
 
 const PublicProfile = () => {
@@ -197,24 +196,6 @@ const PublicProfile = () => {
             <h2 className="text-2xl font-bold iridescent-text mb-6 text-center">Contact Information</h2>
             
             <div className="space-y-4">
-              {profile.phone_number && (
-                <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-primary" />
-                      <div>
-                        <p className="font-medium iridescent-text">Phone</p>
-                        <a 
-                          href={`tel:${profile.phone_number}`}
-                          className="text-sm text-muted-foreground iridescent-text truncate hover:text-primary transition-colors cursor-pointer"
-                        >
-                          {profile.phone_number}
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              )}
               {userEmail && (
                 <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
                   <div className="flex items-center justify-between">

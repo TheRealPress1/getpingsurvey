@@ -18,8 +18,7 @@ interface PublicProfile {
   skills: string[];
   interests: string[];
   social_links: any;
-  phone_number: string;
-   experience?: any[];
+  experience?: any[];
    featured_work?: any[];
 }
 
@@ -74,7 +73,6 @@ const PublicProfileDetails = () => {
         skills: p.skills || [],
         interests: p.interests || [],
         social_links: p.social_links || {},
-        phone_number: p.phone_number,
       });
     } catch (error) {
       console.error("Error fetching public profile:", error);

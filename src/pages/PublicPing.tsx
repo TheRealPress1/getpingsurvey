@@ -21,7 +21,6 @@ interface PublicProfile {
   skills: string[];
   interests: string[];
   social_links: any;
-  phone_number: string;
 }
 
 const PublicPing = () => {
@@ -78,8 +77,7 @@ const PublicPing = () => {
         website_url: profile.website_url,
         skills: profile.skills || [],
         interests: profile.interests || [],
-        social_links: profile.social_links || {},
-        phone_number: profile.phone_number || ''
+        social_links: profile.social_links || {}
       });
 
       // Fetch user email for contact using the secure function
@@ -220,19 +218,6 @@ const PublicPing = () => {
           <h2 className="text-2xl font-bold iridescent-text mb-6 text-center animate-fade-in">The new way of connecting</h2>
           
           <div className="space-y-3 animate-fade-in">
-            {profile.phone_number && (
-              <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="font-medium iridescent-text">Phone</p>
-                      <p className="text-sm text-muted-foreground iridescent-text truncate">{profile.phone_number}</p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            )}
             {userEmail && (
               <Card className="bg-card border-border p-3 hover:border-primary/50 transition-colors">
                 <div className="flex items-center gap-3">

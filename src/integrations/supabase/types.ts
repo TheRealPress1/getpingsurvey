@@ -260,6 +260,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_profile_contact_info: {
+        Args: { target_user_id: string }
+        Returns: {
+          contact_social_links: Json
+          email: string
+          phone_number: string
+        }[]
+      }
       get_public_profile_data: {
         Args: { target_user_id: string }
         Returns: {
@@ -294,7 +302,6 @@ export type Database = {
           interests: string[]
           job_title: string
           location: string
-          phone_number: string
           profile_completeness: number
           skills: string[]
           social_links: Json
