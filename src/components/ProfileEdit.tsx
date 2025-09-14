@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload, Eye, EyeOff } from 'lucide-react';
+import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload, Eye, EyeOff, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 
 interface ProfileEditProps {
@@ -20,6 +21,7 @@ interface ProfileEditProps {
 export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCancel }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   
@@ -206,6 +208,27 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out."
+      });
+      
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -442,6 +465,36 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
               </Button>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Logout Section */}
+      <Card className="border-red-200 dark:border-red-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+            <LogOut className="w-5 h-5" />
+            account actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-950/20">
+              <div>
+                <p className="font-medium text-red-700 dark:text-red-300">log out</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  sign out of your ping! account
+                </p>
+              </div>
+              <Button 
+                onClick={handleLogout}
+                variant="outline"
+                className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                log out
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
