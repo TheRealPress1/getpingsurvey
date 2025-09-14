@@ -87,18 +87,20 @@ const Network = () => {
 
   const searchProfiles = async () => {
     if (!user) return;
-    
     setSearchLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_id, display_name, avatar_url, job_title, location, company')
-        .neq('user_id', user.id) // Exclude current user
-        .or(`display_name.ilike.%${searchQuery}%,job_title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,company.ilike.%${searchQuery}%`)
-        .limit(10);
-
+      const { data, error } = await supabase.rpc('search_public_profiles', {
+        search_term: searchQuery
+      });
       if (error) throw error;
-      setSearchResults(data || []);
+      setSearchResults((data || []).map((p: any) => ({
+        user_id: p.user_id,
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+        job_title: p.job_title,
+        location: p.location,
+        company: p.company,
+      })));
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults([]);
