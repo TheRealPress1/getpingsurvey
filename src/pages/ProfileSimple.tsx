@@ -102,7 +102,7 @@ const ProfileSimple = () => {
             <SocialLink
               platform="link"
               title="BIND Solutions"
-              url="https://bind.solutions"
+              url="https://www.bindsolutions.co"
             />
           </div>
         </section>

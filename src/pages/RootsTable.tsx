@@ -72,17 +72,13 @@ const RootsTable = () => {
                 </div>
                 
                 <div className="flex gap-4 pt-4">
-                  <a 
-                    href="https://bind.solutions"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1"
+                  <Button 
+                    className="flex-1 shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200"
+                    onClick={() => window.open('https://www.bindsolutions.co', '_blank')}
                   >
-                    <Button className="w-full shimmer bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform duration-200">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Visit BIND Solutions
-                    </Button>
-                  </a>
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Visit BIND Solutions
+                  </Button>
                   <Link to="/" className="flex-1">
                     <Button variant="outline" className="w-full shimmer border-primary text-primary hover:bg-primary/10 hover:scale-105 transition-transform duration-200">
                       Back to Portfolio
