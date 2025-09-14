@@ -182,7 +182,7 @@ const PublicProfile = () => {
             
             <div className="flex flex-col items-center gap-3">
               <Button className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground">
-                Connect with {displayName.split(' ')[0] || 'User'}
+                ping! {displayName.split(' ')[0] || 'User'}
               </Button>
               
               <SaveContactButton profile={profile} userEmail={userEmail} />

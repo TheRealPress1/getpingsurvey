@@ -201,7 +201,7 @@ const PublicPing = () => {
             className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground text-sm"
             onClick={() => window.location.href = '/signup'}
           >
-            Add {displayName.split(' ')[0] || 'User'} to Tribe
+            ping! {displayName.split(' ')[0] || 'User'}
           </Button>
           
           <div className="mt-4">
