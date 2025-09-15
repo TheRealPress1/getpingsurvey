@@ -10,6 +10,7 @@ import { StarField } from '@/components/StarField';
 import { ArrowLeft, MessageSquare, Users, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getShareableUrl } from '@/lib/environment';
+import { createChatWithUser } from '@/utils/chatUtils';
 
 interface Connection {
   id: string;
@@ -49,17 +50,26 @@ const Network = () => {
         .select('*')
         .or(`user_id.eq.${user.id},target_user_id.eq.${user.id}`);
 
-
       if (error) {
         console.error(error);
         setLoading(false);
         return;
       }
-      
-      setConnections(connectionRows || []);
+
+      // Deduplicate reciprocal rows, keep earliest created_at per other user
+      const dedupMap = new Map<string, Connection>();
+      (connectionRows || []).forEach((r) => {
+        const otherId = r.user_id === user.id ? r.target_user_id : r.user_id;
+        const existing = dedupMap.get(otherId);
+        if (!existing || new Date(r.created_at) < new Date(existing.created_at)) {
+          dedupMap.set(otherId, r as Connection);
+        }
+      });
+      const deduped = Array.from(dedupMap.values());
+      setConnections(deduped);
 
       // Fetch counterpart profiles
-      const otherIds = (connectionRows || []).map(r => r.user_id === user.id ? r.target_user_id : r.user_id);
+      const otherIds = deduped.map(r => r.user_id === user.id ? r.target_user_id : r.user_id);
       const unique = Array.from(new Set(otherIds));
       if (unique.length) {
         const { data: profs } = await supabase
@@ -78,19 +88,20 @@ const Network = () => {
   }, [user]);
 
   useEffect(() => {
-    if (searchQuery.length > 2) {
-      searchProfiles();
+    const q = searchQuery.trim();
+    if (q.length >= 2) {
+      searchProfiles(q);
     } else {
       setSearchResults([]);
     }
   }, [searchQuery]);
 
-  const searchProfiles = async () => {
+  const searchProfiles = async (qstr: string) => {
     if (!user) return;
     setSearchLoading(true);
     try {
       const { data, error } = await supabase.rpc('search_public_profiles', {
-        search_term: searchQuery
+        search_term: qstr
       });
       if (error) throw error;
       setSearchResults((data || []).map((p: any) => ({
@@ -113,69 +124,22 @@ const Network = () => {
     window.open(getShareableUrl(`/ping/${userId}`), '_blank');
   };
 
-  const addToTribe = async (targetUserId: string) => {
-    if (!user) return;
+  const handlePing = async (otherId: string) => {
+    if (!user) {
+      try { localStorage.setItem('postLoginIntent', JSON.stringify({ type: 'ping', targetUserId: otherId })); } catch {}
+      navigate('/auth');
+      return;
+    }
 
     try {
-      // Check if connection already exists
-      const { data: existingConnection, error: checkError } = await supabase
-        .from('connections')
-        .select('id')
-        .or(`and(user_id.eq.${user.id},target_user_id.eq.${targetUserId}),and(user_id.eq.${targetUserId},target_user_id.eq.${user.id})`)
-        .limit(1);
-
-      if (checkError) {
-        console.error('Error checking existing connection:', checkError);
-        return;
-      }
-
-      if (existingConnection && existingConnection.length > 0) {
-        toast({
-          title: "Already in your tribe",
-          description: "This person is already part of your tribe!",
-        });
-        return;
-      }
-
-      // Create new connection
-      const { error: insertError } = await supabase
-        .from('connections')
-        .insert({
-          user_id: user.id,
-          target_user_id: targetUserId
-        });
-
-      if (insertError) {
-        console.error('Error creating connection:', insertError);
-        toast({
-          title: "Error",
-          description: "Failed to add to tribe. Please try again.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      toast({
-        title: "Added to tribe!",
-        description: "They've been added to your tribe successfully.",
-      });
-
-      // Refresh connections
-      const { data: connectionRows, error } = await supabase
-        .from('connections')
-        .select('*')
-        .or(`user_id.eq.${user.id},target_user_id.eq.${user.id}`);
-
-
-      if (!error) {
-        setConnections(connectionRows || []);
-      }
+      const conversationId = await createChatWithUser(otherId, user.id);
+      navigate(`/chat/${conversationId}`);
     } catch (error) {
-      console.error('Error adding to tribe:', error);
+      console.error('Error creating chat:', error);
       toast({
-        title: "Error",
-        description: "Failed to add to tribe. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to start conversation. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -278,10 +242,10 @@ const Network = () => {
                     </div>
                     <Button 
                       size="sm"
-                      onClick={() => addToTribe(profile.user_id)}
+                      onClick={() => handlePing(profile.user_id)}
                       className="hover-scale"
                     >
-                      Add to Tribe
+                      ping!
                     </Button>
                   </div>
                 ))}
@@ -318,8 +282,8 @@ const Network = () => {
                         <p className="text-xs text-muted-foreground iridescent-text">Joined tribe on {new Date(c.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <Button onClick={() => startConversation(other)} className="hover-scale">
-                      <MessageSquare className="w-4 h-4 mr-2" /> Message
+                    <Button onClick={() => handlePing(other)} className="hover-scale">
+                      <MessageSquare className="w-4 h-4 mr-2" /> ping!
                     </Button>
                   </div>
                 );
