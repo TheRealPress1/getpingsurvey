@@ -8,6 +8,7 @@ import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AccountSetup from "./pages/AccountSetup";
 import ProfileSetup from "./pages/ProfileSetup";
 import ProfileView from "./pages/ProfileView";
 import Profile from "./pages/Profile";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/account-setup" element={<AccountSetup />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/details" element={<ProfileDetails />} />
