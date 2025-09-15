@@ -23,7 +23,6 @@ const normalizeUrl = (url: string) => {
   if (/^(https?:|mailto:|tel:)/i.test(trimmed)) return trimmed;
   return `https://${trimmed.replace(/^\/+/, '')}`;
 };
-
 const Profile = () => {
   const {
     user,
@@ -237,9 +236,7 @@ const Profile = () => {
             {profile.job_title || "Professional"}
           </p>
           
-          <p className="text-xs text-muted-foreground mb-4 iridescent-text">
-            click name or photo to learn more
-          </p>
+          
           
           <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mb-2">
             {profile.location && <div className="flex items-center gap-1">
@@ -256,10 +253,7 @@ const Profile = () => {
             click name or photo to learn more
           </p>
 
-          <Button 
-            className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground text-sm"
-            onClick={() => navigate('/chat')}
-          >
+          <Button className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground text-sm" onClick={() => navigate('/chat')}>
             ping! {displayName.split(' ')[0] || 'user'}
           </Button>
           
