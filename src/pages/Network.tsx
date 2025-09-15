@@ -126,8 +126,45 @@ const Network = () => {
     }
   };
 
-  const handleProfileClick = (userId: string) => {
-    window.open(getShareableUrl(`/ping/${userId}`), '_blank');
+  const handleTribeProfileClick = (userId: string) => {
+    navigate(`/ping/${userId}`);
+  };
+
+  const removeFromTribe = async (targetUserId: string) => {
+    if (!user) return;
+    
+    try {
+      // Remove the connection from the database
+      const { error } = await supabase
+        .from('connections')
+        .delete()
+        .or(`and(user_id.eq.${user.id},target_user_id.eq.${targetUserId}),and(user_id.eq.${targetUserId},target_user_id.eq.${user.id})`);
+
+      if (error) throw error;
+
+      // Update local state
+      setConnections(prev => prev.filter(c => 
+        !(c.user_id === targetUserId || c.target_user_id === targetUserId)
+      ));
+      
+      setProfiles(prev => {
+        const updated = { ...prev };
+        delete updated[targetUserId];
+        return updated;
+      });
+
+      toast({
+        title: "Removed from tribe",
+        description: "User has been removed from your tribe",
+      });
+    } catch (error) {
+      console.error('Error removing from tribe:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove user from tribe",
+        variant: "destructive"
+      });
+    }
   };
 
   const handlePing = async (otherId: string) => {
@@ -385,14 +422,14 @@ const Network = () => {
                   >
                     <Avatar 
                       className="w-10 h-10 cursor-pointer"
-                      onClick={() => handleProfileClick(profile.user_id)}
+                      onClick={() => navigate(`/ping/${profile.user_id}`)}
                     >
                       <AvatarImage src={profile.avatar_url || "/placeholder.svg"} alt={profile.display_name || "Profile"} />
                       <AvatarFallback>{(profile.display_name || "U")[0]}</AvatarFallback>
                     </Avatar>
                     <div 
                       className="flex-1 min-w-0 cursor-pointer"
-                      onClick={() => handleProfileClick(profile.user_id)}
+                      onClick={() => navigate(`/ping/${profile.user_id}`)}
                     >
                       <h4 className="font-medium iridescent-text truncate">
                         {profile.display_name || "Unknown User"}
@@ -441,18 +478,34 @@ const Network = () => {
                 const prof = profiles[other] || { name: 'User', avatar: null };
                 return (
                   <div key={c.id} className="p-3 flex items-center justify-between bg-secondary/10 rounded-lg">
-                    <div className="flex items-center gap-3">
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer flex-1"
+                      onClick={() => handleTribeProfileClick(other)}
+                    >
                       <Avatar className="w-10 h-10">
                         {prof.avatar ? <AvatarImage src={prof.avatar} /> : <AvatarFallback>{prof.name[0] || 'U'}</AvatarFallback>}
                       </Avatar>
                       <div>
                         <p className="font-medium iridescent-text">{prof.name}</p>
-                        <p className="text-xs text-muted-foreground iridescent-text">Joined tribe on {new Date(c.created_at).toLocaleDateString()}</p>
+                        <p className="text-xs text-muted-foreground iridescent-text">Connected on {new Date(c.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <Button onClick={() => handlePing(other)} className="hover-scale">
-                      <MessageSquare className="w-4 h-4 mr-2" /> ping!
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={() => handlePing(other)} size="sm" variant="outline" className="hover-scale">
+                        <MessageSquare className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFromTribe(other);
+                        }} 
+                        size="sm" 
+                        variant="outline"
+                        className="hover-scale text-destructive hover:text-destructive"
+                      >
+                        Remove
+                      </Button>
+                    </div>
                   </div>
                 );
               })}

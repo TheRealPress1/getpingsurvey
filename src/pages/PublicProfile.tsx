@@ -9,6 +9,7 @@ import { SaveContactButton } from "@/components/SaveContactButton";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { createChatWithUser } from "@/utils/chatUtils";
+import { useConnections } from "@/hooks/useConnections";
 
 interface PublicProfile {
   id: string;
@@ -38,6 +39,7 @@ const PublicProfile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isConnected, loading: connectionLoading, checkConnection, removeConnection } = useConnections();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -47,8 +49,11 @@ const PublicProfile = () => {
   useEffect(() => {
     if (userId) {
       fetchPublicProfile();
+      if (user) {
+        checkConnection(userId);
+      }
     }
-  }, [userId]);
+  }, [userId, user]);
 
   const fetchPublicProfile = async () => {
     try {
@@ -119,6 +124,15 @@ const PublicProfile = () => {
       });
     } finally {
       setCreatingChat(false);
+    }
+  };
+
+  const handleRemoveFromTribe = async () => {
+    if (!userId) return;
+    
+    const success = await removeConnection(userId);
+    if (success) {
+      // Optionally navigate back or update UI
     }
   };
 
@@ -222,13 +236,37 @@ const PublicProfile = () => {
             )}
             
             <div className="flex flex-col items-center gap-3">
-              <Button 
-                className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={handlePing}
-                disabled={creatingChat}
-              >
-                {creatingChat ? 'Starting chat...' : `ping! ${displayName.split(' ')[0] || 'User'}`}
-              </Button>
+              {user && user.id !== userId && (
+                <div className="flex gap-3 w-full max-w-xs">
+                  <Button 
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    onClick={handlePing}
+                    disabled={creatingChat}
+                  >
+                    {creatingChat ? 'Starting chat...' : `ping! ${displayName.split(' ')[0] || 'User'}`}
+                  </Button>
+                  
+                  {isConnected && (
+                    <Button 
+                      variant="outline"
+                      onClick={handleRemoveFromTribe}
+                      disabled={connectionLoading}
+                      className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      {connectionLoading ? 'Removing...' : 'Remove'}
+                    </Button>
+                  )}
+                </div>
+              )}
+              
+              {!user && (
+                <Button 
+                  className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground"
+                  onClick={() => navigate('/signup')}
+                >
+                  Join ping! to connect
+                </Button>
+              )}
               
               <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 backdrop-blur-sm">
                 <SaveContactButton profile={profile} userEmail={userEmail} />

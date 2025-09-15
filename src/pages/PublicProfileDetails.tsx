@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { StarField } from "@/components/StarField";
 import { ArrowLeft, MapPin, Building2, ExternalLink, Calendar, Award, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useConnections } from "@/hooks/useConnections";
 
 interface PublicProfile {
   user_id: string;
@@ -24,6 +26,8 @@ interface PublicProfile {
 
 const PublicProfileDetails = () => {
   const { userId } = useParams<{ userId: string }>();
+  const { user } = useAuth();
+  const { isConnected, loading: connectionLoading, checkConnection, removeConnection } = useConnections();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +35,11 @@ const PublicProfileDetails = () => {
   useEffect(() => {
     if (userId) {
       fetchPublicProfile();
+      if (user) {
+        checkConnection(userId);
+      }
     }
-  }, [userId]);
+  }, [userId, user]);
 
   const fetchPublicProfile = async () => {
     try {
@@ -79,6 +86,15 @@ const PublicProfileDetails = () => {
       setError("Failed to load profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRemoveFromTribe = async () => {
+    if (!userId) return;
+    
+    const success = await removeConnection(userId);
+    if (success) {
+      // Connection removed successfully
     }
   };
 
@@ -171,11 +187,23 @@ const PublicProfileDetails = () => {
             <ArrowLeft className="w-5 h-5 text-primary" />
             <span className="text-xl font-bold iridescent-text">Back</span>
           </Link>
-          <Link to="/signup">
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
-              Join ping!
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            {user && user.id !== userId && isConnected && (
+              <Button 
+                variant="outline"
+                onClick={handleRemoveFromTribe}
+                disabled={connectionLoading}
+                className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              >
+                {connectionLoading ? 'Removing...' : 'Remove from Tribe'}
+              </Button>
+            )}
+            <Link to="/signup">
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                Join ping!
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
