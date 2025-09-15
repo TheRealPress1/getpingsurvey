@@ -26,6 +26,13 @@ interface PublicProfile {
   social_links?: any;
 }
 
+const normalizeUrl = (url: string) => {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^(https?:|mailto:|tel:)/i.test(trimmed)) return trimmed;
+  return `https://${trimmed.replace(/^\/+/, '')}`;
+};
+
 const PublicProfile = () => {
   const { userId } = useParams();
   const { user } = useAuth();
@@ -277,7 +284,7 @@ const PublicProfile = () => {
               {profile.website_url && (
                 <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
                   <a 
-                    href={profile.website_url}
+                    href={normalizeUrl(profile.website_url!)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between w-full"
@@ -312,14 +319,15 @@ const PublicProfile = () => {
                     return null;
                   }
                   
-                  const url = typeof linkData === 'string' ? linkData : linkData.url;
+                  const rawUrl = typeof linkData === 'string' ? linkData : linkData.url;
+                  const url = normalizeUrl(rawUrl);
                   
                   return (
                     <Card key={platform} className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
                       <a 
                         href={url} 
                         target="_blank" 
-                        rel="noopener noreferrer"
+                         rel="noopener noreferrer"
                         className="flex items-center justify-between w-full"
                       >
                         <div className="flex items-center gap-3">

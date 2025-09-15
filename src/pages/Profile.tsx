@@ -15,6 +15,15 @@ import GlobalSearch from "@/components/GlobalSearch";
 import SMSModal from "@/components/SMSModal";
 import ShareModal from "@/components/ShareModal";
 import { getPublicProfileUrl, isProduction } from "@/lib/environment";
+
+// Normalize URLs to ensure external links open correctly
+const normalizeUrl = (url: string) => {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^(https?:|mailto:|tel:)/i.test(trimmed)) return trimmed;
+  return `https://${trimmed.replace(/^\/+/, '')}`;
+};
+
 const Profile = () => {
   const {
     user,
@@ -267,7 +276,7 @@ const Profile = () => {
             {profile.phone_number && <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-primary" />
+                      <Phone className="w-4 h-4 text-primary" />
                     <div>
                       <p className="font-medium iridescent-text">Phone</p>
                       <p className="text-sm text-muted-foreground iridescent-text truncate">{profile.phone_number}</p>
@@ -291,7 +300,8 @@ const Profile = () => {
             if (!linkData || typeof linkData === 'object' && !linkData.url || typeof linkData === 'string' && !linkData) {
               return null;
             }
-            const url = typeof linkData === 'string' ? linkData : linkData.url;
+            const rawUrl = typeof linkData === 'string' ? linkData : linkData.url;
+            const url = normalizeUrl(rawUrl);
             return <Card key={platform} className="bg-card border-border p-3 hover:border-primary/50 transition-colors">
                   <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full">
                     <div className="w-5 h-5 flex items-center justify-center">

@@ -26,6 +26,15 @@ interface PublicProfile {
   social_links: any;
 }
 
+
+// Normalize URLs so external links don't route internally
+const normalizeUrl = (url: string) => {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^(https?:|mailto:|tel:)/i.test(trimmed)) return trimmed;
+  return `https://${trimmed.replace(/^\/+/, '')}`;
+};
+
 const PublicPing = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
@@ -257,6 +266,7 @@ const PublicPing = () => {
             {userEmail && (
               <Card className="bg-card border-border p-3 hover:border-primary/50 transition-colors">
                 <div className="flex items-center gap-3">
+                  
                   <Mail className="w-4 h-4 text-primary" />
                   <div className="min-w-0 flex-1">
                     <p className="font-medium iridescent-text text-sm">Email</p>
@@ -276,7 +286,8 @@ const PublicPing = () => {
                 return null;
               }
               
-              const url = typeof linkData === 'string' ? linkData : linkData.url;
+              const rawUrl = typeof linkData === 'string' ? linkData : linkData.url;
+              const url = normalizeUrl(rawUrl);
               
               return (
                 <Card key={platform} className="bg-card border-border p-3 hover:border-primary/50 transition-colors">
