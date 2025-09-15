@@ -11,7 +11,7 @@ export const generateReferralMessage = ({
   isOnboarded = true, 
   includeProfileLink = true 
 }: ReferralMessageOptions): string => {
-  const baseMessage = "Hey! I just got a smart ring that holds all my contact info and I give it out just by tapping the top of people's phones.";
+  const baseMessage = "I just started using this smart ring called ping! that lets me share my contact info instantly just by tapping it on phones.";
   
   const profileLink = includeProfileLink && isOnboarded 
     ? `\n\nCheck out my profile: ${getPublicProfileUrl(userId)}`
@@ -19,7 +19,7 @@ export const generateReferralMessage = ({
   
   const referralUrl = `${window.location.origin}/signup?ref=${userId}`;
   const referralText = isOnboarded 
-    ? "\n\nyou should lowkey get one too! Use my referral link and we both get 1 month free:"
+    ? "\n\nYou should lowkey get one too! If you use my referral link we both get 1 month free:"
     : "\n\nuse this link to sign up for yours:";
   
   return `${baseMessage}${profileLink}${referralText}\n${referralUrl}`;
