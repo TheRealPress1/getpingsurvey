@@ -12,8 +12,6 @@ import ProfileSetup from "./pages/ProfileSetup";
 import ProfileView from "./pages/ProfileView";
 import Profile from "./pages/Profile";
 import ProfileDetails from "./pages/ProfileDetails";
-import Chat from "./pages/Chat";
-import ChatThread from "./pages/ChatThread";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Network from "./pages/Network";
@@ -41,13 +39,11 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/details" element={<ProfileDetails />} />
             <Route path="/profile/analytics" element={<ProfileView />} />
-            <Route path="/chat" element={<Chat />} />
             <Route path="/u/:userId" element={<PublicProfile />} />
             <Route path="/ping/:userId" element={<PublicRouteHandler />} />
             <Route path="/ping/:userId/:view" element={<PublicRouteHandler />} />
             <Route path="/network" element={<Network />} />
             <Route path="/tribe" element={<Network />} />
-            <Route path="/chat/:conversationId" element={<ChatThread />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -11,6 +11,7 @@ import { ArrowLeft, MessageSquare, Users, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getShareableUrl } from '@/lib/environment';
 import { createChatWithUser } from '@/utils/chatUtils';
+import { ChatSystem } from '@/components/ChatSystem';
 
 interface Connection {
   id: string;
@@ -38,6 +39,7 @@ const Network = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [selectedChatUser, setSelectedChatUser] = useState<{ userId: string; profile: { user_id: string; display_name?: string; avatar_url?: string } } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -134,22 +136,42 @@ const Network = () => {
 
     try {
       // Optimistic UI update - find/add person to tribe immediately
-      const targetProfile = searchResults.find(p => p.user_id === otherId);
+      const targetProfile = searchResults.find(p => p.user_id === otherId) || 
+                           Object.values(profiles).find((_, key) => Object.keys(profiles)[Object.values(profiles).indexOf(_)] === otherId);
+      
       if (targetProfile && !profiles[otherId]) {
-        setProfiles(prev => ({
-          ...prev,
-          [otherId]: { name: targetProfile.display_name || 'User', avatar: targetProfile.avatar_url }
-        }));
-        setConnections(prev => [...prev, {
-          id: 'temp-' + Date.now(),
-          user_id: user.id,
-          target_user_id: otherId,
-          created_at: new Date().toISOString()
-        }]);
+        const profileData = 'display_name' in targetProfile ? targetProfile : null;
+        if (profileData) {
+          setProfiles(prev => ({
+            ...prev,
+            [otherId]: { name: profileData.display_name || 'User', avatar: profileData.avatar_url }
+          }));
+          setConnections(prev => [...prev, {
+            id: 'temp-' + Date.now(),
+            user_id: user.id,
+            target_user_id: otherId,
+            created_at: new Date().toISOString()
+          }]);
+        }
       }
 
-      const conversationId = await createChatWithUser(otherId, user.id);
-      navigate(`/chat/${conversationId}`);
+      await createChatWithUser(otherId, user.id);
+      
+      // Open chat system
+      const profile = searchResults.find(p => p.user_id === otherId) || {
+        user_id: otherId,
+        display_name: profiles[otherId]?.name || 'User',
+        avatar_url: profiles[otherId]?.avatar || null
+      };
+      
+      setSelectedChatUser({
+        userId: otherId,
+        profile: {
+          user_id: otherId,
+          display_name: profile.display_name,
+          avatar_url: profile.avatar_url
+        }
+      });
     } catch (error) {
       console.error('Error creating chat:', error);
       toast({
@@ -271,10 +293,10 @@ const Network = () => {
                         <p className="font-medium iridescent-text">{prof.name}</p>
                         <p className="text-xs text-muted-foreground iridescent-text">Joined tribe on {new Date(c.created_at).toLocaleDateString()}</p>
                       </div>
-                    </div>
-                    <Button onClick={() => handlePing(other)} className="hover-scale">
-                      <MessageSquare className="w-4 h-4 mr-2" /> ping!
-                    </Button>
+                     </div>
+                     <Button onClick={() => handlePing(other)} className="hover-scale">
+                       <MessageSquare className="w-4 h-4 mr-2" /> ping!
+                     </Button>
                   </div>
                 );
               })}
@@ -287,6 +309,14 @@ const Network = () => {
           )}
         </Card>
       </main>
+
+      {/* Integrated Chat System */}
+      {selectedChatUser && (
+        <ChatSystem 
+          targetUserId={selectedChatUser.userId}
+          targetProfile={selectedChatUser.profile}
+        />
+      )}
     </div>
   );
 };
