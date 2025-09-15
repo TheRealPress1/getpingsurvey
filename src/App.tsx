@@ -19,6 +19,7 @@ import PublicProfile from "./pages/PublicProfile";
 import PublicPing from "./pages/PublicPing";
 import PublicProfileDetails from "./pages/PublicProfileDetails";
 import PublicRouteHandler from "./pages/PublicRouteHandler";
+import Chat from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/ping/:userId/:view" element={<PublicRouteHandler />} />
             <Route path="/network" element={<Network />} />
             <Route path="/tribe" element={<Network />} />
+            <Route path="/chat/:conversationId" element={<Chat />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
