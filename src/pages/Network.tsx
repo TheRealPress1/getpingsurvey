@@ -38,7 +38,7 @@ const Network = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [activeChatUser, setActiveChatUser] = useState<{ userId: string; name: string; avatar: string | null } | null>(null);
+  const [chatView, setChatView] = useState<{ userId: string; name: string; avatar: string | null } | null>(null);
   const [messages, setMessages] = useState<{ id: string; content: string; sender_id: string; created_at: string }[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -167,7 +167,7 @@ const Network = () => {
         avatar_url: profiles[otherId]?.avatar || null
       };
       
-      setActiveChatUser({
+      setChatView({
         userId: otherId,
         name: profile.display_name || 'User',
         avatar: profile.avatar_url
@@ -230,6 +230,114 @@ const Network = () => {
     }
   };
 
+  // If in chat view, show full-screen chat
+  if (chatView) {
+    return (
+      <div className="min-h-screen bg-background relative">
+        <StarField />
+
+        {/* Chat Header */}
+        <header className="border-b border-border p-4 relative z-10">
+          <div className="max-w-4xl mx-auto flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => {
+                setChatView(null);
+                setMessages([]);
+                setConversationId(null);
+                setNewMessage("");
+              }}
+            >
+              <ArrowLeft className="w-5 h-5 text-primary" />
+            </Button>
+            <Avatar className="w-10 h-10">
+              {chatView.avatar ? (
+                <AvatarImage src={chatView.avatar} alt={chatView.name} />
+              ) : (
+                <AvatarFallback>{chatView.name[0]}</AvatarFallback>
+              )}
+            </Avatar>
+            <div>
+              <h1 className="text-xl font-bold iridescent-text">{chatView.name}</h1>
+              <p className="text-sm text-muted-foreground">Active now</p>
+            </div>
+          </div>
+        </header>
+
+        {/* Chat Messages */}
+        <main className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col relative z-10">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {chatLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground iridescent-text">Loading messages...</p>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="text-center py-8">
+                <Avatar className="w-20 h-20 mx-auto mb-4">
+                  {chatView.avatar ? (
+                    <AvatarImage src={chatView.avatar} alt={chatView.name} />
+                  ) : (
+                    <AvatarFallback className="text-2xl">{chatView.name[0]}</AvatarFallback>
+                  )}
+                </Avatar>
+                <h3 className="text-lg font-semibold iridescent-text mb-2">{chatView.name}</h3>
+                <p className="text-muted-foreground iridescent-text">
+                  You're now connected! Say hello to start the conversation.
+                </p>
+              </div>
+            ) : (
+              messages.map((message) => {
+                const isOwnMessage = message.sender_id === user?.id;
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-sm p-3 rounded-2xl ${
+                        isOwnMessage
+                          ? 'bg-primary text-primary-foreground rounded-br-md'
+                          : 'bg-secondary text-secondary-foreground rounded-bl-md'
+                      }`}
+                    >
+                      <p className="text-sm">{message.content}</p>
+                      <p className="text-xs opacity-70 mt-1">
+                        {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Message Input */}
+          <div className="p-4 border-t border-border">
+            <div className="flex gap-3 items-end">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                placeholder={`Message ${chatView.name}...`}
+                className="flex-1 rounded-full min-h-[2.5rem] resize-none"
+                disabled={chatLoading}
+              />
+              <Button 
+                onClick={sendMessage} 
+                disabled={!newMessage.trim() || chatLoading}
+                size="icon"
+                className="rounded-full w-10 h-10"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -341,10 +449,10 @@ const Network = () => {
                         <p className="font-medium iridescent-text">{prof.name}</p>
                         <p className="text-xs text-muted-foreground iridescent-text">Joined tribe on {new Date(c.created_at).toLocaleDateString()}</p>
                       </div>
-                     </div>
-                     <Button onClick={() => handlePing(other)} className="hover-scale">
-                       <MessageSquare className="w-4 h-4 mr-2" /> ping!
-                     </Button>
+                    </div>
+                    <Button onClick={() => handlePing(other)} className="hover-scale">
+                      <MessageSquare className="w-4 h-4 mr-2" /> ping!
+                    </Button>
                   </div>
                 );
               })}
@@ -356,97 +464,6 @@ const Network = () => {
             </div>
           )}
         </Card>
-
-        {/* Inline Chat */}
-        {activeChatUser && (
-          <Card className="bg-card border-border p-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="w-8 h-8">
-                  {activeChatUser.avatar ? (
-                    <AvatarImage src={activeChatUser.avatar} alt={activeChatUser.name} />
-                  ) : (
-                    <AvatarFallback>{activeChatUser.name[0]}</AvatarFallback>
-                  )}
-                </Avatar>
-                <h3 className="text-lg font-semibold iridescent-text">
-                  Chat with {activeChatUser.name}
-                </h3>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => {
-                  setActiveChatUser(null);
-                  setMessages([]);
-                  setConversationId(null);
-                }}
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              {/* Messages */}
-              <div className="h-64 overflow-y-auto border border-border rounded-lg p-3 space-y-2">
-                {chatLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className="text-muted-foreground iridescent-text">Loading messages...</p>
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground iridescent-text">
-                      Say hello to start the conversation! 👋
-                    </p>
-                  </div>
-                ) : (
-                  messages.map((message) => {
-                    const isOwnMessage = message.sender_id === user?.id;
-                    return (
-                      <div
-                        key={message.id}
-                        className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-xs p-2 rounded-lg text-sm ${
-                            isOwnMessage
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-secondary text-secondary-foreground'
-                          }`}
-                        >
-                          <p>{message.content}</p>
-                          <p className="text-xs opacity-50 mt-1">
-                            {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* Message Input */}
-              <div className="flex gap-2">
-                <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder="Type a message..."
-                  className="flex-1"
-                  disabled={chatLoading}
-                />
-                <Button 
-                  onClick={sendMessage} 
-                  disabled={!newMessage.trim() || chatLoading}
-                  size="icon"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
       </main>
     </div>
   );
