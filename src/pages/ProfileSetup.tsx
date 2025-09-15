@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import ImageCropper from '@/components/ImageCropper';
 
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -27,6 +28,9 @@ const ProfileSetup = () => {
     profilePhoto: null as File | null,
     avatarUrl: "" as string
   });
+  
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState('');
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -173,6 +177,71 @@ const ProfileSetup = () => {
       });
     }
     setLoading(false);
+  };
+
+  const handleCropComplete = async (croppedImageBlob: Blob) => {
+    if (!user) return;
+    
+    setLoading(true);
+    
+    try {
+      // Create preview URL for the cropped image
+      const previewUrl = URL.createObjectURL(croppedImageBlob);
+      setProfileData(prev => ({
+        ...prev,
+        avatarUrl: previewUrl
+      }));
+
+      // Upload cropped image to Supabase storage
+      const fileName = `${user.id}/avatar.jpg`;
+      
+      console.log('Uploading cropped image to path:', fileName);
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, croppedImageBlob, { upsert: true });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Upload successful:', data);
+
+      // Get public URL and replace preview
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      console.log('Public URL:', publicUrl);
+
+      // Clean up preview URL and set final URL
+      URL.revokeObjectURL(previewUrl);
+      setProfileData(prev => ({
+        ...prev,
+        avatarUrl: publicUrl
+      }));
+
+      toast({
+        title: 'photo uploaded successfully!',
+        description: 'your profile photo has been updated.'
+      });
+
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'upload failed',
+        description: 'failed to upload photo. please try again.'
+      });
+    } finally {
+      setLoading(false);
+      // Clean up temp image URL
+      if (tempImageSrc) {
+        URL.revokeObjectURL(tempImageSrc);
+        setTempImageSrc('');
+      }
+    }
   };
 
   const saveProfileData = async () => {
@@ -493,6 +562,19 @@ const ProfileSetup = () => {
           <Progress value={progress} className="mt-6" />
         </Card>
       </main>
+      
+      <ImageCropper
+        isOpen={showCropper}
+        onClose={() => {
+          setShowCropper(false);
+          if (tempImageSrc) {
+            URL.revokeObjectURL(tempImageSrc);
+            setTempImageSrc('');
+          }
+        }}
+        imageSrc={tempImageSrc}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 };
