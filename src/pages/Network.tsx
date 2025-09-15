@@ -7,11 +7,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { StarField } from '@/components/StarField';
-import { ArrowLeft, MessageSquare, Users, Search } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Users, Search, Send, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getShareableUrl } from '@/lib/environment';
 import { createChatWithUser } from '@/utils/chatUtils';
-import { ChatSystem } from '@/components/ChatSystem';
 
 interface Connection {
   id: string;
@@ -39,7 +38,11 @@ const Network = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [selectedChatUser, setSelectedChatUser] = useState<{ userId: string; profile: { user_id: string; display_name?: string; avatar_url?: string } } | null>(null);
+  const [activeChatUser, setActiveChatUser] = useState<{ userId: string; name: string; avatar: string | null } | null>(null);
+  const [messages, setMessages] = useState<{ id: string; content: string; sender_id: string; created_at: string }[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -155,23 +158,22 @@ const Network = () => {
         }
       }
 
-      await createChatWithUser(otherId, user.id);
+      const convId = await createChatWithUser(otherId, user.id);
+      setConversationId(convId);
       
-      // Open chat system
+      // Set active chat user and load messages
       const profile = searchResults.find(p => p.user_id === otherId) || {
-        user_id: otherId,
         display_name: profiles[otherId]?.name || 'User',
         avatar_url: profiles[otherId]?.avatar || null
       };
       
-      setSelectedChatUser({
+      setActiveChatUser({
         userId: otherId,
-        profile: {
-          user_id: otherId,
-          display_name: profile.display_name,
-          avatar_url: profile.avatar_url
-        }
+        name: profile.display_name || 'User',
+        avatar: profile.avatar_url
       });
+      
+      await loadMessages(convId);
     } catch (error) {
       console.error('Error creating chat:', error);
       toast({
@@ -179,6 +181,52 @@ const Network = () => {
         description: 'Failed to start conversation. Please try again.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const loadMessages = async (convId: string) => {
+    try {
+      setChatLoading(true);
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', convId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !conversationId || !user || chatLoading) return;
+
+    try {
+      setChatLoading(true);
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: newMessage.trim()
+        });
+
+      if (error) throw error;
+      setNewMessage("");
+      await loadMessages(conversationId);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive"
+      });
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -308,15 +356,98 @@ const Network = () => {
             </div>
           )}
         </Card>
-      </main>
 
-      {/* Integrated Chat System */}
-      {selectedChatUser && (
-        <ChatSystem 
-          targetUserId={selectedChatUser.userId}
-          targetProfile={selectedChatUser.profile}
-        />
-      )}
+        {/* Inline Chat */}
+        {activeChatUser && (
+          <Card className="bg-card border-border p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-8 h-8">
+                  {activeChatUser.avatar ? (
+                    <AvatarImage src={activeChatUser.avatar} alt={activeChatUser.name} />
+                  ) : (
+                    <AvatarFallback>{activeChatUser.name[0]}</AvatarFallback>
+                  )}
+                </Avatar>
+                <h3 className="text-lg font-semibold iridescent-text">
+                  Chat with {activeChatUser.name}
+                </h3>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => {
+                  setActiveChatUser(null);
+                  setMessages([]);
+                  setConversationId(null);
+                }}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Messages */}
+              <div className="h-64 overflow-y-auto border border-border rounded-lg p-3 space-y-2">
+                {chatLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                    <p className="text-muted-foreground iridescent-text">Loading messages...</p>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground iridescent-text">
+                      Say hello to start the conversation! 👋
+                    </p>
+                  </div>
+                ) : (
+                  messages.map((message) => {
+                    const isOwnMessage = message.sender_id === user?.id;
+                    return (
+                      <div
+                        key={message.id}
+                        className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-xs p-2 rounded-lg text-sm ${
+                            isOwnMessage
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-secondary text-secondary-foreground'
+                          }`}
+                        >
+                          <p>{message.content}</p>
+                          <p className="text-xs opacity-50 mt-1">
+                            {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Message Input */}
+              <div className="flex gap-2">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  placeholder="Type a message..."
+                  className="flex-1"
+                  disabled={chatLoading}
+                />
+                <Button 
+                  onClick={sendMessage} 
+                  disabled={!newMessage.trim() || chatLoading}
+                  size="icon"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+      </main>
     </div>
   );
 };
