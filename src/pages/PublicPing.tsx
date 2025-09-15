@@ -157,7 +157,7 @@ const PublicPing = () => {
       });
 
       // Navigate to the chat
-      navigate(`/chat/${conversationId}`);
+      navigate(`/chat/${conversationId}?to=${userId}`);
       
     } catch (error) {
       console.error('Error creating chat:', error);

@@ -34,7 +34,7 @@ const Search = () => {
     try {
       setPingingId(targetUserId);
       const conversationId = await createChatWithUser(targetUserId, user.id);
-      navigate(`/chat/${conversationId}`);
+      navigate(`/chat/${conversationId}?to=${targetUserId}`);
     } catch (e) {
       console.error("ping error", e);
     } finally {

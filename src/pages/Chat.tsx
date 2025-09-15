@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ const Chat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
   const [otherUserId, setOtherUserId] = useState<string | null>(null);
   const [otherProfile, setOtherProfile] = useState<ProfilePreview | null>(null);
@@ -51,15 +52,35 @@ const Chat = () => {
 
       try {
         setLoading(true);
-        // Find participants and determine the other user
-        const { data: participants, error: partErr } = await supabase
-          .from('conversation_participants')
-          .select('user_id')
-          .eq('conversation_id', conversationId);
+        
+        // Prefer the target user passed via query param
+        const toParam = searchParams.get('to');
+        let other: string | null = null;
+        if (toParam) {
+          other = toParam;
+        } else {
+          // Fallback: find any message from the other participant
+          const { data: otherMsg, error: otherMsgErr } = await supabase
+            .from('messages')
+            .select('sender_id')
+            .eq('conversation_id', conversationId)
+            .neq('sender_id', user.id)
+            .limit(1);
+          if (!otherMsgErr && otherMsg && otherMsg.length > 0) {
+            other = otherMsg[0].sender_id as string;
+          }
+        }
 
-        if (partErr) throw partErr;
-        const ids = (participants || []).map(p => p.user_id);
-        const other = ids.find(id => id !== user.id) || ids[0] || null;
+        // As a last resort, read participants (will only return self due to RLS)
+        if (!other) {
+          const { data: participants } = await supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', conversationId);
+          const ids = (participants || []).map(p => p.user_id);
+          other = ids.find(id => id !== user.id) || null;
+        }
+
         setOtherUserId(other);
 
         if (other) {

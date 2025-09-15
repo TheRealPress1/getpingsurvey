@@ -31,7 +31,7 @@ const Auth = () => {
       if (intent?.type === 'ping' && intent.targetUserId) {
         const conversationId = await createChatWithUser(intent.targetUserId, uid);
         localStorage.removeItem('postLoginIntent');
-        navigate(`/chat/${conversationId}`);
+        navigate(`/chat/${conversationId}?to=${intent.targetUserId}`);
         return true;
       }
     } catch {}
