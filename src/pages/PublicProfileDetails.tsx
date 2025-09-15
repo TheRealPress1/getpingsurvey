@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StarField } from "@/components/StarField";
@@ -27,6 +27,7 @@ interface PublicProfile {
 const PublicProfileDetails = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { isConnected, loading: connectionLoading, checkConnection, removeConnection } = useConnections();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -183,10 +184,15 @@ const PublicProfileDetails = () => {
       {/* Header */}
       <header className="border-b border-border p-4 relative z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to={`/ping/${userId}`} className="flex items-center gap-2 hover:scale-105 transition-transform duration-200">
+          <button
+            type="button"
+            onClick={() => navigate(user ? '/profile' : '/')}
+            className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
+            aria-label="Back to Profile"
+          >
             <ArrowLeft className="w-5 h-5 text-primary" />
             <span className="text-xl font-bold iridescent-text">Back</span>
-          </Link>
+          </button>
           <div className="flex gap-2">
             {user && user.id !== userId && isConnected && (
               <Button 

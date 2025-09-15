@@ -71,7 +71,11 @@ const Network = () => {
         }
       });
       const deduped = Array.from(dedupMap.values());
-      setConnections(deduped);
+      const dedupedFiltered = deduped.filter(r => {
+        const other = r.user_id === user.id ? r.target_user_id : r.user_id;
+        return other !== user.id;
+      });
+      setConnections(dedupedFiltered);
 
       // Fetch counterpart profiles
       const otherIds = deduped.map(r => r.user_id === user.id ? r.target_user_id : r.user_id).filter(id => id !== user.id);
@@ -132,6 +136,10 @@ const Network = () => {
 
   const removeFromTribe = async (targetUserId: string) => {
     if (!user) return;
+    if (targetUserId === user.id) {
+      toast({ title: "Can't remove yourself", description: "You can't remove yourself from your tribe." });
+      return;
+    }
     
     try {
       // Remove the connection from the database
@@ -142,10 +150,11 @@ const Network = () => {
 
       if (error) throw error;
 
-      // Update local state
-      setConnections(prev => prev.filter(c => 
-        !(c.user_id === targetUserId || c.target_user_id === targetUserId)
-      ));
+      // Update local state (remove only that other user)
+      setConnections(prev => prev.filter(c => {
+        const otherId = c.user_id === user.id ? c.target_user_id : c.user_id;
+        return otherId !== targetUserId;
+      }));
       
       setProfiles(prev => {
         const updated = { ...prev };
@@ -166,7 +175,6 @@ const Network = () => {
       });
     }
   };
-
   const handlePing = async (otherId: string) => {
     if (!user) {
       try { localStorage.setItem('postLoginIntent', JSON.stringify({ type: 'ping', targetUserId: otherId })); } catch {}

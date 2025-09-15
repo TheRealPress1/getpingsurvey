@@ -114,7 +114,7 @@ const PublicProfile = () => {
         title: "ping! sent",
         description: `Started a conversation with ${profile?.display_name || 'user'}`,
       });
-      navigate(`/chat/thread/${conversationId}`);
+      navigate(`/chat/${conversationId}`);
     } catch (error) {
       console.error('Error creating chat:', error);
       toast({
@@ -179,10 +179,15 @@ const PublicProfile = () => {
       {/* Header */}
       <header className="border-b border-border p-4 relative z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:scale-105 transition-transform duration-200">
+          <button
+            type="button"
+            onClick={() => navigate(user ? '/profile' : '/')}
+            className="flex items-center gap-2 hover:scale-105 transition-transform duration-200"
+            aria-label="Back to Profile"
+          >
             <ArrowLeft className="w-5 h-5 text-primary" />
             <span className="text-xl font-bold iridescent-text">ping!</span>
-          </Link>
+          </button>
           <div className="text-sm text-muted-foreground iridescent-text">
             Public Profile
           </div>
