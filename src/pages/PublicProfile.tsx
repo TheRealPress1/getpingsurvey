@@ -273,6 +273,28 @@ const PublicProfile = () => {
                   </div>
                 </Card>
               )}
+              
+              {profile.website_url && (
+                <Card className="bg-card border-border p-4 hover:border-primary/50 transition-colors">
+                  <a 
+                    href={profile.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between w-full"
+                  >
+                    <div className="flex items-center gap-3">
+                      <ExternalLink className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="font-medium iridescent-text">Website</p>
+                        <p className="text-sm text-muted-foreground iridescent-text truncate hover:text-primary transition-colors">
+                          {profile.website_url}
+                        </p>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-primary" />
+                  </a>
+                </Card>
+              )}
             </div>
           </div>
         </div>
@@ -306,7 +328,7 @@ const PublicProfile = () => {
                             {platform === 'instagram' && <span className="text-primary font-bold">IG</span>}
                             {platform === 'twitter' && <span className="text-primary font-bold">X</span>}
                             {platform === 'venmo' && <span className="text-primary font-bold">V</span>}
-                            {!['linkedin', 'instagram', 'twitter', 'venmo'].includes(platform) && <ExternalLink className="w-5 h-5 text-primary" />}
+                            {platform === 'website' && <ExternalLink className="w-5 h-5 text-primary" />}
                           </div>
                           <div>
                             <p className="font-medium iridescent-text capitalize">
@@ -314,8 +336,9 @@ const PublicProfile = () => {
                               {platform === 'instagram' && 'Instagram'}
                               {platform === 'twitter' && 'Twitter/X'}
                               {platform === 'venmo' && 'Venmo'}
-                              {!['linkedin', 'instagram', 'twitter', 'venmo'].includes(platform) && platform}
-                            </p>
+                              {platform === 'website' && 'Website'}
+                               {!['linkedin', 'instagram', 'twitter', 'venmo', 'website'].includes(platform) && platform}
+                             </p>
                             <p className="text-sm text-muted-foreground iridescent-text truncate">
                               {url}
                             </p>

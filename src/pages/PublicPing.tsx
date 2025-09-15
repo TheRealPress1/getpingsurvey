@@ -291,8 +291,8 @@ const PublicPing = () => {
                       {platform === 'instagram' && <span className="text-primary font-bold text-xs">IG</span>}
                       {platform === 'twitter' && <span className="text-primary font-bold text-xs">X</span>}
                       {platform === 'venmo' && <span className="text-primary font-bold text-xs">V</span>}
-                      {platform === 'website' && <ExternalLink className="w-4 h-4 text-primary" />}
-                      {!['linkedin', 'instagram', 'twitter', 'venmo', 'website'].includes(platform) && <ExternalLink className="w-4 h-4 text-primary" />}
+                       {platform === 'website' && <ExternalLink className="w-4 h-4 text-primary" />}
+                       {!['linkedin', 'instagram', 'twitter', 'venmo', 'website'].includes(platform) && <ExternalLink className="w-4 h-4 text-primary" />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium iridescent-text text-sm capitalize">
@@ -300,8 +300,8 @@ const PublicPing = () => {
                         {platform === 'instagram' && 'Instagram'}
                         {platform === 'twitter' && 'Twitter/X'}
                         {platform === 'venmo' && 'Venmo'}
-                        {platform === 'website' && 'Website'}
-                        {!['linkedin', 'instagram', 'twitter', 'venmo', 'website'].includes(platform) && platform}
+                         {platform === 'website' && 'Website'}
+                         {!['linkedin', 'instagram', 'twitter', 'venmo', 'website'].includes(platform) && platform}
                       </p>
                       {platform === 'website' && (
                         <p className="text-xs text-muted-foreground iridescent-text truncate">
