@@ -1,11 +1,48 @@
 import { NavLink } from "react-router-dom";
 import { Users, PlaySquare, Search, MessageCircle, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const BottomNav = () => {
+  const { user } = useAuth();
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      fetchUnreadMessageCount();
+    }
+  }, [user]);
+
+  const fetchUnreadMessageCount = async () => {
+    if (!user) return;
+    try {
+      // Get all conversations for the user
+      const { data: conversations } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+      
+      if (conversations && conversations.length > 0) {
+        // Count unread messages (for simplicity, count recent messages from others)
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .in('conversation_id', conversations.map(c => c.conversation_id))
+          .neq('sender_id', user.id)
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()); // Last 24 hours
+        
+        setUnreadMessageCount(count || 0);
+      }
+    } catch (error) {
+      console.warn('Could not fetch unread message count:', error);
+    }
+  };
+
   const items = [
     { to: "/feed", label: "feed", icon: PlaySquare },
     { to: "/network", label: "tribe", icon: Users },
-    { to: "/chat", label: "chat", icon: MessageCircle },
+    { to: "/chat", label: "chat", icon: MessageCircle, hasNotification: unreadMessageCount > 0 },
     { to: "/profile", label: "profile", icon: User },
   ];
 
@@ -17,10 +54,17 @@ export const BottomNav = () => {
   return (
     <nav className="fixed bottom-2 left-1/2 -translate-x-1/2 z-40 w-[min(640px,92%)] bg-card/90 backdrop-blur border border-border rounded-2xl shadow-lg px-2 py-2">
       <ul className="flex items-center justify-between">
-        {items.map(({ to, label, icon: Icon }) => (
+        {items.map(({ to, label, icon: Icon, hasNotification }) => (
           <li key={to} className="flex-1">
             <NavLink to={to} className={getCls} aria-label={label}>
-              <Icon className="h-6 w-6" />
+              <div className="relative">
+                <Icon className="h-6 w-6" />
+                {hasNotification && (
+                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">!</span>
+                  </div>
+                )}
+              </div>
             </NavLink>
           </li>
         ))}

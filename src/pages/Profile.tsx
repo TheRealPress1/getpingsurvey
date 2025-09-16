@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StarField } from "@/components/StarField";
-import { ArrowLeft, MapPin, Building2, Edit, BarChart3, ExternalLink, Mail, Phone, Search, UserPlus, Share2 } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, Edit, BarChart3, ExternalLink, Mail, Phone, Search, UserPlus, Share2, FileText, Download, Eye } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
@@ -41,6 +41,7 @@ const Profile = () => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
   // Redirect if not authenticated - but only after loading is complete and we're sure there's no user
   useEffect(() => {
@@ -59,6 +60,7 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchUnreadMessageCount();
     }
   }, [user]);
   const fetchProfile = async () => {
@@ -126,6 +128,54 @@ const Profile = () => {
   };
   const handleProfileEditCancel = () => {
     setShowProfileEdit(false);
+  };
+
+  const fetchUnreadMessageCount = async () => {
+    if (!user) return;
+    try {
+      // Get all conversations for the user
+      const { data: conversations } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+      
+      if (conversations && conversations.length > 0) {
+        // Count unread messages (for simplicity, count recent messages from others)
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .in('conversation_id', conversations.map(c => c.conversation_id))
+          .neq('sender_id', user.id)
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()); // Last 24 hours
+        
+        setUnreadMessageCount(count || 0);
+      }
+    } catch (error) {
+      console.warn('Could not fetch unread message count:', error);
+    }
+  };
+
+  const downloadResume = () => {
+    if (profile?.resume_url) {
+      const link = document.createElement('a');
+      link.href = profile.resume_url;
+      link.download = profile.resume_filename || 'resume.pdf';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Resume Downloaded",
+        description: "Resume has been saved to your device."
+      });
+    }
+  };
+
+  const viewResume = () => {
+    if (profile?.resume_url) {
+      window.open(profile.resume_url, '_blank');
+    }
   };
 
   // Show loading state
@@ -200,9 +250,14 @@ const Profile = () => {
           
           {/* Network in center with search */}
           <div className="absolute left-1/2 transform -translate-x-1/2">
-            <Button variant="ghost" className="flex items-center gap-2 hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full px-4 py-1.5 backdrop-blur-sm border border-primary/20 shadow-lg text-sm" onClick={() => navigate('/network')}>
+            <Button variant="ghost" className="flex items-center gap-2 hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full px-4 py-1.5 backdrop-blur-sm border border-primary/20 shadow-lg text-sm relative" onClick={() => navigate('/network')}>
               <Search className="w-4 h-4 text-primary" />
               <span className="iridescent-text font-medium">Find Your Tribe</span>
+              {unreadMessageCount > 0 && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">!</span>
+                </div>
+              )}
             </Button>
           </div>
           
@@ -325,6 +380,59 @@ const Profile = () => {
           })}
           </div>
         </div>
+
+        {/* Resume Section */}
+        {profile?.resume_url && (
+          <div className="mt-6">
+            <h2 className="text-2xl font-bold iridescent-text mb-4 text-center">Resume</h2>
+            <div className="bg-card border border-border rounded-lg p-4">
+              <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/30">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold iridescent-text">
+                      {profile.resume_filename || 'Resume.pdf'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      PDF Document
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={viewResume}
+                    variant="outline"
+                    size="sm"
+                    className="hover:scale-105 transition-transform duration-200"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View
+                  </Button>
+                  <Button
+                    onClick={downloadResume}
+                    variant="default"
+                    size="sm"
+                    className="hover:scale-105 transition-transform duration-200"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Save to Phone
+                  </Button>
+                </div>
+              </div>
+              
+              {/* PDF Preview */}
+              <div className="mt-4 border border-border rounded-lg overflow-hidden">
+                <iframe
+                  src={`${profile.resume_url}#toolbar=0&navpanes=0&scrollbar=0`}
+                  className="w-full h-96 border-0"
+                  title="Resume Preview"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Share Profile Button - Bottom of page */}
         <div className="mt-8 flex flex-col items-center space-y-3">

@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StarField } from "@/components/StarField";
-import { ArrowLeft, MapPin, Building2, ExternalLink, Calendar, Award, MessageSquare } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, ExternalLink, Calendar, Award, MessageSquare, FileText, Download, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useConnections } from "@/hooks/useConnections";
@@ -23,6 +23,8 @@ interface PublicProfile {
   social_links: any;
   experience?: any[];
   featured_work?: any[];
+  resume_url?: string;
+  resume_filename?: string;
 }
 
 const PublicProfileDetails = () => {
@@ -83,6 +85,8 @@ const PublicProfileDetails = () => {
         skills: p.skills || [],
         interests: p.interests || [],
         social_links: p.social_links || {},
+        resume_url: (p as any).resume_url,
+        resume_filename: (p as any).resume_filename,
       });
     } catch (error) {
       console.error("Error fetching public profile:", error);
@@ -98,6 +102,24 @@ const PublicProfileDetails = () => {
     const success = await removeConnection(userId);
     if (success) {
       // Connection removed successfully
+    }
+  };
+
+  const downloadResume = () => {
+    if (profile?.resume_url) {
+      const link = document.createElement('a');
+      link.href = profile.resume_url;
+      link.download = profile.resume_filename || 'resume.pdf';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const viewResume = () => {
+    if (profile?.resume_url) {
+      window.open(profile.resume_url, '_blank');
     }
   };
 
@@ -377,6 +399,60 @@ const PublicProfileDetails = () => {
             ))}
           </div>
         </Card>
+
+        {/* Resume Section */}
+        {profile?.resume_url && (
+          <Card className="bg-card border-border p-6 mb-6">
+            <h2 className="text-2xl font-bold iridescent-text mb-4 flex items-center gap-2">
+              <FileText className="w-6 h-6 text-primary" />
+              Resume
+            </h2>
+            <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/30">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold iridescent-text">
+                    {profile.resume_filename || 'Resume.pdf'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    PDF Document
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={viewResume}
+                  variant="outline"
+                  size="sm"
+                  className="hover:scale-105 transition-transform duration-200"
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  View
+                </Button>
+                <Button
+                  onClick={downloadResume}
+                  variant="default"
+                  size="sm"
+                  className="hover:scale-105 transition-transform duration-200"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Save to Phone
+                </Button>
+              </div>
+            </div>
+            
+            {/* PDF Preview */}
+            <div className="mt-4 border border-border rounded-lg overflow-hidden">
+              <iframe
+                src={`${profile.resume_url}#toolbar=0&navpanes=0&scrollbar=0`}
+                className="w-full h-96 border-0"
+                title="Resume Preview"
+              />
+            </div>
+          </Card>
+        )}
 
         {/* Endorsements Section */}
         <Card className="bg-card border-border p-6 mb-6">
