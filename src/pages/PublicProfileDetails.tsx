@@ -218,16 +218,7 @@ const PublicProfileDetails = () => {
             <span className="text-xl font-bold iridescent-text">Back</span>
           </button>
           <div className="flex gap-2">
-            {user && user.id !== userId && isConnected && (
-              <Button 
-                variant="outline"
-                onClick={handleRemoveFromTribe}
-                disabled={connectionLoading}
-                className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-              >
-                {connectionLoading ? 'Removing...' : 'Remove from Tribe'}
-              </Button>
-            )}
+            {/* Removed remove from tribe button for now */}
           </div>
         </div>
       </header>

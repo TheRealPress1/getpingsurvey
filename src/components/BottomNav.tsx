@@ -17,6 +17,11 @@ export const BottomNav = () => {
   const fetchUnreadMessageCount = async () => {
     if (!user) return;
     try {
+      // Get last read timestamps from localStorage
+      const lastReadKey = `lastRead_${user.id}`;
+      const lastReadStr = localStorage.getItem(lastReadKey);
+      const lastRead = lastReadStr ? new Date(lastReadStr) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+
       // Get all conversations for the user
       const { data: conversations } = await supabase
         .from('conversation_participants')
@@ -24,13 +29,13 @@ export const BottomNav = () => {
         .eq('user_id', user.id);
       
       if (conversations && conversations.length > 0) {
-        // Count unread messages (for simplicity, count recent messages from others)
+        // Count unread messages since last read
         const { count } = await supabase
           .from('messages')
           .select('*', { count: 'exact', head: true })
           .in('conversation_id', conversations.map(c => c.conversation_id))
           .neq('sender_id', user.id)
-          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()); // Last 24 hours
+          .gte('created_at', lastRead.toISOString());
         
         setUnreadMessageCount(count || 0);
       }
@@ -56,7 +61,19 @@ export const BottomNav = () => {
       <ul className="flex items-center justify-between">
         {items.map(({ to, label, icon: Icon, hasNotification }) => (
           <li key={to} className="flex-1">
-            <NavLink to={to} className={getCls} aria-label={label}>
+            <NavLink 
+              to={to} 
+              className={getCls} 
+              aria-label={label}
+              onClick={() => {
+                if (to === '/chat' && user) {
+                  // Mark messages as read when clicking chat
+                  const lastReadKey = `lastRead_${user.id}`;
+                  localStorage.setItem(lastReadKey, new Date().toISOString());
+                  setUnreadMessageCount(0);
+                }
+              }}
+            >
               <div className="relative">
                 <Icon className="h-6 w-6" />
                 {hasNotification && (

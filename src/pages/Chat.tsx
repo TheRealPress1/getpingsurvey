@@ -103,6 +103,11 @@ const Chat = () => {
         toast({ title: 'Error', description: 'Failed to load chat', variant: 'destructive' });
       } finally {
         setLoading(false);
+        // Mark messages as read when entering chat
+        if (user) {
+          const lastReadKey = `lastRead_${user.id}`;
+          localStorage.setItem(lastReadKey, new Date().toISOString());
+        }
       }
     })();
   }, [conversationId, user]);
@@ -221,8 +226,8 @@ const Chat = () => {
               className="flex-1 rounded-full min-h-[2.5rem] resize-none"
               disabled={sending}
             />
-            <Button onClick={sendMessage} disabled={!newMessage.trim() || sending} size="icon" className="rounded-full w-10 h-10">
-              <Send className="w-4 h-4" />
+            <Button onClick={sendMessage} disabled={!newMessage.trim() || sending} size="lg" className="rounded-full w-12 h-12 text-lg">
+              <Send className="w-5 h-5" />
             </Button>
           </div>
         </div>

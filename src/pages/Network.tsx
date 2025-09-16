@@ -43,6 +43,7 @@ const Network = () => {
   const [newMessage, setNewMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [chatLoading, setChatLoading] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -91,6 +92,9 @@ const Network = () => {
         }
       }
 
+      // Fetch unread message counts for each connection
+      await fetchUnreadCounts(unique);
+
       setLoading(false);
     };
 
@@ -127,6 +131,51 @@ const Network = () => {
       setSearchResults([]);
     } finally {
       setSearchLoading(false);
+    }
+  };
+
+  const fetchUnreadCounts = async (userIds: string[]) => {
+    if (!user || userIds.length === 0) return;
+    
+    try {
+      const lastReadKey = `lastRead_${user.id}`;
+      const lastReadStr = localStorage.getItem(lastReadKey);
+      const lastRead = lastReadStr ? new Date(lastReadStr) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const counts: Record<string, number> = {};
+      
+      for (const userId of userIds) {
+        // Find conversations with this user
+        const { data: convData } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .eq('user_id', user.id);
+
+        if (convData && convData.length > 0) {
+          // Check if the other user is also in any of these conversations
+          const { data: otherConvData } = await supabase
+            .from('conversation_participants')
+            .select('conversation_id')
+            .eq('user_id', userId)
+            .in('conversation_id', convData.map(c => c.conversation_id));
+
+          if (otherConvData && otherConvData.length > 0) {
+            // Count unread messages from this user
+            const { count } = await supabase
+              .from('messages')
+              .select('*', { count: 'exact', head: true })
+              .in('conversation_id', otherConvData.map(c => c.conversation_id))
+              .eq('sender_id', userId)
+              .gte('created_at', lastRead.toISOString());
+
+            counts[userId] = count || 0;
+          }
+        }
+      }
+      
+      setUnreadCounts(counts);
+    } catch (error) {
+      console.warn('Could not fetch unread counts:', error);
     }
   };
 
@@ -219,6 +268,13 @@ const Network = () => {
       });
       
       await loadMessages(convId);
+      
+      // Mark messages as read from this user
+      if (user) {
+        const lastReadKey = `lastRead_${user.id}`;
+        localStorage.setItem(lastReadKey, new Date().toISOString());
+        setUnreadCounts(prev => ({ ...prev, [otherId]: 0 }));
+      }
     } catch (error) {
       console.error('Error creating chat:', error);
       toast({
@@ -372,10 +428,10 @@ const Network = () => {
               <Button 
                 onClick={sendMessage} 
                 disabled={!newMessage.trim() || chatLoading}
-                size="icon"
-                className="rounded-full w-10 h-10"
+                size="lg"
+                className="rounded-full w-12 h-12 text-lg"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               </Button>
             </div>
           </div>
@@ -499,8 +555,18 @@ const Network = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={() => handlePing(other)} size="sm" variant="outline" className="hover-scale">
+                      <Button 
+                        onClick={() => handlePing(other)} 
+                        size="sm" 
+                        variant="outline" 
+                        className="hover-scale relative"
+                      >
                         <MessageSquare className="w-4 h-4" />
+                        {unreadCounts[other] > 0 && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">!</span>
+                          </div>
+                        )}
                       </Button>
                       <Button 
                         onClick={(e) => {

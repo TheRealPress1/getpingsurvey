@@ -133,6 +133,11 @@ const Profile = () => {
   const fetchUnreadMessageCount = async () => {
     if (!user) return;
     try {
+      // Get last read timestamps from localStorage
+      const lastReadKey = `lastRead_${user.id}`;
+      const lastReadStr = localStorage.getItem(lastReadKey);
+      const lastRead = lastReadStr ? new Date(lastReadStr) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+
       // Get all conversations for the user
       const { data: conversations } = await supabase
         .from('conversation_participants')
@@ -140,19 +145,26 @@ const Profile = () => {
         .eq('user_id', user.id);
       
       if (conversations && conversations.length > 0) {
-        // Count unread messages (for simplicity, count recent messages from others)
+        // Count unread messages since last read
         const { count } = await supabase
           .from('messages')
           .select('*', { count: 'exact', head: true })
           .in('conversation_id', conversations.map(c => c.conversation_id))
           .neq('sender_id', user.id)
-          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()); // Last 24 hours
+          .gte('created_at', lastRead.toISOString());
         
         setUnreadMessageCount(count || 0);
       }
     } catch (error) {
       console.warn('Could not fetch unread message count:', error);
     }
+  };
+
+  const markMessagesAsRead = () => {
+    if (!user) return;
+    const lastReadKey = `lastRead_${user.id}`;
+    localStorage.setItem(lastReadKey, new Date().toISOString());
+    setUnreadMessageCount(0);
   };
 
   const downloadResume = () => {
@@ -263,11 +275,11 @@ const Profile = () => {
           
           {/* Right side icon bubbles */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full w-8 h-8 backdrop-blur-sm border border-primary/20 shadow-lg" onClick={() => setShowProfileEdit(true)}>
-              <Edit className="w-4 h-4 text-primary" />
+            <Button variant="ghost" size="icon" className="hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full w-10 h-10 backdrop-blur-sm border border-primary/20 shadow-lg" onClick={() => setShowProfileEdit(true)}>
+              <Edit className="w-5 h-5 text-primary" />
             </Button>
-            <Button variant="ghost" size="icon" className="hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full w-8 h-8 backdrop-blur-sm border border-primary/20 shadow-lg" onClick={() => navigate('/profile/analytics')}>
-              <BarChart3 className="w-4 h-4 text-primary" />
+            <Button variant="ghost" size="icon" className="hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full w-10 h-10 backdrop-blur-sm border border-primary/20 shadow-lg" onClick={() => navigate('/profile/analytics')}>
+              <BarChart3 className="w-5 h-5 text-primary" />
             </Button>
           </div>
         </div>
@@ -308,7 +320,10 @@ const Profile = () => {
             click name or photo to learn more
           </p>
 
-          <Button className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground text-sm" onClick={() => navigate('/chat')}>
+          <Button className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3" onClick={() => {
+            markMessagesAsRead();
+            navigate('/chat');
+          }}>
             ping! {displayName.split(' ')[0] || 'user'}
           </Button>
           
