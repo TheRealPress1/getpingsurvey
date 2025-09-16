@@ -56,16 +56,6 @@ const Checkout = () => {
     }
   };
 
-  const handleCreateAccount = () => {
-    toast({
-      title: "welcome!",
-      description: "let's set up your profile.",
-    });
-    
-    setTimeout(() => {
-      window.location.href = '/profile-setup';
-    }, 500);
-  };
   return <div className="min-h-screen bg-background relative">
       <StarField />
       
@@ -155,14 +145,6 @@ const Checkout = () => {
                 {loading ? "processing..." : "get ping! today - $9.99"}
               </Button>
               
-              <Button 
-                type="button"
-                onClick={handleCreateAccount}
-                variant="outline"
-                className="w-full py-4 text-lg font-semibold border-primary/30 text-primary hover:bg-primary/10"
-              >
-                create my account
-              </Button>
               
               <div className="text-xs text-center text-muted-foreground iridescent-text">
                 payment and shipping details will be collected securely through stripe

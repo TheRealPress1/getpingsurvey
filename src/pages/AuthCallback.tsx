@@ -74,9 +74,6 @@ const AuthCallback = () => {
               </p>
               <div className="flex flex-col gap-2">
                 <Button onClick={retry} className="w-full">Continue</Button>
-                <Button variant="outline" onClick={() => navigate('/account-setup')} className="w-full">
-                  I already paid – create account
-                </Button>
               </div>
             </>
           )}
