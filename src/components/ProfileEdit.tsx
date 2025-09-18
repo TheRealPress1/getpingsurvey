@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload, Eye, EyeOff, LogOut } from 'lucide-react';
+import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload, Eye, EyeOff, LogOut, Edit, Briefcase } from 'lucide-react';
 import { ResumeUpload } from './ResumeUpload';
 import { useNavigate } from 'react-router-dom';
 
@@ -38,6 +38,10 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
     is_public: profile?.is_public !== undefined ? profile.is_public : true
   });
 
+  const [workExperience, setWorkExperience] = useState(() => {
+    return profile?.work_experience || [{ company: "", position: "", duration: "", description: "" }];
+  });
+
   // Update form data when profile prop changes
   useEffect(() => {
     if (profile) {
@@ -52,6 +56,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
         avatar_url: profile.avatar_url || '',
         is_public: profile.is_public !== undefined ? profile.is_public : true
       });
+      setWorkExperience(profile.work_experience || [{ company: "", position: "", duration: "", description: "" }]);
     }
   }, [profile]);
 
@@ -155,6 +160,20 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
     setSocialLinks(updated);
   };
 
+  const addWorkExperience = () => {
+    setWorkExperience([...workExperience, { company: "", position: "", duration: "", description: "" }]);
+  };
+
+  const updateWorkExperience = (index: number, field: string, value: string) => {
+    const updated = [...workExperience];
+    updated[index] = { ...updated[index], [field]: value };
+    setWorkExperience(updated);
+  };
+
+  const removeWorkExperience = (index: number) => {
+    setWorkExperience(workExperience.filter((_, i) => i !== index));
+  };
+
   const handleSave = async () => {
     if (!user) return;
 
@@ -188,6 +207,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
           linkedin_url: socialLinks.find(link => link.platform === 'linkedin')?.value || '',
           instagram_handle: socialLinks.find(link => link.platform === 'instagram')?.value || '',
           social_links: socialLinksData,
+          work_experience: workExperience.filter(exp => exp.company && exp.position),
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
@@ -471,6 +491,80 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
               onSave();
             }}
           />
+        </CardContent>
+      </Card>
+
+      {/* Work Experience */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="w-5 h-5" />
+              work experience
+            </CardTitle>
+            <Button onClick={addWorkExperience} variant="outline" size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              add experience
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {workExperience.map((exp, index) => (
+            <div key={index} className="p-4 border border-border rounded-lg space-y-3">
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-medium">Experience {index + 1}</h3>
+                {workExperience.length > 1 && (
+                  <Button
+                    onClick={() => removeWorkExperience(index)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">company</Label>
+                  <Input
+                    value={exp.company}
+                    onChange={(e) => updateWorkExperience(index, 'company', e.target.value)}
+                    placeholder="Company name"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">position</Label>
+                  <Input
+                    value={exp.position}
+                    onChange={(e) => updateWorkExperience(index, 'position', e.target.value)}
+                    placeholder="Job title"
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">duration</Label>
+                <Input
+                  value={exp.duration}
+                  onChange={(e) => updateWorkExperience(index, 'duration', e.target.value)}
+                  placeholder="e.g., 2020-2023"
+                  className="text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">description</Label>
+                <Textarea
+                  value={exp.description}
+                  onChange={(e) => updateWorkExperience(index, 'description', e.target.value)}
+                  placeholder="Describe your role and achievements..."
+                  rows={3}
+                  className="text-sm"
+                />
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
 

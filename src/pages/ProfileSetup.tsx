@@ -11,7 +11,7 @@ import ImageCropper from '@/components/ImageCropper';
 
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 4;
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "",
@@ -26,7 +26,8 @@ const ProfileSetup = () => {
     instagram: "",
     twitter: "",
     profilePhoto: null as File | null,
-    avatarUrl: "" as string
+    avatarUrl: "" as string,
+    workExperience: [{ company: "", position: "", duration: "", description: "" }]
   });
   
   const [showCropper, setShowCropper] = useState(false);
@@ -262,6 +263,7 @@ const ProfileSetup = () => {
             instagram: profileData.instagram,
             twitter: profileData.twitter
           },
+          work_experience: profileData.workExperience.filter(exp => exp.company && exp.position),
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
 
@@ -276,6 +278,29 @@ const ProfileSetup = () => {
       });
       return false;
     }
+  };
+
+  const addWorkExperience = () => {
+    setProfileData(prev => ({
+      ...prev,
+      workExperience: [...prev.workExperience, { company: "", position: "", duration: "", description: "" }]
+    }));
+  };
+
+  const updateWorkExperience = (index: number, field: string, value: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      workExperience: prev.workExperience.map((exp, i) => 
+        i === index ? { ...exp, [field]: value } : exp
+      )
+    }));
+  };
+
+  const removeWorkExperience = (index: number) => {
+    setProfileData(prev => ({
+      ...prev,
+      workExperience: prev.workExperience.filter((_, i) => i !== index)
+    }));
   };
 
   const handleNext = async () => {
@@ -297,7 +322,8 @@ const ProfileSetup = () => {
                   linkedin: profileData.linkedin,
                   instagram: profileData.instagram,
                   twitter: profileData.twitter
-                }
+                },
+                workExperience: profileData.workExperience.filter(exp => exp.company && exp.position)
               }
             }
           });
@@ -463,6 +489,69 @@ const ProfileSetup = () => {
         );
       
       case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold iridescent-text mb-2">work experience</h2>
+              <p className="text-muted-foreground iridescent-text">tell us about your professional background</p>
+            </div>
+            <div className="space-y-4">
+              {profileData.workExperience.map((exp, index) => (
+                <div key={index} className="p-4 bg-secondary/20 border border-border rounded-lg space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-medium iridescent-text">Experience {index + 1}</h3>
+                    {profileData.workExperience.length > 1 && (
+                      <button
+                        onClick={() => removeWorkExperience(index)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={exp.company}
+                      onChange={(e) => updateWorkExperience(index, 'company', e.target.value)}
+                      className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
+                      placeholder="Company name"
+                    />
+                    <input
+                      type="text"
+                      value={exp.position}
+                      onChange={(e) => updateWorkExperience(index, 'position', e.target.value)}
+                      className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
+                      placeholder="Job title"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={exp.duration}
+                    onChange={(e) => updateWorkExperience(index, 'duration', e.target.value)}
+                    className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
+                    placeholder="Duration (e.g., 2020-2023)"
+                  />
+                  <textarea
+                    value={exp.description}
+                    onChange={(e) => updateWorkExperience(index, 'description', e.target.value)}
+                    className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text resize-none"
+                    rows={3}
+                    placeholder="Describe your role and achievements..."
+                  />
+                </div>
+              ))}
+              <button
+                onClick={addWorkExperience}
+                className="w-full p-3 border-2 border-dashed border-primary/50 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+              >
+                + Add Another Experience
+              </button>
+            </div>
+          </div>
+        );
+      
+      case 4:
         return (
           <div className="space-y-6">
             <div className="text-center">
