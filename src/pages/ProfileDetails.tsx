@@ -123,24 +123,7 @@ const ProfileDetails = () => {
   }
 
   // Default work experience and featured work
-  const workExperience = profile?.experience || [
-    {
-      company: "BIND Solutions",
-      duration: "2022 - Present",
-      location: "Boston, MA",
-      position: "Founder / Creative Technologist",
-      description: "Leading sustainable furniture innovation through AI-powered design. Created the first AI-designed chair on a college campus.",
-      skills_used: ["AI Design", "Sustainable Architecture", "Creative Direction"]
-    },
-    {
-      company: "Republic 2.0 Project",
-      duration: "2023 - Present",
-      location: "Digital Art Installation",
-      position: "Creative Lead",
-      description: "Developing immersive digital art installations reimagining Plato's Republic for modern audiences. Set to debut in major museums in 2026.",
-      skills_used: ["Digital Art", "Museum Curation", "Philosophy"]
-    }
-  ];
+  const workExperience = profile?.work_experience || [];
 
   const featuredWork = [
     { title: "Dam Chair", type: "Furniture Design", image: damChair },
@@ -230,36 +213,42 @@ const ProfileDetails = () => {
         </Card>
 
         {/* Work Experience */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="iridescent-text">Experience</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {workExperience.map((job, index) => (
-              <div key={index} className="border-l-2 border-primary/30 pl-6 relative">
-                <div className="absolute w-3 h-3 bg-primary rounded-full -left-[7px] top-1"></div>
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-2">
-                  <div>
-                    <h3 className="font-semibold text-lg iridescent-text">{job.company}</h3>
-                    <p className="text-primary font-medium">{job.position}</p>
+        {workExperience && workExperience.length > 0 && (
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="iridescent-text">Experience</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {workExperience.map((job, index) => (
+                <div key={index} className="border-l-2 border-primary/30 pl-6 relative">
+                  <div className="absolute w-3 h-3 bg-primary rounded-full -left-[7px] top-1"></div>
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-2">
+                    <div>
+                      <h3 className="font-semibold text-lg iridescent-text">{job.company}</h3>
+                      <p className="text-primary font-medium">{job.position}</p>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>{job.duration}</p>
+                      {job.location && <p>{job.location}</p>}
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    <p>{job.duration}</p>
-                    <p>{job.location}</p>
-                  </div>
+                  {job.description && (
+                    <p className="text-muted-foreground mb-3 leading-relaxed">{job.description}</p>
+                  )}
+                  {job.skills_used && job.skills_used.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {job.skills_used.map((skill: string, skillIndex: number) => (
+                        <Badge key={skillIndex} variant="secondary" className="text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <p className="text-muted-foreground mb-3 leading-relaxed">{job.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {job.skills_used?.map((skill: string, skillIndex: number) => (
-                    <Badge key={skillIndex} variant="secondary" className="text-xs">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Featured Work */}
         <Card className="bg-card border-border">

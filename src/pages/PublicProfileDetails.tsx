@@ -156,28 +156,17 @@ const PublicProfileDetails = () => {
 
   const displayName = profile.display_name || "User";
 
-  // Mock data for detailed profile (this would come from database in real app)
+  // Use actual profile work experience data or empty array
+  const workExperience = profile?.experience || [];
+  
   const detailedProfile = {
     fullBio: profile.bio || "No bio available yet.",
-    experience: [
-      {
-        company: "Bind Solutions",
-        position: "Founder / Creative Technologist", 
-        duration: "Unknown - Present",
-        description: "Spearheading the design and development of digital solutions, leveraging emerging technologies to solve complex problems for clients and collaborators. Focused on bringing creative ideas to life through technical innovation and user-centric design.",
-        skills: ["creative technology", "web development", "digital strategy"]
-      }
-    ],
+    experience: workExperience,
     featuredWork: [
       {
         title: "Dam Chair",
         type: "Furniture Design",
         image: "/src/assets/dam-chair.jpg"
-      },
-      {
-        title: "Republic 2.0", 
-        type: "Digital Art",
-        image: "/src/assets/storm-republic.jpg"
       },
       {
         title: "Roots Table",
@@ -196,7 +185,7 @@ const PublicProfileDetails = () => {
       {
         name: "Michael Chen", 
         timeAgo: "1 week ago",
-        message: "Love the sustainable design approach. Can't wait to see Republic 2.0 in museums!"
+        message: "Great work on sustainable design innovations!"
       }
     ]
   };
