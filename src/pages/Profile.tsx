@@ -396,59 +396,6 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Resume Section */}
-        {profile?.resume_url && (
-          <div className="mt-6">
-            <h2 className="text-2xl font-bold iridescent-text mb-4 text-center">Resume</h2>
-            <div className="bg-card border border-border rounded-lg p-4">
-              <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/30">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold iridescent-text">
-                      {profile.resume_filename || 'Resume.pdf'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      PDF Document
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={viewResume}
-                    variant="outline"
-                    size="sm"
-                    className="hover:scale-105 transition-transform duration-200"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    View
-                  </Button>
-                  <Button
-                    onClick={downloadResume}
-                    variant="default"
-                    size="sm"
-                    className="hover:scale-105 transition-transform duration-200"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Save to Phone
-                  </Button>
-                </div>
-              </div>
-              
-              {/* PDF Preview */}
-              <div className="mt-4 border border-border rounded-lg overflow-hidden">
-                <iframe
-                  src={`${profile.resume_url}#toolbar=0&navpanes=0&scrollbar=0`}
-                  className="w-full h-96 border-0"
-                  title="Resume Preview"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Share Profile Button - Bottom of page */}
         <div className="mt-8 flex flex-col items-center space-y-3">
           <Button variant="outline" className="w-full max-w-sm border-primary text-primary hover:bg-primary/10" onClick={() => setShowShareModal(true)}>
