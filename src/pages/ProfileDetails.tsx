@@ -212,65 +212,7 @@ const ProfileDetails = () => {
           )}
         </Card>
 
-        {/* Work Experience */}
-        {workExperience && workExperience.length > 0 && (
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="iridescent-text">Experience</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {workExperience.map((job, index) => (
-                <div key={index} className="border-l-2 border-primary/30 pl-6 relative">
-                  <div className="absolute w-3 h-3 bg-primary rounded-full -left-[7px] top-1"></div>
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-2">
-                    <div>
-                      <h3 className="font-semibold text-lg iridescent-text">{job.company}</h3>
-                      <p className="text-primary font-medium">{job.position}</p>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      <p>{job.duration}</p>
-                      {job.location && <p>{job.location}</p>}
-                    </div>
-                  </div>
-                  {job.description && (
-                    <p className="text-muted-foreground mb-3 leading-relaxed">{job.description}</p>
-                  )}
-                  {job.skills_used && job.skills_used.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {job.skills_used.map((skill: string, skillIndex: number) => (
-                        <Badge key={skillIndex} variant="secondary" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Featured Work */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="iridescent-text">Featured Work</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {featuredWork.map((work, index) => (
-                <div key={index} className="p-4 border border-border rounded-lg hover:border-primary/50 transition-colors">
-                  <div className="h-36 overflow-hidden rounded-md mb-3">
-                    <img src={work.image} alt={work.title} className="w-full h-full object-cover" loading="lazy" />
-                  </div>
-                  <h4 className="font-semibold iridescent-text">{work.title}</h4>
-                  <p className="text-sm text-muted-foreground">{work.type}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Resume Section - Prominent and Always Visible */}
+        {/* Resume Section - Prominent and High Up */}
         <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
           <CardHeader>
             <CardTitle className="iridescent-text flex items-center gap-2">
@@ -347,6 +289,64 @@ const ProfileDetails = () => {
                 </Button>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Work Experience */}
+        {workExperience && workExperience.length > 0 && (
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="iridescent-text">Experience</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {workExperience.map((job, index) => (
+                <div key={index} className="border-l-2 border-primary/30 pl-6 relative">
+                  <div className="absolute w-3 h-3 bg-primary rounded-full -left-[7px] top-1"></div>
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-2">
+                    <div>
+                      <h3 className="font-semibold text-lg iridescent-text">{job.company}</h3>
+                      <p className="text-primary font-medium">{job.position}</p>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>{job.duration}</p>
+                      {job.location && <p>{job.location}</p>}
+                    </div>
+                  </div>
+                  {job.description && (
+                    <p className="text-muted-foreground mb-3 leading-relaxed">{job.description}</p>
+                  )}
+                  {job.skills_used && job.skills_used.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {job.skills_used.map((skill: string, skillIndex: number) => (
+                        <Badge key={skillIndex} variant="secondary" className="text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Featured Work */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="iridescent-text">Featured Work</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {featuredWork.map((work, index) => (
+                <div key={index} className="p-4 border border-border rounded-lg hover:border-primary/50 transition-colors">
+                  <div className="h-36 overflow-hidden rounded-md mb-3">
+                    <img src={work.image} alt={work.title} className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <h4 className="font-semibold iridescent-text">{work.title}</h4>
+                  <p className="text-sm text-muted-foreground">{work.type}</p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
