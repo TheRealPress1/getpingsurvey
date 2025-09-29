@@ -85,13 +85,25 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, fileName = 'document.
   }
 
   return (
-    <div className={cn('w-full border border-primary/20 rounded-xl overflow-hidden bg-background/30', className)}>
+    <div className={cn('w-full border border-primary/20 rounded-xl overflow-hidden bg-background/30 backdrop-blur-sm mt-6', className)}>
       <div className="p-4 bg-primary/10 border-b border-primary/20">
         <p className="font-semibold iridescent-text text-center">Resume Preview</p>
       </div>
-      <object data={blobUrl} type="application/pdf" className="w-full" style={{ height }}>
-        <embed src={blobUrl} type="application/pdf" className="w-full" style={{ height }} />
-      </object>
+      <div className="relative">
+        <object 
+          data={blobUrl} 
+          type="application/pdf" 
+          className="w-full border-0" 
+          style={{ height: `${height}px` }}
+        >
+          <embed 
+            src={blobUrl} 
+            type="application/pdf" 
+            className="w-full border-0" 
+            style={{ height: `${height}px` }} 
+          />
+        </object>
+      </div>
     </div>
   );
 };
