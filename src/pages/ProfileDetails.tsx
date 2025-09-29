@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OptimizedImage } from '@/components/OptimizedImage';
-import { PDFViewer } from '@/components/PDFViewer';
+
 import damChair from '@/assets/dam-chair.jpg';
 import rootsTable from '@/assets/roots-table.jpg';
 import stormRepublic from '@/assets/storm-republic.jpg';
@@ -261,8 +261,6 @@ const ProfileDetails = () => {
                   </div>
                 </div>
                 
-                {/* PDF Preview - Blob-based to avoid iframe blocks */}
-                <PDFViewer url={profile.resume_url} fileName={profile.resume_filename || 'resume.pdf'} height={640} />
               </>
             ) : (
               <div className="text-center p-8 border-2 border-dashed border-primary/30 rounded-lg">

@@ -85,12 +85,12 @@ const ProfileView = () => {
 
       // Calculate analytics based on real data
       const analyticsData: AnalyticsData = {
-        profileViews: Math.max(profileData?.profile_completeness || 0, 1) * 3, // Based on profile completeness
-        todayViews: Math.floor(Math.random() * 5) + 1, // Real-time views would need tracking
+        profileViews: 0, // Real profile views would need tracking implementation
+        todayViews: 0, // Real-time views would need tracking
         totalConnections: connections?.length || 0,
         messagesReceived,
-        contactSaves: Math.floor((connections?.length || 0) * 0.7), // Estimate based on connections
-        socialClicks: calculateSocialClicks(profileData?.social_links)
+        contactSaves: 0, // Would need tracking implementation
+        socialClicks: {} // Would need tracking implementation
       };
 
       setAnalytics(analyticsData);

@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, BarChart3, Eye, Users, Download, MousePointer, Calendar, TrendingUp, Activity, Globe, Smartphone, Monitor, Tablet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AnalyticsData {
   totalVisits: number;
@@ -36,63 +37,87 @@ interface AnalyticsData {
 const Dashboard = () => {
   const { user } = useAuth();
   const [analytics, setAnalytics] = useState<AnalyticsData>({
-    totalVisits: 2847,
-    profileViews: 1923,
-    linkedinClicks: 342,
-    instagramClicks: 178,
-    resumeDownloads: 89,
+    totalVisits: 0,
+    profileViews: 0,
+    linkedinClicks: 0,
+    instagramClicks: 0,
+    resumeDownloads: 0,
     projectClicks: {
-      damChair: 234,
-      rootsTable: 189,
-      storm: 156,
-      lucid: 98
+      damChair: 0,
+      rootsTable: 0,
+      storm: 0,
+      lucid: 0
     },
-    communityClicks: 67,
-    checkoutClicks: 45,
-    todayVisits: 23,
-    weeklyGrowth: 12.5,
-    topReferrers: [
-      { source: "LinkedIn", visits: 892 },
-      { source: "Direct", visits: 743 },
-      { source: "Instagram", visits: 456 },
-      { source: "Google", visits: 298 },
-      { source: "Referral", visits: 145 }
-    ],
+    communityClicks: 0,
+    checkoutClicks: 0,
+    todayVisits: 0,
+    weeklyGrowth: 0,
+    topReferrers: [],
     deviceBreakdown: {
-      desktop: 1598,
-      mobile: 987,
-      tablet: 262
+      desktop: 0,
+      mobile: 0,
+      tablet: 0
     },
-    timeData: [
-      { time: "00:00", visits: 12 },
-      { time: "04:00", visits: 8 },
-      { time: "08:00", visits: 45 },
-      { time: "12:00", visits: 78 },
-      { time: "16:00", visits: 92 },
-      { time: "20:00", visits: 67 },
-    ],
-    geographicData: [
-      { country: "United States", visits: 1423 },
-      { country: "United Kingdom", visits: 234 },
-      { country: "Canada", visits: 189 },
-      { country: "Germany", visits: 156 },
-      { country: "France", visits: 98 },
-      { country: "Australia", visits: 76 },
-    ]
+    timeData: [],
+    geographicData: []
   });
 
-  // Simulate real-time updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      setAnalytics(prev => ({
-        ...prev,
-        todayVisits: prev.todayVisits + Math.floor(Math.random() * 3),
-        totalVisits: prev.totalVisits + Math.floor(Math.random() * 2)
-      }));
-    }, 5000);
+    if (user) {
+      fetchRealAnalytics();
+    }
+  }, [user]);
 
-    return () => clearInterval(interval);
-  }, []);
+  const fetchRealAnalytics = async () => {
+    try {
+      // Get connections count
+      const { count: connectionsCount } = await supabase
+        .from('connections')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id);
+
+      // Get conversations count
+      const { count: conversationsCount } = await supabase
+        .from('conversation_participants')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id);
+
+      // Get profile data
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('profile_completeness, resume_url')
+        .eq('user_id', user?.id)
+        .single();
+
+      setAnalytics({
+        totalVisits: connectionsCount || 0,
+        profileViews: profile?.profile_completeness || 0,
+        linkedinClicks: 0,
+        instagramClicks: 0,
+        resumeDownloads: profile?.resume_url ? 1 : 0, // Has resume uploaded
+        projectClicks: {
+          damChair: 0,
+          rootsTable: 0,
+          storm: 0,
+          lucid: 0
+        },
+        communityClicks: 0,
+        checkoutClicks: 0,
+        todayVisits: connectionsCount || 0,
+        weeklyGrowth: 0,
+        topReferrers: [],
+        deviceBreakdown: {
+          desktop: 0,
+          mobile: 0,
+          tablet: 0
+        },
+        timeData: [],
+        geographicData: []
+      });
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    }
+  };
 
   const StatCard = ({ title, value, icon: Icon, trend, description, className = "" }: {
     title: string;

@@ -12,6 +12,7 @@ import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Tr
 import { ResumeUpload } from './ResumeUpload';
 import { useNavigate } from 'react-router-dom';
 import { OptimizedImage } from '@/components/OptimizedImage';
+import { SkillsInterestsSelector } from '@/components/SkillsInterestsSelector';
 
 
 interface ProfileEditProps {
@@ -43,6 +44,14 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
     return profile?.work_experience || [{ company: "", position: "", duration: "", description: "" }];
   });
 
+  const [skills, setSkills] = useState<string[]>(() => {
+    return profile?.skills || [];
+  });
+
+  const [interests, setInterests] = useState<string[]>(() => {
+    return profile?.interests || [];
+  });
+
   // Update form data when profile prop changes
   useEffect(() => {
     if (profile) {
@@ -58,6 +67,8 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
         is_public: profile.is_public !== undefined ? profile.is_public : true
       });
       setWorkExperience(profile.work_experience || [{ company: "", position: "", duration: "", description: "" }]);
+      setSkills(profile.skills || []);
+      setInterests(profile.interests || []);
     }
   }, [profile]);
 
@@ -175,6 +186,14 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
     setWorkExperience(workExperience.filter((_, i) => i !== index));
   };
 
+  const handleSkillsInterestsUpdate = (type: 'skills' | 'interests', items: string[]) => {
+    if (type === 'skills') {
+      setSkills(items);
+    } else {
+      setInterests(items);
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
 
@@ -209,6 +228,8 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
           instagram_handle: socialLinks.find(link => link.platform === 'instagram')?.value || '',
           social_links: socialLinksData,
           work_experience: workExperience.filter(exp => exp.company && exp.position),
+          skills: skills,
+          interests: interests,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
@@ -448,30 +469,29 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
         <CardHeader>
           <CardTitle>skills & interests</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="skills">skills</Label>
-              <Textarea
-                id="skills"
-                value={profile?.skills?.join(', ') || ''}
-                onChange={() => {}} // Read-only for now
-                placeholder="Your skills will appear here after uploading your resume"
-                rows={3}
-                disabled
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="interests">interests</Label>
-              <Textarea
-                id="interests"
-                value={profile?.interests?.join(', ') || ''}
-                onChange={() => {}} // Read-only for now
-                placeholder="Your interests will appear here after uploading your resume"
-                rows={3}
-                disabled
-              />
-            </div>
+        <CardContent className="space-y-6">
+          {/* Skills Section */}
+          <div className="space-y-4">
+            <Label className="text-base font-semibold">Skills</Label>
+            <SkillsInterestsSelector
+              type="skills"
+              selectedItems={skills}
+              onSelectionChange={(newSkills) => {
+                handleSkillsInterestsUpdate('skills', newSkills);
+              }}
+            />
+          </div>
+          
+          {/* Interests Section */}
+          <div className="space-y-4">
+            <Label className="text-base font-semibold">Interests</Label>
+            <SkillsInterestsSelector
+              type="interests"
+              selectedItems={interests}
+              onSelectionChange={(newInterests) => {
+                handleSkillsInterestsUpdate('interests', newInterests);
+              }}
+            />
           </div>
         </CardContent>
       </Card>
