@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileText, ExternalLink, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
 interface PDFViewerProps {
   url: string;
@@ -14,6 +16,8 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, fileName = 'document.
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const [pages, setPages] = useState<number>(0);
 
   useEffect(() => {
     let revoked = false;
@@ -43,6 +47,56 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, fileName = 'document.
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [url]);
+
+  // Render PDF with PDF.js to avoid Chromium's built-in viewer restrictions
+  useEffect(() => {
+    if (!blobUrl) return;
+    // @ts-ignore - worker typing isn't perfect in pdfjs-dist
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker as any;
+
+    let cancelled = false;
+
+    const render = async () => {
+      try {
+        const loadingTask = pdfjsLib.getDocument(blobUrl);
+        const pdf = await loadingTask.promise;
+        if (cancelled) return;
+        setPages(pdf.numPages);
+
+        const container = containerRef.current;
+        if (!container) return;
+        container.innerHTML = '';
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          if (cancelled) return;
+          const viewport = page.getViewport({ scale: 1.2 });
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          if (!context) continue;
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+
+          const wrapper = document.createElement('div');
+          wrapper.className = 'mb-6 flex justify-center';
+          wrapper.appendChild(canvas);
+          container.appendChild(wrapper);
+
+          await (page as any).render({ canvasContext: context, viewport, canvas }).promise;
+        }
+      } catch (e) {
+        console.error('PDF.js render failed:', e);
+        setError('Unable to load preview');
+      }
+    };
+
+    render();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [blobUrl]);
 
   if (loading) {
     return (
@@ -89,21 +143,12 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, fileName = 'document.
       <div className="p-4 bg-primary/10 border-b border-primary/20">
         <p className="font-semibold iridescent-text text-center">Resume Preview</p>
       </div>
-      <div className="relative">
-        <object 
-          data={blobUrl} 
-          type="application/pdf" 
-          className="w-full border-0" 
-          style={{ height: `${height}px` }}
-        >
-          <embed 
-            src={blobUrl} 
-            type="application/pdf" 
-            className="w-full border-0" 
-            style={{ height: `${height}px` }} 
-          />
-        </object>
-      </div>
+      <div
+        ref={containerRef}
+        className="relative w-full overflow-auto bg-muted/30"
+        style={{ height }}
+        aria-label={`PDF preview with ${pages} pages`}
+      />
     </div>
   );
 };
