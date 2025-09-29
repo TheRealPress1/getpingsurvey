@@ -7,8 +7,6 @@ import { ArrowLeft, MapPin, Building2, ExternalLink, Calendar, Award, MessageSqu
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useConnections } from "@/hooks/useConnections";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PDFViewer } from "@/components/PDFViewer";
 
 interface PublicProfile {
   user_id: string;
@@ -37,7 +35,7 @@ const PublicProfileDetails = () => {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [resumeOpen, setResumeOpen] = useState(false);
+  
 
   useEffect(() => {
     if (userId) {
@@ -110,10 +108,14 @@ const PublicProfileDetails = () => {
 
   const downloadResume = () => {
     if (profile?.resume_url) {
+      const filename = profile.resume_filename || 'resume.pdf';
+      const url = profile.resume_url.includes('?')
+        ? `${profile.resume_url}&download=1`
+        : `${profile.resume_url}?download=1`;
       const link = document.createElement('a');
-      link.href = profile.resume_url;
-      link.download = profile.resume_filename || 'resume.pdf';
-      link.target = '_blank';
+      link.href = url;
+      link.setAttribute('download', filename);
+      link.rel = 'noopener';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -121,8 +123,9 @@ const PublicProfileDetails = () => {
   };
 
   const viewResume = () => {
-    if (!profile?.resume_url) return;
-    setResumeOpen(true);
+    if (profile?.resume_url) {
+      window.open(profile.resume_url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   if (loading) {
@@ -215,7 +218,7 @@ const PublicProfileDetails = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto p-6 pb-28 relative z-10">
+      <main className="max-w-4xl mx-auto p-6 pb-28 relative z-10 break-words text-pretty hyphens-auto">
         {/* Profile Header */}
         <div className="text-center mb-8">
           <div className="w-32 h-32 mx-auto rounded-full border-4 border-primary overflow-hidden mb-6">
@@ -300,7 +303,7 @@ const PublicProfileDetails = () => {
         {/* Bio Section */}
         <Card className="bg-card border-border p-6 mb-6">
           <h2 className="text-2xl font-bold iridescent-text mb-4">About</h2>
-          <p className="text-muted-foreground iridescent-text leading-relaxed">
+          <p className="text-muted-foreground iridescent-text leading-relaxed break-words text-pretty">
             {detailedProfile.fullBio}
           </p>
         </Card>
@@ -318,7 +321,7 @@ const PublicProfileDetails = () => {
                   <Calendar className="w-4 h-4" />
                   <span className="iridescent-text">{exp.duration}</span>
                 </div>
-                <p className="text-muted-foreground iridescent-text mb-3">
+                <p className="text-muted-foreground iridescent-text mb-3 break-words text-pretty">
                   {exp.description}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -359,7 +362,7 @@ const PublicProfileDetails = () => {
             {detailedProfile.coreSkills.map((skill, index) => (
               <span
                 key={index}
-                className="px-4 py-2 bg-primary/20 text-primary rounded-full font-medium"
+                className="px-4 py-2 bg-primary/20 text-primary rounded-full font-medium break-words max-w-full"
               >
                 {skill}
               </span>
@@ -374,7 +377,7 @@ const PublicProfileDetails = () => {
             {detailedProfile.interests.map((interest, index) => (
               <span
                 key={index}
-                className="px-4 py-2 bg-secondary/20 text-muted-foreground rounded-full"
+                className="px-4 py-2 bg-secondary/20 text-muted-foreground rounded-full break-words max-w-full"
               >
                 {interest}
               </span>
@@ -394,7 +397,7 @@ const PublicProfileDetails = () => {
                 <div className="flex items-start gap-3">
                   <MessageSquare className="w-5 h-5 text-primary mt-1" />
                   <div className="flex-1">
-                    <p className="text-muted-foreground iridescent-text mb-2">
+                    <p className="text-muted-foreground iridescent-text mb-2 break-words text-pretty">
                       "{endorsement.message}"
                     </p>
                     <div className="flex items-center justify-between">
@@ -425,18 +428,6 @@ const PublicProfileDetails = () => {
         )}
       </main>
 
-      {profile?.resume_url && (
-        <Dialog open={resumeOpen} onOpenChange={setResumeOpen}>
-          <DialogContent className="max-w-5xl w-[95vw] p-0">
-            <DialogHeader className="px-4 pt-4 pb-2">
-              <DialogTitle className="iridescent-text">
-                {profile.resume_filename || 'Resume'}
-              </DialogTitle>
-            </DialogHeader>
-            <PDFViewer url={profile.resume_url} fileName={profile.resume_filename || 'resume.pdf'} height={720} />
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 };

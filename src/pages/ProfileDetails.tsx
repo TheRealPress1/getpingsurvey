@@ -11,8 +11,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OptimizedImage } from '@/components/OptimizedImage';
-import { PDFViewer } from '@/components/PDFViewer';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+
 
 import damChair from '@/assets/dam-chair.jpg';
 import rootsTable from '@/assets/roots-table.jpg';
@@ -27,7 +27,7 @@ const ProfileDetails = () => {
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
-  const [resumeOpen, setResumeOpen] = useState(false);
+  
 
   useEffect(() => {
     if (user) {
@@ -83,24 +83,28 @@ const ProfileDetails = () => {
 
   const downloadResume = () => {
     if (profile?.resume_url) {
+      const filename = profile.resume_filename || 'resume.pdf';
+      const url = profile.resume_url.includes('?')
+        ? `${profile.resume_url}&download=1`
+        : `${profile.resume_url}?download=1`;
       const link = document.createElement('a');
-      link.href = profile.resume_url;
-      link.download = profile.resume_filename || 'resume.pdf';
-      link.target = '_blank';
+      link.href = url;
+      link.setAttribute('download', filename);
+      link.rel = 'noopener';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
       toast({
-        title: "Resume Downloaded",
-        description: "Resume has been saved to your device."
+        title: "Downloading…",
+        description: "Your resume should start downloading shortly."
       });
     }
   };
 
   const viewResume = () => {
-    if (!profile?.resume_url) return;
-    setResumeOpen(true);
+    if (profile?.resume_url) {
+      window.open(profile.resume_url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   if (loading) {
@@ -175,7 +179,7 @@ const ProfileDetails = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto p-6 pb-28 space-y-8 relative z-10">
+      <main className="max-w-4xl mx-auto p-6 pb-28 space-y-8 relative z-10 break-words text-pretty hyphens-auto">
         {/* Profile Header */}
         <Card className="bg-card border-border p-8">
           <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -211,7 +215,7 @@ const ProfileDetails = () => {
           </div>
           {profile.bio && (
             <div className="mt-6 pt-6 border-t border-border">
-              <p className="text-muted-foreground leading-relaxed">{profile.bio}</p>
+              <p className="text-muted-foreground leading-relaxed break-words text-pretty">{profile.bio}</p>
             </div>
           )}
         </Card>
@@ -241,12 +245,12 @@ const ProfileDetails = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <Button
                       onClick={viewResume}
                       variant="outline"
                       size="lg"
-                      className="hover:scale-105 transition-transform duration-200"
+                      className="hover:scale-105 transition-transform duration-200 w-full sm:w-auto"
                     >
                       <Eye className="w-5 h-5 mr-2" />
                       View Resume
@@ -255,7 +259,7 @@ const ProfileDetails = () => {
                       onClick={downloadResume}
                       variant="default"
                       size="lg"
-                      className="hover:scale-105 transition-transform duration-200"
+                      className="hover:scale-105 transition-transform duration-200 w-full sm:w-auto"
                     >
                       <Download className="w-5 h-5 mr-2" />
                       Download
@@ -306,12 +310,12 @@ const ProfileDetails = () => {
                     </div>
                   </div>
                   {job.description && (
-                    <p className="text-muted-foreground mb-3 leading-relaxed">{job.description}</p>
+                    <p className="text-muted-foreground mb-3 leading-relaxed break-words text-pretty">{job.description}</p>
                   )}
                   {job.skills_used && job.skills_used.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {job.skills_used.map((skill: string, skillIndex: number) => (
-                        <Badge key={skillIndex} variant="secondary" className="text-xs">
+                        <Badge key={skillIndex} variant="secondary" className="text-xs break-words max-w-full">
                           {skill}
                         </Badge>
                       ))}
@@ -357,7 +361,7 @@ const ProfileDetails = () => {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill: string, index: number) => (
-                  <Badge key={index} variant="outline" className="border-primary/30 text-primary">
+                  <Badge key={index} variant="outline" className="border-primary/30 text-primary break-words">
                     {skill}
                   </Badge>
                 ))}
@@ -372,7 +376,7 @@ const ProfileDetails = () => {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {interests.map((interest: string, index: number) => (
-                  <Badge key={index} variant="secondary">
+                  <Badge key={index} variant="secondary" className="break-words">
                     {interest}
                   </Badge>
                 ))}
@@ -398,7 +402,7 @@ const ProfileDetails = () => {
                     <span className="font-medium iridescent-text">{endorsement.name}</span>
                     <span className="text-xs text-muted-foreground">{endorsement.time}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{endorsement.comment}</p>
+                  <p className="text-sm text-muted-foreground break-words text-pretty">{endorsement.comment}</p>
                 </div>
               </div>
             ))}
@@ -409,11 +413,11 @@ const ProfileDetails = () => {
                 <MessageCircle className="w-4 h-4 text-primary" />
                 Post Comment
               </h4>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <Avatar className="w-8 h-8">
                   <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-2 min-w-0">
                   <Textarea
                     placeholder="Write an endorsement or comment..."
                     value={comment}
@@ -435,19 +439,6 @@ const ProfileDetails = () => {
         </Card>
       </main>
 
-      {/* In-app Resume Viewer to avoid browser blocking */}
-      {profile?.resume_url && (
-        <Dialog open={resumeOpen} onOpenChange={setResumeOpen}>
-          <DialogContent className="max-w-5xl w-[95vw] p-0">
-            <DialogHeader className="px-4 pt-4 pb-2">
-              <DialogTitle className="iridescent-text">
-                {profile.resume_filename || 'Resume'}
-              </DialogTitle>
-            </DialogHeader>
-            <PDFViewer url={profile.resume_url} fileName={profile.resume_filename || 'resume.pdf'} height={720} />
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 };
