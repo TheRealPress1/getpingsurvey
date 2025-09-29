@@ -70,6 +70,16 @@ const Dashboard = () => {
 
   const fetchRealAnalytics = async () => {
     try {
+      // Get profile views from last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { count: profileViewsCount } = await supabase
+        .from('profile_views')
+        .select('*', { count: 'exact', head: true })
+        .eq('profile_user_id', user?.id)
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
       // Get connections count
       const { count: connectionsCount } = await supabase
         .from('connections')
@@ -90,11 +100,11 @@ const Dashboard = () => {
         .single();
 
       setAnalytics({
-        totalVisits: connectionsCount || 0,
-        profileViews: profile?.profile_completeness || 0,
+        totalVisits: profileViewsCount || 0,
+        profileViews: profileViewsCount || 0,
         linkedinClicks: 0,
         instagramClicks: 0,
-        resumeDownloads: profile?.resume_url ? 1 : 0, // Has resume uploaded
+        resumeDownloads: profile?.resume_url ? 1 : 0,
         projectClicks: {
           damChair: 0,
           rootsTable: 0,
@@ -103,7 +113,7 @@ const Dashboard = () => {
         },
         communityClicks: 0,
         checkoutClicks: 0,
-        todayVisits: connectionsCount || 0,
+        todayVisits: profileViewsCount || 0,
         weeklyGrowth: 0,
         topReferrers: [],
         deviceBreakdown: {

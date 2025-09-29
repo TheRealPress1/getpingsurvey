@@ -84,8 +84,17 @@ const ProfileView = () => {
       }
 
       // Calculate analytics based on real data
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { count: profileViewsCount } = await supabase
+        .from('profile_views')
+        .select('*', { count: 'exact', head: true })
+        .eq('profile_user_id', profileData?.user_id)
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
       const analyticsData: AnalyticsData = {
-        profileViews: 0, // Real profile views would need tracking implementation
+        profileViews: profileViewsCount || 0,
         todayViews: 0, // Real-time views would need tracking
         totalConnections: connections?.length || 0,
         messagesReceived,

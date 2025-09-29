@@ -26,6 +26,16 @@ export const AnalyticsDashboard = () => {
     try {
       setLoading(true);
       
+      // Get profile views from last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { count: profileViewsCount } = await supabase
+        .from('profile_views')
+        .select('*', { count: 'exact', head: true })
+        .eq('profile_user_id', user?.id)
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
       // Get profile completeness and other data
       const { data: profile } = await supabase
         .from('profiles')
@@ -46,7 +56,7 @@ export const AnalyticsDashboard = () => {
         .eq('user_id', user?.id);
 
       setAnalytics({
-        profileViews: 0, // This would need to be tracked separately
+        profileViews: profileViewsCount || 0,
         connections: connectionsCount || 0,
         messages: conversationsCount || 0,
         profileCompleteness: profile?.profile_completeness || 0
@@ -87,8 +97,8 @@ export const AnalyticsDashboard = () => {
         Dashboard
         <div className="ml-2 flex gap-1">
           <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">
-            <Users className="w-3 h-3 mr-1" />
-            {analytics.connections}
+            <Eye className="w-3 h-3 mr-1" />
+            {analytics.profileViews}
           </Badge>
           {analytics.profileCompleteness > 0 && (
             <Badge variant="secondary" className="bg-green-500/20 text-green-600 text-xs">

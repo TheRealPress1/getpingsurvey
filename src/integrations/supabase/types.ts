@@ -150,6 +150,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_views: {
+        Row: {
+          created_at: string
+          id: string
+          profile_user_id: string
+          referrer: string | null
+          updated_at: string
+          user_agent: string | null
+          viewer_ip: string | null
+          viewer_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_user_id: string
+          referrer?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          viewer_ip?: string | null
+          viewer_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_user_id?: string
+          referrer?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          viewer_ip?: string | null
+          viewer_user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ai_processed: boolean | null
