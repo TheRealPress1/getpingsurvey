@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OptimizedImage } from '@/components/OptimizedImage';
+import { PDFViewer } from '@/components/PDFViewer';
 import damChair from '@/assets/dam-chair.jpg';
 import rootsTable from '@/assets/roots-table.jpg';
 import stormRepublic from '@/assets/storm-republic.jpg';
@@ -260,39 +261,8 @@ const ProfileDetails = () => {
                   </div>
                 </div>
                 
-                {/* Enhanced PDF Preview */}
-                <div className="mt-6 border border-primary/20 rounded-xl overflow-hidden bg-background/30 backdrop-blur-sm">
-                  <div className="p-4 bg-primary/10 border-b border-primary/20">
-                    <p className="font-semibold iridescent-text text-center">Resume Preview</p>
-                  </div>
-                  <div className="relative">
-                    <iframe
-                      src={`${profile.resume_url}#view=FitH&toolbar=0&navpanes=0&scrollbar=1&zoom=100`}
-                      className="w-full h-[600px] border-0"
-                      title="Resume Preview"
-                      loading="lazy"
-                      onError={(e) => {
-                        console.error('Resume iframe failed to load:', e);
-                        const target = e.target as HTMLIFrameElement;
-                        target.style.display = 'none';
-                        const fallbackDiv = target.nextElementSibling as HTMLElement;
-                        if (fallbackDiv) fallbackDiv.style.display = 'block';
-                      }}
-                    />
-                    <div className="hidden p-8 text-center bg-muted/20">
-                      <FileText className="w-12 h-12 text-primary mx-auto mb-4" />
-                      <p className="text-muted-foreground mb-4">Unable to preview PDF in browser</p>
-                      <Button
-                        onClick={viewResume}
-                        variant="outline"
-                        className="hover:scale-105 transition-transform duration-200"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Open in New Tab
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                {/* PDF Preview - Blob-based to avoid iframe blocks */}
+                <PDFViewer url={profile.resume_url} fileName={profile.resume_filename || 'resume.pdf'} height={640} />
               </>
             ) : (
               <div className="text-center p-8 border-2 border-dashed border-primary/30 rounded-lg">
