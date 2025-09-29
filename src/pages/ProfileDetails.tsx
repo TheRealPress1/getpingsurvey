@@ -95,8 +95,31 @@ const ProfileDetails = () => {
     }
   };
 
-  const viewResume = () => {
-    if (profile?.resume_url) {
+  const viewResume = async () => {
+    if (!profile?.resume_url) return;
+    try {
+      const resp = await fetch(profile.resume_url, { cache: 'no-store', mode: 'cors' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.title = profile.resume_filename || 'Resume.pdf';
+        win.document.body.style.margin = '0';
+        const iframe = win.document.createElement('iframe');
+        iframe.style.border = '0';
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.src = blobUrl;
+        win.document.body.appendChild(iframe);
+      } else {
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = profile.resume_filename || 'resume.pdf';
+        a.click();
+      }
+    } catch (e) {
+      // Last resort: try direct open
       window.open(profile.resume_url, '_blank');
     }
   };
