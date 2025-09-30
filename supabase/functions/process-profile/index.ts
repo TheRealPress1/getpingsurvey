@@ -260,8 +260,7 @@ CRITICAL RULES:
 - Use ONLY the exact data provided by the user
 - Leave arrays empty if no real data is provided
 - Use exact names, do not modify or infer names
-`;}
-}
+`;
 
 function createFallbackProfile(): ProfileData {
   return {

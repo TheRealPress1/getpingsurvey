@@ -27,18 +27,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
 
   // Remove hardcoded sample data - use actual profile data or hide sections
 
-  const endorsements = [
-    {
-      author: "Sarah Johnson",
-      timeAgo: "2 days ago",
-      comment: "Amazing work on the Dam Chair! The AI integration is revolutionary."
-    },
-    {
-      author: "Michael Chen", 
-      timeAgo: "1 week ago",
-      comment: "Love the sustainable design approach. Can't wait to see Republic 2.0 in museums!"
-    }
-  ];
+  // No fake endorsements - only show real user data
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -196,54 +185,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
             </div>
           )}
 
-          {/* Endorsements */}
-          <div>
-            <h2 className="text-2xl font-bold iridescent-text mb-6">Endorsements</h2>
-            
-            <div className="space-y-4 mb-6">
-              {endorsements.map((endorsement, index) => (
-                <Card key={index} className="hover:border-primary/50 transition-colors">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="w-10 h-10">
-                        <AvatarFallback>{endorsement.author.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <p className="font-semibold text-sm">{endorsement.author}</p>
-                          <span className="text-xs text-muted-foreground">{endorsement.timeAgo}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{endorsement.comment}</p>
-                        <div className="flex items-center gap-4 mt-2">
-                          <Button variant="ghost" size="sm" className="h-auto p-1 text-xs">
-                            <Heart className="w-3 h-3 mr-1" />
-                            Like
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-auto p-1 text-xs">
-                            <MessageSquare className="w-3 h-3 mr-1" />
-                            Reply
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Post Comment */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Post Comment</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Textarea placeholder="Share your thoughts..." rows={3} />
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Post Comment
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Endorsements section removed - no fake data */}
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
