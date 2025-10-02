@@ -1,16 +1,80 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { StarField } from "@/components/StarField";
 import { Link } from "react-router-dom";
 import Ring3D from "@/components/Ring3D";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 const Landing = () => {
   const [visibleText, setVisibleText] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisibleText(true);
     }, 500);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!fullName || !email) {
+      toast({
+        title: "Missing information",
+        description: "Please provide your name and email",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('waitlist')
+        .insert({
+          full_name: fullName,
+          email: email,
+          phone_number: phoneNumber || null
+        });
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          toast({
+            title: "Already registered",
+            description: "This email is already on the waitlist!",
+            variant: "destructive"
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "You're on the list! 🎉",
+          description: "We'll notify you when ping! launches"
+        });
+        setFullName('');
+        setEmail('');
+        setPhoneNumber('');
+      }
+    } catch (error) {
+      console.error('Waitlist signup error:', error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return <div className="min-h-screen bg-background relative overflow-hidden">
       <StarField />
       
@@ -43,15 +107,58 @@ const Landing = () => {
 your new network is waiting</p>
           </div>
 
-          {/* CTA Button */}
+          {/* Waitlist Form */}
           <div className={`transition-all duration-1000 delay-500 ${visibleText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <Link to="/checkout">
-              <Button size="lg" className="shimmer bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 px-12 py-6 text-xl font-semibold">
-                get your ping! - $9.99
+            <form onSubmit={handleWaitlistSubmit} className="max-w-md mx-auto space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-foreground">Full Name *</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="John Doe"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  className="bg-background/50 border-primary/30"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-foreground">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-background/50 border-primary/30"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-foreground">Phone Number (optional)</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+1 (555) 123-4567"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="bg-background/50 border-primary/30"
+                />
+              </div>
+
+              <Button 
+                type="submit"
+                size="lg" 
+                disabled={isSubmitting}
+                className="shimmer w-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 px-12 py-6 text-xl font-semibold"
+              >
+                {isSubmitting ? 'Joining...' : 'Join the Waitlist'}
               </Button>
-            </Link>
+            </form>
             <p className="text-sm text-muted-foreground mt-4 iridescent-text">
-              7-day free trial • get 1 month free when a friend orders
+              be the first to experience the future of networking
             </p>
           </div>
 
