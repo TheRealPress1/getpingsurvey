@@ -47,49 +47,33 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
 
   const saveContact = async () => {
     try {
-      // Determine person name (first and last) robustly; never use company or handles
       const toTitleCase = (s: string) =>
         (s || '').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
-      let firstName = (profile as any).first_name?.trim() || '';
-      let lastName = (profile as any).last_name?.trim() || '';
-      let middleName = '';
-
-      const fromFull = ((profile as any).full_name || profile.display_name || '').trim();
-
-      if (!firstName && !lastName && fromFull) {
-        const parts = fromFull.split(/\s+/).filter(Boolean);
-        if (parts.length >= 2) {
-          firstName = parts[0];
-          lastName = parts[parts.length - 1];
-          if (parts.length > 2) middleName = parts.slice(1, -1).join(' ');
-        }
-      }
-
-      // Use the actual profile display name
-      const nameParts = (profile.display_name || '').split(' ');
-      firstName = nameParts[0] || '';
-      lastName = nameParts[nameParts.length - 1] || '';
-      if (nameParts.length > 2) {
-        middleName = nameParts.slice(1, -1).join(' ');
-      }
-
-      // Title case
-      if (firstName) firstName = toTitleCase(firstName);
-      if (middleName) middleName = toTitleCase(middleName);
-      if (lastName) lastName = toTitleCase(lastName);
-
-      // Validate: require full first and last names (>= 2 chars each)
-      if (firstName.length < 2 || lastName.length < 2) {
+      // Get display name directly - this is what we'll use for the contact
+      const displayName = (profile.display_name || profile.full_name || '').trim();
+      
+      if (!displayName) {
         toast({
-          title: 'Missing full name',
-          description: 'Please set your full first and last name in your profile before saving the contact.',
+          title: 'Missing name',
+          description: 'Please set your name in your profile before saving the contact.',
           variant: 'destructive',
         });
         return;
       }
 
-      const personName = [firstName, middleName, lastName].filter(Boolean).join(' ').trim();
+      // Split display name into parts for vCard format
+      const nameParts = displayName.split(/\s+/).filter(Boolean);
+      let firstName = nameParts[0] || '';
+      let lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+      let middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
+
+      // Title case
+      firstName = toTitleCase(firstName);
+      if (middleName) middleName = toTitleCase(middleName);
+      if (lastName) lastName = toTitleCase(lastName);
+
+      const personName = displayName;
       const contactFileName = `contact_name_-_${personName.replace(/\s+/g, '_')}`;
       
       let photoData = '';
