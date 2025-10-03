@@ -98,6 +98,7 @@ const handleSignUp = async () => {
         first_name: firstName,
         last_name: lastName,
         full_name: displayName.trim(),
+        name: displayName.trim(),
         display_name: displayName.trim(),
         instagram_handle: instagramHandle.trim(),
         linkedin_url: linkedinUrl.trim(),

@@ -103,6 +103,7 @@ serve(async (req) => {
           await supabaseAdmin.auth.admin.updateUserById(userId, {
             user_metadata: {
               full_name: googleUser.name,
+              name: googleUser.name,
               first_name: googleUser.given_name ?? '',
               last_name: googleUser.family_name ?? '',
             },
@@ -121,6 +122,7 @@ serve(async (req) => {
             first_name: firstName,
             last_name: lastName,
             full_name: googleUser.name,
+            name: googleUser.name,
             avatar_url: googleUser.picture,
             provider: 'google',
           },

@@ -89,6 +89,8 @@ serve(async (req) => {
             user_metadata: {
               ...user.user_metadata,
               full_name: fullName,
+              name: fullName,
+              display_name: fullName,
               first_name: firstName,
               last_name: lastName,
             }
