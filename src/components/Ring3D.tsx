@@ -27,39 +27,37 @@ const Ring3D = () => {
     rendererRef.current = renderer;
     mountRef.current.appendChild(renderer.domElement);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    // Lighting for iridescent effect
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(1, 1, 1);
-    scene.add(directionalLight);
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
+    directionalLight1.position.set(5, 5, 5);
+    scene.add(directionalLight1);
 
-    const pointLight = new THREE.PointLight(0x10b981, 0.8, 100);
-    pointLight.position.set(-1, -1, 2);
-    scene.add(pointLight);
+    const directionalLight2 = new THREE.DirectionalLight(0x6366f1, 0.8);
+    directionalLight2.position.set(-5, -3, -2);
+    scene.add(directionalLight2);
 
-    // Create ring geometry - make it bigger
-    const ringGeometry = new THREE.TorusGeometry(1.5, 0.15, 8, 100);
-    const ringMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0x1a1a1a,
-      shininess: 100,
-      specular: 0x10b981
+    const directionalLight3 = new THREE.DirectionalLight(0x8b5cf6, 0.6);
+    directionalLight3.position.set(0, -5, 3);
+    scene.add(directionalLight3);
+
+    const rimLight = new THREE.DirectionalLight(0x06b6d4, 0.8);
+    rimLight.position.set(-3, 0, -5);
+    scene.add(rimLight);
+
+    // Create smooth ring geometry with higher resolution
+    const ringGeometry = new THREE.TorusGeometry(1.5, 0.3, 64, 128);
+    const ringMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x0a0a0a,
+      metalness: 0.95,
+      roughness: 0.15,
+      envMapIntensity: 1.5,
     });
     const ring = new THREE.Mesh(ringGeometry, ringMaterial);
     ringRef.current = ring;
     scene.add(ring);
-
-    // Add a metallic chip on the ring
-    const chipGeometry = new THREE.BoxGeometry(0.4, 0.07, 0.15);
-    const chipMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0x10b981,
-      shininess: 150,
-      specular: 0x34d399
-    });
-    const chip = new THREE.Mesh(chipGeometry, chipMaterial);
-    chip.position.set(1.5, 0, 0);
-    ring.add(chip);
 
     // Mouse interaction
     let isDragging = false;
