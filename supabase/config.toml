@@ -5,3 +5,7 @@ verify_jwt = false
 
 [functions.google-oauth]
 verify_jwt = false
+
+[functions.backfill-display-names]
+verify_jwt = false
+
