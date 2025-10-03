@@ -214,22 +214,24 @@ const handleSignIn = async () => {
 
   const handleGoogleAuth = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+    try {
+      // Call our custom Google OAuth edge function
+      const { data, error } = await supabase.functions.invoke('google-oauth');
+      
+      if (error) throw error;
+      
+      if (data?.authUrl) {
+        // Redirect to Google's OAuth page
+        window.location.href = data.authUrl;
       }
-    });
-
-    if (error) {
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Google Sign In Error',
-        description: error.message
+        description: error.message || 'Failed to initiate Google sign in'
       });
       setLoading(false);
     }
-    // Note: loading state will be managed by redirect
 };
 
 const handleResend = async () => {

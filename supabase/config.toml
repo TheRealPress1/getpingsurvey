@@ -2,3 +2,6 @@ project_id = "ahksxziueqkacyaqtgeu"
 
 [functions.confirm-user]
 verify_jwt = false
+
+[functions.google-oauth]
+verify_jwt = false
