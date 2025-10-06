@@ -114,16 +114,17 @@ serve(async (req) => {
         { auth: { persistSession: false } }
       );
 
-      // Check if user exists
-      const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(googleUser.email);
+      // Check if user exists - use listUsers instead of getUserByEmail
+      const { data: usersList } = await supabaseAdmin.auth.admin.listUsers();
+      const existingUser = usersList?.users?.find(u => u.email === googleUser.email);
 
       let userId: string;
 
-      if (existingUser.user) {
-        userId = existingUser.user.id;
+      if (existingUser) {
+        userId = existingUser.id;
         console.log('Existing user found:', userId);
         // Ensure auth metadata has full_name for display in dashboard
-        const hasFullName = existingUser.user.user_metadata?.full_name;
+        const hasFullName = existingUser.user_metadata?.full_name;
         if (!hasFullName && googleUser.name) {
           await supabaseAdmin.auth.admin.updateUserById(userId, {
             user_metadata: {
@@ -133,6 +134,23 @@ serve(async (req) => {
               last_name: googleUser.family_name ?? '',
             },
           });
+        }
+        
+        // Update existing profile with Google data if missing
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('avatar_url, display_name')
+          .eq('user_id', userId)
+          .single();
+          
+        if (profile && (!profile.avatar_url || !profile.display_name)) {
+          await supabaseAdmin
+            .from('profiles')
+            .update({
+              display_name: profile.display_name || googleUser.name || googleUser.email.split('@')[0],
+              avatar_url: profile.avatar_url || googleUser.picture,
+            })
+            .eq('user_id', userId);
         }
       } else {
         // Create new user - split name into first/last for the trigger
@@ -162,17 +180,37 @@ serve(async (req) => {
         console.log('New user created:', userId);
       }
 
-      // Update profile with Google data
+      // Update/create profile with Google data, preserving existing fields
+      const { data: existingProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      const profileData: any = {
+        user_id: userId,
+        display_name: existingProfile?.display_name || googleUser.name || googleUser.email.split('@')[0],
+        avatar_url: existingProfile?.avatar_url || googleUser.picture,
+      };
+
+      // Only add first_name and last_name if they don't already exist
+      if (!existingProfile?.first_name && googleUser.given_name) {
+        profileData.first_name = googleUser.given_name;
+      }
+      if (!existingProfile?.last_name && googleUser.family_name) {
+        profileData.last_name = googleUser.family_name;
+      }
+
+      // Merge social_links
+      const existingLinks = existingProfile?.social_links || {};
+      profileData.social_links = {
+        ...existingLinks,
+        google: googleUser.email,
+      };
+
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
-        .upsert({
-          user_id: userId,
-          display_name: googleUser.name || googleUser.email.split('@')[0],
-          avatar_url: googleUser.picture,
-          social_links: {
-            google: googleUser.email,
-          },
-        }, {
+        .upsert(profileData, {
           onConflict: 'user_id',
         });
 
