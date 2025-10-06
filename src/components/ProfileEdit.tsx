@@ -13,6 +13,7 @@ import { ResumeUpload } from './ResumeUpload';
 import { useNavigate } from 'react-router-dom';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import { SkillsInterestsSelector } from '@/components/SkillsInterestsSelector';
+import ImageCropper from '@/components/ImageCropper';
 
 
 interface ProfileEditProps {
@@ -27,6 +28,8 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string>('');
   
   const [formData, setFormData] = useState({
     display_name: profile?.display_name || '',
@@ -114,17 +117,37 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "error",
+        description: "please upload an image file.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Show cropper with the selected image
+    const reader = new FileReader();
+    reader.onload = () => {
+      setTempImageSrc(reader.result as string);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = async (croppedImageBlob: Blob) => {
+    if (!user) return;
+
     setUploadingPhoto(true);
     try {
-      // Get file extension and create file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}-${Date.now()}.jpg`;
       const filePath = `${user.id}/${fileName}`;
 
-      // Upload to Supabase Storage
+      // Upload cropped image to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { contentType: file.type, upsert: true });
+        .upload(filePath, croppedImageBlob, { contentType: 'image/jpeg', upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -709,6 +732,14 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
           </div>
         </CardContent>
       </Card>
+
+      {/* Image Cropper Modal */}
+      <ImageCropper
+        isOpen={showCropper}
+        onClose={() => setShowCropper(false)}
+        imageSrc={tempImageSrc}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 };
