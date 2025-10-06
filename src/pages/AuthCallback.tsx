@@ -12,11 +12,14 @@ const AuthCallback = () => {
 
   useEffect(() => {
     let unsub: (() => void) | undefined;
+    let redirectTimeout: NodeJS.Timeout | undefined;
 
     // Listen for session updates (supabase-js parses tokens from URL automatically)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        navigate("/profile-setup", { replace: true });
+        // Clear any pending timeout
+        if (redirectTimeout) clearTimeout(redirectTimeout);
+        navigate("/profile", { replace: true });
       }
     });
 
@@ -25,17 +28,22 @@ const AuthCallback = () => {
     // Initial check in case session is already set
     supabase.auth.getSession().then(({ data, error }) => {
       if (error) {
+        console.error("Session error:", error);
         setError(error.message);
-      }
-      if (data.session) {
-        navigate("/profile-setup", { replace: true });
-      } else {
         setChecking(false);
+      } else if (data.session) {
+        navigate("/profile", { replace: true });
+      } else {
+        // Set a timeout to stop checking after 3 seconds
+        redirectTimeout = setTimeout(() => {
+          setChecking(false);
+        }, 3000);
       }
     });
 
     return () => {
       unsub?.();
+      if (redirectTimeout) clearTimeout(redirectTimeout);
     };
   }, [navigate]);
 
@@ -43,9 +51,12 @@ const AuthCallback = () => {
     setChecking(true);
     setError(null);
     const { data, error } = await supabase.auth.getSession();
-    if (error) setError(error.message);
-    if (data.session) {
-      navigate("/profile-setup", { replace: true });
+    if (error) {
+      console.error("Retry session error:", error);
+      setError(error.message);
+      setChecking(false);
+    } else if (data.session) {
+      navigate("/profile", { replace: true });
     } else {
       setChecking(false);
     }
