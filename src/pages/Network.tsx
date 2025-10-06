@@ -79,25 +79,49 @@ const Network = () => {
       setConnections(dedupedFiltered);
 
       // Fetch counterpart profiles directly from profiles table (don't filter by experience)
-      const otherIds = deduped.map(r => r.user_id === user.id ? r.target_user_id : r.user_id).filter(id => id !== user.id);
+      const otherIds = dedupedFiltered.map(r => r.user_id === user.id ? r.target_user_id : r.user_id).filter(id => id !== user.id);
       const unique = Array.from(new Set(otherIds));
       if (unique.length) {
         const { data: profs, error: profError } = await supabase
           .from('profiles')
-          .select('user_id, display_name, first_name, last_name, avatar_url')
+          .select('user_id, display_name, first_name, last_name, avatar_url, is_public')
           .in('user_id', unique);
         
         if (!profError && profs) {
           const map: Record<string, { name: string; avatar: string | null }> = {};
           for (const p of profs) {
-            let displayName = p.display_name;
+            let displayName = p.display_name as string | null | undefined;
             // Fallback to first_name + last_name if display_name is empty
             if (!displayName || displayName.trim() === '') {
-              if (p.first_name || p.last_name) {
-                displayName = [p.first_name, p.last_name].filter(Boolean).join(' ');
+              const fn = (p as any).first_name as string | undefined;
+              const ln = (p as any).last_name as string | undefined;
+              if (fn || ln) displayName = [fn, ln].filter(Boolean).join(' ');
+            }
+            map[p.user_id as string] = { name: displayName || 'User', avatar: (p as any).avatar_url || null };
+          }
+
+          // Fallback: fetch non-public profiles securely via RPC one by one
+          const missing = unique.filter(id => !map[id]);
+          if (missing.length) {
+            const results = await Promise.all(
+              missing.map(async (id) => {
+                try {
+                  const { data: sec } = await supabase.rpc('get_public_profile_secure', { target_user_id: id });
+                  const row = Array.isArray(sec) && sec.length ? sec[0] : null;
+                  if (row) {
+                    const name = (row.display_name && row.display_name.trim()) ? row.display_name : 'User';
+                    return [id, { name, avatar: row.avatar_url || null }] as const;
+                  }
+                } catch {}
+                return null;
+              })
+            );
+            for (const item of results) {
+              if (item) {
+                const [id, val] = item;
+                map[id] = val;
               }
             }
-            map[p.user_id] = { name: displayName || 'User', avatar: p.avatar_url };
           }
           setProfiles(map);
         }
