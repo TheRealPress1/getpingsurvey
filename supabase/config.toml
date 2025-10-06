@@ -9,3 +9,6 @@ verify_jwt = false
 [functions.backfill-display-names]
 verify_jwt = false
 
+[functions.generate-ping-question]
+verify_jwt = false
+

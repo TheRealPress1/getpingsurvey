@@ -149,28 +149,71 @@ const PublicProfile = () => {
 
     setCreatingChat(true);
     try {
+      // Generate AI-powered personalized question
+      toast({
+        title: "Crafting your ping!",
+        description: "Generating a personalized conversation starter...",
+      });
+
+      const { data: questionData, error: questionError } = await supabase.functions.invoke(
+        'generate-ping-question',
+        {
+          body: {
+            senderUserId: user.id,
+            targetUserId: userId,
+          }
+        }
+      );
+
+      if (questionError) {
+        console.error('Question generation error:', questionError);
+        throw new Error('Failed to generate conversation starter');
+      }
+
+      const question = questionData?.question;
+      if (!question) {
+        throw new Error('No question generated');
+      }
+
+      // Create the conversation
       const conversationId = await createChatWithUser(userId, user.id);
       
       if (!conversationId) {
         throw new Error('No conversation ID returned');
       }
 
+      // Send the AI-generated question as the first message
+      const { error: messageError } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: question,
+        });
+
+      if (messageError) {
+        console.error('Message send error:', messageError);
+      }
+
       toast({
-        title: "ping! successful!",
-        description: `Connected with ${profile?.display_name || 'user'}. They've been added to your tribe!`,
+        title: "ping! sent!",
+        description: `Your personalized question has been sent to ${profile?.display_name || 'user'}!`,
       });
 
       // Navigate to the chat
       navigate(`/chat/${conversationId}?to=${userId}`);
       
     } catch (error) {
-      // More specific error messages
-      let errorMessage = "Failed to start conversation. Please try again.";
+      console.error('Ping error:', error);
+      
+      let errorMessage = "Failed to send ping. Please try again.";
       if (error instanceof Error) {
         if (error.message.includes('already exists')) {
           errorMessage = "Conversation already exists. Redirecting...";
         } else if (error.message.includes('not found')) {
           errorMessage = "User not found. Please try again.";
+        } else if (error.message.includes('conversation starter')) {
+          errorMessage = "Could not generate question. Please try again.";
         }
       }
       
