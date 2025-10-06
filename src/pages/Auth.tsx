@@ -244,7 +244,9 @@ const handleSignIn = async () => {
     setLoading(true);
     try {
       // Call our custom Google OAuth edge function
-      const { data, error } = await supabase.functions.invoke('google-oauth');
+      const { data, error } = await supabase.functions.invoke('google-oauth', {
+        body: { redirect_to: window.location.origin }
+      });
       
       if (error) throw error;
       

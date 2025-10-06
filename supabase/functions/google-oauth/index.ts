@@ -36,7 +36,17 @@ serve(async (req) => {
   try {
     // Step 1: Initiate OAuth flow
     if (path.endsWith('/google-oauth') || path.endsWith('/google-oauth/')) {
-      const state = crypto.randomUUID();
+      // Try to get desired frontend redirect target from request body
+      let desiredRedirect = '';
+      try {
+        const body = await req.json();
+        desiredRedirect = body?.redirect_to || '';
+      } catch {}
+
+      const origin = desiredRedirect || getFrontendUrl(req);
+      const statePayload = { rt: origin };
+      const state = btoa(JSON.stringify(statePayload));
+
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       
       authUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
@@ -182,7 +192,15 @@ serve(async (req) => {
       }
 
       // Redirect to frontend with session
-      const frontendUrl = getFrontendUrl(req);
+      // Prefer frontend URL from encoded state
+      let frontendUrl = '';
+      try {
+        if (state) {
+          const decoded = JSON.parse(atob(state));
+          frontendUrl = decoded?.rt || '';
+        }
+      } catch {}
+      if (!frontendUrl) frontendUrl = getFrontendUrl(req);
       const redirectUrl = new URL('/auth/callback', frontendUrl);
       
       // Extract the hash fragment from the magic link
