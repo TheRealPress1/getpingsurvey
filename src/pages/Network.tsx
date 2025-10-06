@@ -87,7 +87,22 @@ const Network = () => {
         });
         if (!profError && profs) {
           const map: Record<string, { name: string; avatar: string | null }> = {};
-          profs.forEach(p => map[p.user_id] = { name: p.display_name || 'User', avatar: p.avatar_url });
+          for (const p of profs) {
+            let displayName = p.display_name;
+            // Fallback to first_name + last_name if display_name is empty
+            if (!displayName || displayName.trim() === '') {
+              const { data: userData } = await supabase
+                .from('profiles')
+                .select('first_name, last_name')
+                .eq('user_id', p.user_id)
+                .single();
+              
+              if (userData?.first_name || userData?.last_name) {
+                displayName = [userData.first_name, userData.last_name].filter(Boolean).join(' ');
+              }
+            }
+            map[p.user_id] = { name: displayName || 'User', avatar: p.avatar_url };
+          }
           setProfiles(map);
         }
       }

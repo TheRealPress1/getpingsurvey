@@ -89,9 +89,24 @@ const Chat = () => {
             { target_user_id: other }
           );
           if (!profErr && profileData && profileData[0]) {
+            const profile = profileData[0];
+            // Build display name with fallbacks
+            let displayName = profile.display_name;
+            if (!displayName || displayName.trim() === '') {
+              // Try first_name + last_name from profiles table
+              const { data: userData } = await supabase
+                .from('profiles')
+                .select('first_name, last_name')
+                .eq('user_id', other)
+                .single();
+              
+              if (userData?.first_name || userData?.last_name) {
+                displayName = [userData.first_name, userData.last_name].filter(Boolean).join(' ');
+              }
+            }
             setOtherProfile({
-              display_name: profileData[0].display_name || 'User',
-              avatar_url: profileData[0].avatar_url || null,
+              display_name: displayName || 'User',
+              avatar_url: profile.avatar_url || null,
             });
           }
         }
