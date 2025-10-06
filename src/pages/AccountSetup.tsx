@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ const AccountSetup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,7 +65,7 @@ const AccountSetup = () => {
         
         // Wait a moment for the auth state to update, then navigate
         setTimeout(() => {
-          navigate('/profile-setup');
+          window.location.assign('/profile-setup');
         }, 1000);
       }
 
@@ -117,7 +117,7 @@ const AccountSetup = () => {
         title: 'Verified successfully',
         description: 'You are now signed in. Redirecting…'
       });
-      navigate('/profile-setup');
+      window.location.assign('/profile-setup');
     } catch (error: any) {
       console.error('Manual verify failed:', error);
       toast({
