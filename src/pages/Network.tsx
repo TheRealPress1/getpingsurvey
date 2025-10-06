@@ -388,11 +388,8 @@ const Network = () => {
               <ArrowLeft className="w-5 h-5 text-primary" />
             </Button>
             <Avatar className="w-10 h-10">
-              {chatView.avatar ? (
-                <AvatarImage src={chatView.avatar} alt={chatView.name} />
-              ) : (
-                <AvatarFallback>{chatView.name[0]}</AvatarFallback>
-              )}
+              <AvatarImage src={chatView.avatar || ''} alt={chatView.name} />
+              <AvatarFallback>{chatView.name[0]}</AvatarFallback>
             </Avatar>
             <div>
               <h1 className="text-xl font-bold iridescent-text">{chatView.name}</h1>
@@ -412,11 +409,8 @@ const Network = () => {
             ) : messages.length === 0 ? (
               <div className="text-center py-8">
                 <Avatar className="w-20 h-20 mx-auto mb-4">
-                  {chatView.avatar ? (
-                    <AvatarImage src={chatView.avatar} alt={chatView.name} />
-                  ) : (
-                    <AvatarFallback className="text-2xl">{chatView.name[0]}</AvatarFallback>
-                  )}
+                  <AvatarImage src={chatView.avatar || ''} alt={chatView.name} />
+                  <AvatarFallback className="text-2xl">{chatView.name[0]}</AvatarFallback>
                 </Avatar>
                 <h3 className="text-lg font-semibold iridescent-text mb-2">{chatView.name}</h3>
                 <p className="text-muted-foreground iridescent-text">
@@ -582,7 +576,8 @@ const Network = () => {
                       onClick={() => handleTribeProfileClick(other)}
                     >
                       <Avatar className="w-10 h-10">
-                        {prof.avatar ? <AvatarImage src={prof.avatar} /> : <AvatarFallback>{prof.name[0] || 'U'}</AvatarFallback>}
+                        <AvatarImage src={prof.avatar || ''} alt={prof.name} />
+                        <AvatarFallback>{prof.name[0] || 'U'}</AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium iridescent-text">{prof.name}</p>

@@ -185,11 +185,8 @@ const Chat = () => {
             <ArrowLeft className="w-5 h-5 text-primary" />
           </Button>
           <Avatar className="w-10 h-10">
-            {otherProfile?.avatar_url ? (
-              <AvatarImage src={otherProfile.avatar_url} alt={otherProfile.display_name} />
-            ) : (
-              <AvatarFallback>{otherProfile?.display_name?.[0] || 'U'}</AvatarFallback>
-            )}
+            <AvatarImage src={otherProfile?.avatar_url || ''} alt={otherProfile?.display_name || 'User'} />
+            <AvatarFallback>{otherProfile?.display_name?.[0] || 'U'}</AvatarFallback>
           </Avatar>
           <div>
             <h1 className="text-xl font-bold iridescent-text">{otherProfile?.display_name || 'Conversation'}</h1>
@@ -204,11 +201,8 @@ const Chat = () => {
           {messages.length === 0 ? (
             <div className="text-center py-8">
               <Avatar className="w-20 h-20 mx-auto mb-4">
-                {otherProfile?.avatar_url ? (
-                  <AvatarImage src={otherProfile.avatar_url} alt={otherProfile?.display_name || 'User'} />
-                ) : (
-                  <AvatarFallback className="text-2xl">{otherProfile?.display_name?.[0] || 'U'}</AvatarFallback>
-                )}
+                <AvatarImage src={otherProfile?.avatar_url || ''} alt={otherProfile?.display_name || 'User'} />
+                <AvatarFallback className="text-2xl">{otherProfile?.display_name?.[0] || 'U'}</AvatarFallback>
               </Avatar>
               <h3 className="text-lg font-semibold iridescent-text mb-2">{otherProfile?.display_name || 'User'}</h3>
               <p className="text-muted-foreground iridescent-text">Say hello to start the conversation.</p>
