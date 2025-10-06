@@ -15,8 +15,8 @@ serve(async (req) => {
   try {
     const { senderUserId, targetUserId } = await req.json();
 
-    if (!senderUserId || !targetUserId) {
-      throw new Error('Both sender and target user IDs are required');
+    if (!targetUserId) {
+      throw new Error('Target user ID is required');
     }
 
     // Initialize Supabase client
@@ -26,25 +26,35 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Fetch both user profiles
-    const { data: senderProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('display_name, bio, skills, interests, company, job_title, location, work_experience')
-      .eq('user_id', senderUserId)
-      .single();
-
+    // Fetch target profile (always required)
     const { data: targetProfile } = await supabaseAdmin
       .from('profiles')
       .select('display_name, bio, skills, interests, company, job_title, location, work_experience')
       .eq('user_id', targetUserId)
       .single();
 
-    if (!senderProfile || !targetProfile) {
-      throw new Error('Could not fetch user profiles');
+    if (!targetProfile) {
+      throw new Error('Could not fetch target profile');
     }
 
-    // Craft the AI prompt
-    const systemPrompt = `You are a brilliant networking facilitator who excels at creating meaningful connections. Your role is to generate ONE thoughtful, creative question that will spark a genuine conversation between two professionals.
+    // Fetch sender profile if authenticated
+    let senderProfile = null;
+    if (senderUserId) {
+      const { data } = await supabaseAdmin
+        .from('profiles')
+        .select('display_name, bio, skills, interests, company, job_title, location, work_experience')
+        .eq('user_id', senderUserId)
+        .single();
+      senderProfile = data;
+    }
+
+    // Craft the AI prompt based on whether sender is authenticated
+    let systemPrompt: string;
+    let userPrompt: string;
+
+    if (senderProfile) {
+      // Both profiles available - personalized between two people
+      systemPrompt = `You are a brilliant networking facilitator who excels at creating meaningful connections. Your role is to generate ONE thoughtful, creative question that will spark a genuine conversation between two professionals.
 
 Rules:
 - Generate ONLY the question itself, no preamble, no explanation
@@ -57,7 +67,7 @@ Rules:
 - If they have complementary skills, explore potential synergies
 - If they're in different fields, find unexpected connections`;
 
-    const userPrompt = `Generate a tailored conversation starter between:
+      userPrompt = `Generate a tailored conversation starter between:
 
 Person A (${senderProfile.display_name}):
 - Bio: ${senderProfile.bio || 'Not provided'}
@@ -65,7 +75,6 @@ Person A (${senderProfile.display_name}):
 - Interests: ${senderProfile.interests?.join(', ') || 'Not provided'}
 - Role: ${senderProfile.job_title || 'Not provided'} at ${senderProfile.company || 'Not provided'}
 - Location: ${senderProfile.location || 'Not provided'}
-- Experience: ${JSON.stringify(senderProfile.work_experience || [])}
 
 Person B (${targetProfile.display_name}):
 - Bio: ${targetProfile.bio || 'Not provided'}
@@ -73,9 +82,33 @@ Person B (${targetProfile.display_name}):
 - Interests: ${targetProfile.interests?.join(', ') || 'Not provided'}
 - Role: ${targetProfile.job_title || 'Not provided'} at ${targetProfile.company || 'Not provided'}
 - Location: ${targetProfile.location || 'Not provided'}
-- Experience: ${JSON.stringify(targetProfile.work_experience || [])}
 
 Generate ONE unique question from Person A to Person B that explores their shared interests, complementary expertise, or potential collaboration opportunities.`;
+    } else {
+      // Only target profile - generate an engaging question anyone could ask
+      systemPrompt = `You are a brilliant networking facilitator. Generate ONE engaging conversation starter that someone could use to connect with this professional.
+
+Rules:
+- Generate ONLY the question itself, no preamble, no explanation
+- Be specific to their background, skills, and experience
+- Avoid generic openers like "What do you do?" or "How's it going?"
+- Make it thoughtful and likely to spark interesting discussion
+- Focus on their expertise, projects, or unique perspective
+- Keep it conversational and authentic, not corporate or stiff
+- Make the person feel valued and interesting`;
+
+      userPrompt = `Generate an engaging conversation starter for reaching out to:
+
+${targetProfile.display_name}:
+- Bio: ${targetProfile.bio || 'Not provided'}
+- Skills: ${targetProfile.skills?.join(', ') || 'Not provided'}
+- Interests: ${targetProfile.interests?.join(', ') || 'Not provided'}
+- Role: ${targetProfile.job_title || 'Not provided'} at ${targetProfile.company || 'Not provided'}
+- Location: ${targetProfile.location || 'Not provided'}
+- Experience: ${JSON.stringify(targetProfile.work_experience || [])}
+
+Generate ONE unique, thoughtful question that would make for a great conversation starter.`;
+    }
 
     // Call OpenAI API
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');

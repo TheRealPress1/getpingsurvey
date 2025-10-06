@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StarField } from "@/components/StarField";
-import { MapPin, Building2, ExternalLink, Mail, Phone, ArrowLeft } from "lucide-react";
+import { MapPin, Building2, ExternalLink, Mail, Phone, ArrowLeft, Copy, Check } from "lucide-react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,9 @@ const PublicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creatingChat, setCreatingChat] = useState(false);
+  const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [generatedQuestion, setGeneratedQuestion] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const trackProfileView = async () => {
     if (!userId) return;
@@ -130,15 +134,10 @@ const PublicProfile = () => {
   };
 
   const handlePing = async () => {
-    if (!user) {
-      navigate('/signup');
-      return;
-    }
-
     if (!userId) return;
 
     // Prevent pinging yourself
-    if (user.id === userId) {
+    if (user && user.id === userId) {
       toast({
         title: "Cannot ping yourself",
         description: "You can't start a conversation with yourself!",
@@ -159,7 +158,7 @@ const PublicProfile = () => {
         'generate-ping-question',
         {
           body: {
-            senderUserId: user.id,
+            senderUserId: user?.id || null,
             targetUserId: userId,
           }
         }
@@ -175,7 +174,15 @@ const PublicProfile = () => {
         throw new Error('No question generated');
       }
 
-      // Create the conversation
+      // If not logged in, show modal with question
+      if (!user) {
+        setGeneratedQuestion(question);
+        setShowQuestionModal(true);
+        setCreatingChat(false);
+        return;
+      }
+
+      // If logged in, create conversation and send question
       const conversationId = await createChatWithUser(userId, user.id);
       
       if (!conversationId) {
@@ -225,6 +232,16 @@ const PublicProfile = () => {
     } finally {
       setCreatingChat(false);
     }
+  };
+
+  const copyQuestion = () => {
+    navigator.clipboard.writeText(generatedQuestion);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({
+      title: "Copied!",
+      description: "Question copied to clipboard",
+    });
   };
 
   const handleRemoveFromTribe = async () => {
@@ -347,37 +364,26 @@ const PublicProfile = () => {
             )}
             
             <div className="flex flex-col items-center gap-3">
-              {user && user.id !== userId && (
-                <div className="flex gap-3 w-full max-w-xs">
-                  <Button 
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-                    onClick={handlePing}
-                    disabled={creatingChat}
-                  >
-                    {creatingChat ? 'Starting chat...' : `ping! ${displayName.split(' ')[0] || 'User'}`}
-                  </Button>
-                  
-                  {isConnected && (
-                    <Button 
-                      variant="outline"
-                      onClick={handleRemoveFromTribe}
-                      disabled={connectionLoading}
-                      className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    >
-                      {connectionLoading ? 'Removing...' : 'Remove'}
-                    </Button>
-                  )}
-                </div>
-              )}
-              
-              {!user && (
+              <div className="flex gap-3 w-full max-w-xs">
                 <Button 
-                  className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground"
-                  onClick={() => navigate('/signup')}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  onClick={handlePing}
+                  disabled={creatingChat}
                 >
-                  Join ping! to connect
+                  {creatingChat ? 'Crafting ping!...' : `ping! ${displayName.split(' ')[0] || 'User'}`}
                 </Button>
-              )}
+                
+                {user && user.id !== userId && isConnected && (
+                  <Button 
+                    variant="outline"
+                    onClick={handleRemoveFromTribe}
+                    disabled={connectionLoading}
+                    className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    {connectionLoading ? 'Removing...' : 'Remove'}
+                  </Button>
+                )}
+              </div>
               
               <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 backdrop-blur-sm">
                 <SaveContactButton profile={profile} userEmail={userEmail} />
@@ -531,6 +537,59 @@ const PublicProfile = () => {
           </div>
         )}
       </main>
+
+      {/* Question Modal for non-authenticated users */}
+      <Dialog open={showQuestionModal} onOpenChange={setShowQuestionModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold iridescent-text">
+              Your Conversation Starter
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              Here's an AI-generated question tailored for {displayName}:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <Card className="bg-secondary/20 border-primary/20 p-4">
+              <p className="text-foreground text-lg leading-relaxed">
+                "{generatedQuestion}"
+              </p>
+            </Card>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={copyQuestion}
+                variant="outline"
+                className="flex-1"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Question
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                onClick={() => navigate('/signup')}
+                className="flex-1 bg-primary hover:bg-primary/90"
+              >
+                Join ping! to Send
+              </Button>
+            </div>
+
+            <p className="text-sm text-muted-foreground text-center">
+              Sign up to automatically send personalized messages and build your network!
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
