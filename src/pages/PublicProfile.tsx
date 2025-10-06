@@ -174,15 +174,37 @@ const PublicProfile = () => {
         throw new Error('No question generated');
       }
 
-      // If not logged in, show modal with question
-      if (!user) {
-        setGeneratedQuestion(question);
-        setShowQuestionModal(true);
-        setCreatingChat(false);
-        return;
+      // Show modal with question for EVERYONE
+      setGeneratedQuestion(question);
+      setShowQuestionModal(true);
+      
+    } catch (error) {
+      console.error('Ping error:', error);
+      
+      let errorMessage = "Failed to generate question. Please try again.";
+      if (error instanceof Error && error.message.includes('conversation starter')) {
+        errorMessage = "Could not generate question. Please try again.";
       }
+      
+      toast({
+        title: "Generation failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setCreatingChat(false);
+    }
+  };
 
-      // If logged in, create conversation and send question
+  const handleSendQuestion = async () => {
+    if (!user || !userId) {
+      navigate('/signup');
+      return;
+    }
+
+    setCreatingChat(true);
+    try {
+      // Create conversation and send question
       const conversationId = await createChatWithUser(userId, user.id);
       
       if (!conversationId) {
@@ -195,13 +217,15 @@ const PublicProfile = () => {
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          content: question,
+          content: generatedQuestion,
         });
 
       if (messageError) {
         console.error('Message send error:', messageError);
       }
 
+      setShowQuestionModal(false);
+      
       toast({
         title: "ping! sent!",
         description: `Your personalized question has been sent to ${profile?.display_name || 'user'}!`,
@@ -211,7 +235,7 @@ const PublicProfile = () => {
       navigate(`/chat/${conversationId}?to=${userId}`);
       
     } catch (error) {
-      console.error('Ping error:', error);
+      console.error('Send error:', error);
       
       let errorMessage = "Failed to send ping. Please try again.";
       if (error instanceof Error) {
@@ -219,8 +243,6 @@ const PublicProfile = () => {
           errorMessage = "Conversation already exists. Redirecting...";
         } else if (error.message.includes('not found')) {
           errorMessage = "User not found. Please try again.";
-        } else if (error.message.includes('conversation starter')) {
-          errorMessage = "Could not generate question. Please try again.";
         }
       }
       
@@ -538,55 +560,89 @@ const PublicProfile = () => {
         )}
       </main>
 
-      {/* Question Modal for non-authenticated users */}
+      {/* Question Modal for ALL users */}
       <Dialog open={showQuestionModal} onOpenChange={setShowQuestionModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold iridescent-text">
-              Your Conversation Starter
+            <DialogTitle className="text-2xl font-bold iridescent-text text-center mb-2">
+              Consider This Question
             </DialogTitle>
-            <DialogDescription className="text-base">
-              Here's an AI-generated question tailored for {displayName}:
+            <DialogDescription className="text-base text-center">
+              AI-crafted conversation starter for {displayName}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
-            <Card className="bg-secondary/20 border-primary/20 p-4">
-              <p className="text-foreground text-lg leading-relaxed">
+            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/30 p-6">
+              <p className="text-foreground text-lg leading-relaxed text-center italic">
                 "{generatedQuestion}"
               </p>
             </Card>
 
             <div className="flex gap-2">
-              <Button
-                onClick={copyQuestion}
-                variant="outline"
-                className="flex-1"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Question
-                  </>
-                )}
-              </Button>
-              
-              <Button
-                onClick={() => navigate('/signup')}
-                className="flex-1 bg-primary hover:bg-primary/90"
-              >
-                Join ping! to Send
-              </Button>
+              {user ? (
+                <>
+                  <Button
+                    onClick={copyQuestion}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    onClick={handleSendQuestion}
+                    disabled={creatingChat}
+                    className="flex-1 bg-primary hover:bg-primary/90"
+                  >
+                    {creatingChat ? 'Sending...' : 'Send as Message'}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={copyQuestion}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Question
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    onClick={() => navigate('/signup')}
+                    className="flex-1 bg-primary hover:bg-primary/90"
+                  >
+                    Join to Send
+                  </Button>
+                </>
+              )}
             </div>
 
-            <p className="text-sm text-muted-foreground text-center">
-              Sign up to automatically send personalized messages and build your network!
-            </p>
+            {!user && (
+              <p className="text-sm text-muted-foreground text-center">
+                Sign up to automatically send personalized messages!
+              </p>
+            )}
           </div>
         </DialogContent>
       </Dialog>
