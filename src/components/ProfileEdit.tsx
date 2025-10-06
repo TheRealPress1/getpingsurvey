@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload, Eye, EyeOff, LogOut, Edit, Briefcase, FileText, Download } from 'lucide-react';
+import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload, Eye, EyeOff, LogOut, Edit, Briefcase, FileText, Download, Loader2 } from 'lucide-react';
 import { ResumeUpload } from './ResumeUpload';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import { SkillsInterestsSelector } from '@/components/SkillsInterestsSelector';
@@ -29,6 +29,7 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState<string>('');
+  const [parsingResume, setParsingResume] = useState(false);
   
   const [formData, setFormData] = useState({
     display_name: profile?.display_name || '',
@@ -171,6 +172,53 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
       });
     } finally {
       setUploadingPhoto(false);
+    }
+  };
+
+  const populateFromResume = async () => {
+    if (!user || !profile?.resume_url) {
+      toast({
+        title: "No resume found",
+        description: "Please upload a resume first to use this feature.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setParsingResume(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('parse-resume', {
+        body: { 
+          userId: user.id,
+          resumeUrl: profile.resume_url,
+          fileName: profile.resume_filename || 'resume.pdf'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.data?.work_experience && data.data.work_experience.length > 0) {
+        setWorkExperience(data.data.work_experience);
+        toast({
+          title: "Work experience populated!",
+          description: "Your work experience has been extracted from your resume."
+        });
+      } else {
+        toast({
+          title: "No experience found",
+          description: "Could not extract work experience from your resume.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error parsing resume:', error);
+      toast({
+        title: "Parsing failed",
+        description: "Could not extract work experience from resume.",
+        variant: "destructive"
+      });
+    } finally {
+      setParsingResume(false);
     }
   };
 
@@ -598,10 +646,32 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
               <Briefcase className="w-5 h-5" />
               work experience
             </CardTitle>
-            <Button onClick={addWorkExperience} variant="outline" size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              add experience
-            </Button>
+            <div className="flex gap-2">
+              {profile?.resume_url && (
+                <Button 
+                  onClick={populateFromResume} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={parsingResume}
+                >
+                  {parsingResume ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Parsing...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Use Resume
+                    </>
+                  )}
+                </Button>
+              )}
+              <Button onClick={addWorkExperience} variant="outline" size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                add experience
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

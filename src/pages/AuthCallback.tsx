@@ -13,95 +13,98 @@ const AuthCallback = () => {
   useEffect(() => {
     let unsub: (() => void) | undefined;
     let redirectTimeout: ReturnType<typeof setTimeout> | undefined;
-    let pollInterval: ReturnType<typeof setInterval> | undefined;
 
-    const tryParseHashAndSetSession = async () => {
+    const handleRedirect = () => {
+      // Use multiple methods to ensure redirect works on all platforms including mobile Safari
       try {
-        const hash = window.location.hash || '';
-        if (hash.startsWith('#')) {
+        // Method 1: Try top-level navigation (works better in iframes and mobile)
+        if (window.top && window.top !== window) {
+          window.top.location.href = '/profile';
+          return;
+        }
+      } catch (e) {
+        console.log('Top navigation blocked:', e);
+      }
+      
+      // Method 2: Force full page reload with location.href (works better on mobile)
+      try {
+        window.location.href = '/profile';
+      } catch (e) {
+        console.log('Location redirect failed:', e);
+        // Method 3: Fallback to router navigation
+        navigate('/profile', { replace: true });
+      }
+    };
+
+    const processAuth = async () => {
+      try {
+        // Parse hash parameters - critical for mobile Safari
+        const hash = window.location.hash;
+        if (hash && hash.includes('access_token')) {
           const params = new URLSearchParams(hash.slice(1));
           const access_token = params.get('access_token');
           const refresh_token = params.get('refresh_token');
+          
           if (access_token && refresh_token) {
-            const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
-            if (!error && data.session) {
-              navigate('/profile', { replace: true });
-              return true;
+            const { error } = await supabase.auth.setSession({
+              access_token,
+              refresh_token
+            });
+            
+            if (!error) {
+              // Give session a moment to propagate
+              setTimeout(handleRedirect, 500);
+              return;
             }
           }
         }
-      } catch (e) {
-        console.warn('Could not parse auth hash:', e);
+
+        // Check for existing session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          setError(sessionError.message);
+          setChecking(false);
+          return;
+        }
+
+        if (session) {
+          handleRedirect();
+        } else {
+          // Wait for auth to complete
+          redirectTimeout = setTimeout(() => {
+            setChecking(false);
+          }, 8000);
+        }
+      } catch (err) {
+        console.error('Auth callback error:', err);
+        setError('Authentication failed');
+        setChecking(false);
       }
-      return false;
     };
 
-    // Listen for session updates (supabase-js parses tokens from URL automatically)
+    // Listen for session changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         if (redirectTimeout) clearTimeout(redirectTimeout);
-        if (pollInterval) clearInterval(pollInterval);
-        navigate('/profile', { replace: true });
+        handleRedirect();
       }
     });
     unsub = () => listener.subscription.unsubscribe();
 
-    // Initial check or parse hash
-    (async () => {
-      const parsed = await tryParseHashAndSetSession();
-      if (parsed) return;
-
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Session error:', error);
-        setError(error.message);
-        setChecking(false);
-        return;
-      }
-      if (data.session) {
-        navigate('/profile', { replace: true });
-        return;
-      }
-
-      // Start a short poll (10s) to wait for Supabase to finish parsing URL hash
-      let attempts = 0;
-      pollInterval = setInterval(async () => {
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          clearInterval(pollInterval!);
-          navigate('/profile', { replace: true });
-        } else if (++attempts >= 20) {
-          clearInterval(pollInterval!);
-          setChecking(false);
-        }
-      }, 500);
-
-      // Safety timeout in case polling never resolves
-      redirectTimeout = setTimeout(() => {
-        setChecking(false);
-      }, 12000);
-    })();
+    // Start processing
+    processAuth();
 
     return () => {
       unsub?.();
       if (redirectTimeout) clearTimeout(redirectTimeout);
-      if (pollInterval) clearInterval(pollInterval);
     };
   }, [navigate]);
 
-  const retry = async () => {
-    setChecking(true);
-    setError(null);
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-      console.error("Retry session error:", error);
-      setError(error.message);
-      setChecking(false);
-    } else if (data.session) {
-      navigate("/profile", { replace: true });
-    } else {
-      setChecking(false);
-    }
+  const retry = () => {
+    // Force a full page reload to retry authentication
+    window.location.href = '/profile';
   };
 
   return (
