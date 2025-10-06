@@ -10,7 +10,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload, Eye, EyeOff, LogOut, Edit, Briefcase, FileText, Download } from 'lucide-react';
 import { ResumeUpload } from './ResumeUpload';
-import { useNavigate } from 'react-router-dom';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import { SkillsInterestsSelector } from '@/components/SkillsInterestsSelector';
 import ImageCropper from '@/components/ImageCropper';
@@ -20,12 +19,12 @@ interface ProfileEditProps {
   profile: any;
   onSave: () => void;
   onCancel: () => void;
+  onLogout?: () => void;
 }
 
-export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCancel }) => {
+export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCancel, onLogout }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
@@ -287,7 +286,12 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
         description: "You have been successfully logged out."
       });
       
-      navigate('/auth');
+      // Call the onLogout callback if provided, otherwise reload
+      if (onLogout) {
+        onLogout();
+      } else {
+        window.location.href = '/auth';
+      }
     } catch (error) {
       console.error('Error logging out:', error);
       toast({

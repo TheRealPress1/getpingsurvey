@@ -217,7 +217,7 @@ const Profile = () => {
     return <div className="min-h-screen bg-background relative">
         <StarField />
         <div className="relative z-10">
-          <ProfileEdit profile={profile} onSave={handleProfileEditSave} onCancel={handleProfileEditCancel} />
+          <ProfileEdit profile={profile} onSave={handleProfileEditSave} onCancel={handleProfileEditCancel} onLogout={() => navigate('/auth')} />
         </div>
       </div>;
   }
