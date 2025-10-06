@@ -6,6 +6,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Get the frontend URL from the request origin or default to Lovable preview
+const getFrontendUrl = (req: Request): string => {
+  const origin = req.headers.get('origin') || req.headers.get('referer');
+  if (origin) {
+    try {
+      const url = new URL(origin);
+      return url.origin;
+    } catch {
+      // Fall through to default
+    }
+  }
+  // Default to the current Lovable preview URL structure
+  return 'https://afadb95c-7a7c-44b0-8b4b-cdb079a9b5b3.lovableproject.com';
+};
+
 const GOOGLE_CLIENT_ID = "883735243677-us7bal39n8jv263tulmip3tdf225moa3.apps.googleusercontent.com";
 const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
 const REDIRECT_URI = `${Deno.env.get("SUPABASE_URL")}/functions/v1/google-oauth/callback`;
@@ -167,9 +182,16 @@ serve(async (req) => {
       }
 
       // Redirect to frontend with session
-      const redirectUrl = new URL('/', Deno.env.get('SUPABASE_URL')!.replace('https://ahksxziueqkacyaqtgeu.supabase.co', window.location.origin));
-      redirectUrl.searchParams.set('google_auth', 'success');
-      redirectUrl.searchParams.set('access_token', session.properties.action_link.split('#')[1].split('&')[0].split('=')[1]);
+      const frontendUrl = getFrontendUrl(req);
+      const redirectUrl = new URL('/auth/callback', frontendUrl);
+      
+      // Extract the hash fragment from the magic link
+      const actionLink = session.properties.action_link;
+      const hashPart = actionLink.split('#')[1];
+      if (hashPart) {
+        // Pass the entire hash as is - let the frontend handle it
+        redirectUrl.hash = hashPart;
+      }
 
       return new Response(null, {
         status: 302,
