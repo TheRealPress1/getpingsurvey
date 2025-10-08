@@ -115,31 +115,6 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
             </div>
           )}
 
-          {/* Featured Work */}
-          {profile.featured_work && profile.featured_work.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-bold iridescent-text mb-6">Featured Work</h2>
-              <div className="space-y-4">
-                {profile.featured_work.map((work, index) => (
-                  <Card key={index}>
-                    <CardContent className="pt-6">
-                      <h3 className="text-lg font-semibold mb-2 iridescent-text">{work.title}</h3>
-                      <p className="text-muted-foreground">{work.description}</p>
-                      {work.link && (
-                        <Button variant="outline" size="sm" className="mt-3" asChild>
-                          <a href={work.link} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            View Project
-                          </a>
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Skills & Interests */}
           {((profile.skills && profile.skills.length > 0) || (profile.interests && profile.interests.length > 0)) && (
             <div>

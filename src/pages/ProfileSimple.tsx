@@ -70,13 +70,6 @@ const ProfileSimple = () => {
           </div>
         </Card>
 
-        {/* Featured Work Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold iridescent-text text-center mb-6">
-            Featured Work
-          </h2>
-          <WorkCarousel />
-        </section>
 
         {/* Social & Business Links */}
         <section className="max-w-md mx-auto mb-8">

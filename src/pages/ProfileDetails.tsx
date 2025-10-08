@@ -130,14 +130,8 @@ const ProfileDetails = () => {
     );
   }
 
-  // Default work experience and featured work
+  // Default work experience
   const workExperience = profile?.work_experience || [];
-
-  const featuredWork = [
-    { title: "Dam Chair", type: "Furniture Design", image: damChair },
-    { title: "Republic 2.0", type: "Digital Art", image: stormRepublic },
-    { title: "Roots Table", type: "Sustainable Design", image: rootsTable }
-  ];
 
   const skills = profile?.skills || ["AI Design", "Sustainable Architecture", "Biomimicry", "Creative Direction", "Digital Art", "Innovation Strategy"];
   const interests = profile?.interests || ["Philosophy", "Museum Curation", "Environmental Art", "Technology Ethics", "Future Design"];
@@ -332,25 +326,6 @@ const ProfileDetails = () => {
           </CardContent>
         </Card>
 
-        {/* Featured Work */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="iridescent-text">Featured Work</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {featuredWork.map((work, index) => (
-                <div key={index} className="p-4 border border-border rounded-lg hover:border-primary/50 transition-colors">
-                  <div className="h-36 overflow-hidden rounded-md mb-3">
-                    <OptimizedImage src={work.image} alt={work.title} className="w-full h-full" />
-                  </div>
-                  <h4 className="font-semibold iridescent-text">{work.title}</h4>
-                  <p className="text-sm text-muted-foreground">{work.type}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Skills & Interests */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

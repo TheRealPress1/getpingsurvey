@@ -379,22 +379,6 @@ const PublicProfileDetails = () => {
           ))}
         </Card>
 
-        {/* Featured Work Section */}
-        <Card className="bg-card border-border p-6 mb-6">
-          <h2 className="text-2xl font-bold iridescent-text mb-4">Featured Work</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            {detailedProfile.featuredWork.map((work, index) => (
-              <div key={index} className="bg-secondary/20 rounded-lg p-4">
-                <div className="aspect-square bg-primary/10 rounded-lg mb-3 flex items-center justify-center">
-                  <span className="text-2xl">🎨</span>
-                </div>
-                <h3 className="font-semibold iridescent-text">{work.title}</h3>
-                <p className="text-sm text-muted-foreground iridescent-text">{work.type}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-
         {/* Core Skills Section */}
         <Card className="bg-card border-border p-6 mb-6">
           <h2 className="text-2xl font-bold iridescent-text mb-4">Core Skills</h2>
