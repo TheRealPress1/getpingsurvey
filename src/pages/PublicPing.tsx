@@ -12,6 +12,7 @@ import ShareModal from "@/components/ShareModal";
 import { useAuth } from "@/hooks/useAuth";
 import { createChatWithUser } from "@/utils/chatUtils";
 import { useToast } from "@/hooks/use-toast";
+import { OptimizedImage } from "@/components/OptimizedImage";
 
 interface PublicProfile {
   user_id: string;
@@ -316,6 +317,25 @@ const PublicPing = () => {
       <main className="max-w-4xl mx-auto p-4 pb-28 space-y-6 relative z-10">
         {/* Simplified Profile Card - Matching internal profile exactly */}
         <div className="p-6 text-center">
+          <Link to={`/ping/${userId}/details`} className="block">
+            <div className="w-28 h-28 md:w-32 md:h-32 mx-auto rounded-full border-4 border-primary overflow-hidden mb-4 hover:scale-105 transition-transform duration-200">
+              <OptimizedImage
+                src={(() => {
+                  const url = profile.avatar_url || "";
+                  if (!url) return "/placeholder.svg";
+                  if (/^(https?:|data:)/i.test(url)) return url;
+                  try {
+                    const { data } = supabase.storage.from('avatars').getPublicUrl(url);
+                    return data.publicUrl || "/placeholder.svg";
+                  } catch {
+                    return "/placeholder.svg";
+                  }
+                })()}
+                alt={displayName}
+                className="w-full h-full"
+              />
+            </div>
+          </Link>
           <h1 
             className="text-3xl font-bold iridescent-text mb-2 cursor-pointer story-link animate-enter hover-scale transition-all duration-500 ease-out"
             onClick={() => {

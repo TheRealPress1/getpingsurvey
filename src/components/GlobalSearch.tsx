@@ -95,7 +95,17 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
                   className="w-full p-3 flex items-center gap-3 hover:bg-secondary/20 rounded-lg transition-colors text-left"
                 >
                   <OptimizedImage
-                    src={profile.avatar_url || "/placeholder.svg"}
+                    src={(() => {
+                      const url = profile.avatar_url || "";
+                      if (!url) return "/placeholder.svg";
+                      if (/^(https?:|data:)/i.test(url)) return url;
+                      try {
+                        const { data } = supabase.storage.from('avatars').getPublicUrl(url);
+                        return data.publicUrl || "/placeholder.svg";
+                      } catch {
+                        return "/placeholder.svg";
+                      }
+                    })()}
                     alt={profile.display_name || "Profile"}
                     className="w-12 h-12 rounded-full border border-primary/20"
                   />

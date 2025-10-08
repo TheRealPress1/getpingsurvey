@@ -94,7 +94,8 @@ const AuthCallback = () => {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         if (redirectTimeout) clearTimeout(redirectTimeout);
-        handleRedirect();
+        setSignedIn(true);
+        setChecking(false);
       }
     });
     unsub = () => listener.subscription.unsubscribe();
@@ -129,7 +130,7 @@ const AuthCallback = () => {
       <Card className="w-full max-w-md relative z-10 bg-card/80 backdrop-blur-sm border border-border/50">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold iridescent-text">
-            {checking ? "Verifying your email…" : error ? "Verification issue" : "Almost there"}
+            {checking ? "Verifying your email…" : error ? "Verification issue" : signedIn ? "You're signed in!" : "Almost there"}
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-4">
@@ -142,10 +143,12 @@ const AuthCallback = () => {
               <p className="text-sm text-muted-foreground">
                 {error
                   ? "We couldn't complete verification automatically. Please try again."
-                  : "Click continue if you aren't redirected automatically."}
+                  : signedIn
+                    ? "You're signed in!"
+                    : "Click continue if you aren't redirected automatically."}
               </p>
               <div className="flex flex-col gap-2">
-                <Button onClick={retry} className="w-full">Continue</Button>
+                <Button onClick={retry} className="w-full">{signedIn ? "Go to your profile" : "Continue"}</Button>
               </div>
             </>
           )}
