@@ -1,13 +1,38 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { StarField } from "@/components/StarField";
+import { useToast } from "@/hooks/use-toast";
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [showWelcome, setShowWelcome] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
+    // Add user to waitlist after successful payment
+    const addToWaitlist = async () => {
+      const userData = sessionStorage.getItem('waitlist_user');
+      if (userData) {
+        try {
+          const parsed = JSON.parse(userData);
+          await fetch(
+            "https://ahksxziueqkacyaqtgeu.supabase.co/functions/v1/join-waitlist",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(parsed),
+            }
+          );
+          sessionStorage.removeItem('waitlist_user');
+        } catch (error) {
+          console.error("Failed to add to waitlist:", error);
+        }
+      }
+    };
+
+    addToWaitlist();
+
     // Start explosion animation immediately
     // Show welcome after explosion
     const welcomeTimer = setTimeout(() => {
@@ -29,7 +54,7 @@ const PaymentSuccess = () => {
       clearTimeout(profileTimer);
       clearTimeout(navTimer);
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center">

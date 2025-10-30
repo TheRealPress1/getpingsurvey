@@ -42,10 +42,10 @@ serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: { 
-              name: "ping! - Access your new network today",
-              description: "NFC ring with app access and networking features"
+              name: "ping! - Waitlist Early Access",
+              description: "Join the waitlist and get 50% off when we release"
             },
-            unit_amount: 999, // $9.99 one-time payment
+            unit_amount: 499, // $4.99 one-time payment
           },
           quantity: 1,
         },

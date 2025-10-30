@@ -63,41 +63,43 @@ const Landing = () => {
     setIsSubmitting(true);
 
     try {
+      // Store user info for after payment
+      sessionStorage.setItem('waitlist_user', JSON.stringify(parsed.data));
+
+      // Create Stripe checkout session
       const res = await fetch(
-        "https://ahksxziueqkacyaqtgeu.supabase.co/functions/v1/join-waitlist",
+        "https://ahksxziueqkacyaqtgeu.supabase.co/functions/v1/create-payment",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(parsed.data),
+          body: JSON.stringify({
+            email: parsed.data.email,
+            name: parsed.data.full_name,
+          }),
         }
       );
 
-      const json = await res.json().catch(() => ({}));
+      const json = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || !json.url) {
         toast({
-          title: "signup failed",
+          title: "checkout failed",
           description: json.error || "please try again later",
           variant: "destructive",
         });
-      } else {
-        toast({
-          title: "you're on the list! 🎉",
-          description: "we'll notify you when ping! launches",
-        });
-        setFullName("");
-        setEmail("");
-        setPhoneNumber("");
-        setDialogOpen(false);
+        setIsSubmitting(false);
+        return;
       }
+
+      // Redirect to Stripe checkout
+      window.location.href = json.url;
     } catch (error) {
-      console.error("Waitlist signup error:", error);
+      console.error("Payment error:", error);
       toast({
         title: "something went wrong",
         description: "please try again later",
         variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -141,14 +143,14 @@ your new network is waiting</p>
                   size="lg" 
                   className="shimmer bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 px-12 py-6 text-xl font-semibold"
                 >
-                  join the waitlist
+                  join the waitlist - $4.99
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold iridescent-text">join the waitlist</DialogTitle>
+                  <DialogTitle className="text-2xl font-bold iridescent-text">join the waitlist - $4.99</DialogTitle>
                   <DialogDescription className="text-muted-foreground">
-                    be the first to experience the future of networking
+                    get 50% off when we release! secure your spot now
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleWaitlistSubmit} className="space-y-4 mt-4">
@@ -197,7 +199,7 @@ your new network is waiting</p>
                     disabled={isSubmitting}
                     className="shimmer w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 px-8 py-4 text-lg font-semibold"
                   >
-                    {isSubmitting ? 'joining...' : 'join the waitlist'}
+                    {isSubmitting ? 'processing...' : 'join the waitlist now'}
                   </Button>
                 </form>
               </DialogContent>
