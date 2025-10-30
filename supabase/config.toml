@@ -12,3 +12,6 @@ verify_jwt = false
 [functions.generate-ping-question]
 verify_jwt = false
 
+[functions.create-payment]
+verify_jwt = false
+
