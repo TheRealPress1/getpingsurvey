@@ -42,15 +42,18 @@ serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: { 
-              name: "ping! - Waitlist Early Access",
-              description: "Join the waitlist and get 50% off when we release"
+              name: "ping! - Waitlist Subscription",
+              description: "Monthly subscription - cancel anytime"
             },
-            unit_amount: 499, // $4.99 one-time payment
+            unit_amount: 299, // $2.99 monthly
+            recurring: {
+              interval: "month"
+            }
           },
           quantity: 1,
         },
       ],
-      mode: "payment",
+      mode: "subscription",
       success_url: `${req.headers.get("origin")}/payment-success`,
       cancel_url: `${req.headers.get("origin")}/checkout`,
       metadata: {

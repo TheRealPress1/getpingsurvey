@@ -143,14 +143,14 @@ your new network is waiting</p>
                   size="lg" 
                   className="shimmer bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 px-12 py-6 text-xl font-semibold"
                 >
-                  join the waitlist - $4.99
+                  join the waitlist - $2.99/mo
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold iridescent-text">join the waitlist - $4.99</DialogTitle>
+                  <DialogTitle className="text-2xl font-bold iridescent-text">join the waitlist - $2.99/mo</DialogTitle>
                   <DialogDescription className="text-muted-foreground">
-                    get 50% off when we release! secure your spot now
+                    monthly subscription - cancel anytime!
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleWaitlistSubmit} className="space-y-4 mt-4">
