@@ -8,7 +8,7 @@ import { ChevronRight, X, User } from 'lucide-react';
 interface NetworkPerson {
   id: string;
   name: string;
-  circle: 'family' | 'friends' | 'business' | 'acquaintances';
+  circle: 'family' | 'friends' | 'business' | 'acquaintances' | 'network' | 'extended';
   angle: number;
   userId?: string;
 }
@@ -42,6 +42,37 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // Add demo people to outer circles if not already present
+    const demoPeople: NetworkPerson[] = [];
+    const hasNetwork = people.some(p => p.circle === 'network');
+    const hasExtended = people.some(p => p.circle === 'extended');
+    
+    if (!hasNetwork) {
+      // Add 8 demo dots to network circle
+      for (let i = 0; i < 8; i++) {
+        demoPeople.push({
+          id: `demo-network-${i}`,
+          name: `Network ${i + 1}`,
+          circle: 'network',
+          angle: (360 / 8) * i
+        });
+      }
+    }
+    
+    if (!hasExtended) {
+      // Add 12 demo dots to extended circle
+      for (let i = 0; i < 12; i++) {
+        demoPeople.push({
+          id: `demo-extended-${i}`,
+          name: `Extended ${i + 1}`,
+          circle: 'extended',
+          angle: (360 / 12) * i
+        });
+      }
+    }
+
+    const allPeople = [...people, ...demoPeople];
 
     // Scene setup
     const scene = new THREE.Scene();
@@ -159,7 +190,7 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
 
     const peopleByCircle = new Map<string, Array<{person: NetworkPerson, position: THREE.Vector3}>>();
 
-    people.forEach((person) => {
+    allPeople.forEach((person) => {
       const circle = CIRCLES.find((c) => c.id === person.circle);
       if (!circle) return;
 
@@ -200,7 +231,7 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
     });
 
     // Create interconnections between people on different circles
-    people.forEach((person) => {
+    allPeople.forEach((person) => {
       const circle = CIRCLES.find((c) => c.id === person.circle);
       if (!circle) return;
 
