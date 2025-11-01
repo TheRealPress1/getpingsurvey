@@ -20,9 +20,9 @@ interface Network3DProps {
 
 const CIRCLES = [
   { id: 'family', label: 'Family', radius: 2, color: 0x4ade80 },
-  { id: 'friends', label: 'Close Friends', radius: 3.5, color: 0x4ade80 },
-  { id: 'business', label: 'Business Partners', radius: 5, color: 0x4ade80 },
-  { id: 'acquaintances', label: 'Acquaintances', radius: 6.5, color: 0x4ade80 },
+  { id: 'friends', label: 'Close friends', radius: 3.5, color: 0x4ade80 },
+  { id: 'business', label: 'Business partners', radius: 5, color: 0x4ade80 },
+  { id: 'acquaintances', label: 'Associates', radius: 6.5, color: 0x4ade80 },
 ];
 
 export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
@@ -79,7 +79,7 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
     const centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
     scene.add(centerSphere);
 
-    // Create horizontal concentric circles (torus rings)
+    // Create horizontal concentric circles (torus rings) with labels
     CIRCLES.forEach((circle) => {
       const torusGeometry = new THREE.TorusGeometry(circle.radius, 0.02, 16, 100);
       const torusMaterial = new THREE.MeshBasicMaterial({
@@ -90,6 +90,29 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
       const torus = new THREE.Mesh(torusGeometry, torusMaterial);
       torus.rotation.x = Math.PI / 2; // Make horizontal
       scene.add(torus);
+
+      // Create text label for each circle
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (context) {
+        canvas.width = 256;
+        canvas.height = 64;
+        context.fillStyle = '#4ade80';
+        context.font = '24px Arial';
+        context.textAlign = 'center';
+        context.fillText(circle.label, 128, 40);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+          map: texture, 
+          transparent: true,
+          opacity: 0.7
+        });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.set(circle.radius, 0, 0);
+        sprite.scale.set(1, 0.25, 1);
+        scene.add(sprite);
+      }
     });
 
     // Create people spheres and connections
