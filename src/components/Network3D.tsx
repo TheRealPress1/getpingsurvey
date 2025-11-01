@@ -265,7 +265,7 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
 
   return (
     <div className="relative w-full h-full">
-      <div ref={containerRef} className="w-full h-full min-h-[600px]" />
+      <div ref={containerRef} className="w-full h-screen" />
 
       {/* Side menu toggle */}
       {!showMenu && (

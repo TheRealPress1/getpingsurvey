@@ -60,23 +60,21 @@ export default function NetworkVisualization() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="hover:bg-primary/10"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-4xl font-bold iridescent-text">visualize your network</h1>
-        </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="absolute top-4 left-4 z-50 flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          className="hover:bg-primary/10 bg-card/90 backdrop-blur"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-4xl font-bold iridescent-text">visualize your network</h1>
+      </div>
 
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <Network3D people={people} onPersonClick={handlePersonClick} />
-        </div>
+      <div className="flex-1 w-full h-full">
+        <Network3D people={people} onPersonClick={handlePersonClick} />
       </div>
     </div>
   );
