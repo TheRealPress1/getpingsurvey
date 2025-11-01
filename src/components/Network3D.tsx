@@ -95,22 +95,23 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
       if (context) {
-        canvas.width = 256;
-        canvas.height = 64;
+        canvas.width = 512;
+        canvas.height = 128;
         context.fillStyle = '#4ade80';
-        context.font = '24px Arial';
+        context.font = 'bold 48px Arial';
         context.textAlign = 'center';
-        context.fillText(circle.label, 128, 40);
+        context.fillText(circle.label, 256, 80);
         
         const texture = new THREE.CanvasTexture(canvas);
         const spriteMaterial = new THREE.SpriteMaterial({ 
           map: texture, 
           transparent: true,
-          opacity: 0.7
+          opacity: 0.8
         });
         const sprite = new THREE.Sprite(spriteMaterial);
-        sprite.position.set(circle.radius, 0, 0);
-        sprite.scale.set(1, 0.25, 1);
+        // Position on the outside of the ring
+        sprite.position.set(0, 0, circle.radius + 0.8);
+        sprite.scale.set(2, 0.5, 1);
         scene.add(sprite);
       }
     });
