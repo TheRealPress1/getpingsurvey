@@ -40,15 +40,15 @@ export const NetworkGlobe = ({ people, onPersonClick }: NetworkGlobeProps) => {
     scene.background = new THREE.Color(0x0a0a0a);
     sceneRef.current = scene;
 
-    // Camera setup - positioned at 45-degree angle looking down
+    // Camera setup - positioned at 45-degree angle looking down at the network
     const camera = new THREE.PerspectiveCamera(
       60,
       containerRef.current.clientWidth / containerRef.current.clientHeight,
       0.1,
       1000
     );
-    camera.position.set(0, 12, 12); // High angle, looking down at 45 degrees
-    camera.lookAt(0, 0, 0);
+    camera.position.set(0, 15, 10); // High position, looking down at network circles
+    camera.lookAt(0, 2, 0); // Look at slightly above center to focus on network
     cameraRef.current = camera;
 
     // Renderer setup
