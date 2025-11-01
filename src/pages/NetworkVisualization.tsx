@@ -1,20 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Globe, Circle } from 'lucide-react';
 import { Network3D } from '@/components/Network3D';
+import { NetworkGlobe } from '@/components/NetworkGlobe';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface NetworkPerson {
   id: string;
   name: string;
   circle: 'family' | 'friends' | 'business' | 'acquaintances';
   angle: number;
+  lat: number;
+  lng: number;
   userId?: string;
 }
 
 export default function NetworkVisualization() {
   const navigate = useNavigate();
   const [people, setPeople] = useState<NetworkPerson[]>([]);
+  const [viewMode, setViewMode] = useState<'circles' | 'globe'>('circles');
 
   useEffect(() => {
     // Initialize with sample data for demonstration
@@ -22,35 +27,35 @@ export default function NetworkVisualization() {
   }, []);
 
   const initializeSampleNetwork = () => {
-    // Sample network for visualization with more connections
+    // Sample network for visualization with global coordinates
     const samplePeople: NetworkPerson[] = [
       // Family circle
-      { id: '1', name: 'Mom', circle: 'family', angle: 0 },
-      { id: '2', name: 'Dad', circle: 'family', angle: 90 },
-      { id: '3', name: 'Sister', circle: 'family', angle: 180 },
-      { id: '4', name: 'Brother', circle: 'family', angle: 270 },
+      { id: '1', name: 'Mom', circle: 'family', angle: 0, lat: 40.7128, lng: -74.0060 }, // NYC
+      { id: '2', name: 'Dad', circle: 'family', angle: 90, lat: 34.0522, lng: -118.2437 }, // LA
+      { id: '3', name: 'Sister', circle: 'family', angle: 180, lat: 41.8781, lng: -87.6298 }, // Chicago
+      { id: '4', name: 'Brother', circle: 'family', angle: 270, lat: 51.5074, lng: -0.1278 }, // London
       
       // Friends circle
-      { id: '5', name: 'Best Friend', circle: 'friends', angle: 30 },
-      { id: '6', name: 'College Friend', circle: 'friends', angle: 90 },
-      { id: '7', name: 'Gym Buddy', circle: 'friends', angle: 150 },
-      { id: '8', name: 'Roommate', circle: 'friends', angle: 210 },
-      { id: '9', name: 'Childhood Friend', circle: 'friends', angle: 270 },
-      { id: '10', name: 'Travel Buddy', circle: 'friends', angle: 330 },
+      { id: '5', name: 'Best Friend', circle: 'friends', angle: 30, lat: 48.8566, lng: 2.3522 }, // Paris
+      { id: '6', name: 'College Friend', circle: 'friends', angle: 90, lat: 35.6762, lng: 139.6503 }, // Tokyo
+      { id: '7', name: 'Gym Buddy', circle: 'friends', angle: 150, lat: -33.8688, lng: 151.2093 }, // Sydney
+      { id: '8', name: 'Roommate', circle: 'friends', angle: 210, lat: 52.5200, lng: 13.4050 }, // Berlin
+      { id: '9', name: 'Childhood Friend', circle: 'friends', angle: 270, lat: 37.7749, lng: -122.4194 }, // SF
+      { id: '10', name: 'Travel Buddy', circle: 'friends', angle: 330, lat: 55.7558, lng: 37.6173 }, // Moscow
       
       // Business circle
-      { id: '11', name: 'Co-founder', circle: 'business', angle: 45 },
-      { id: '12', name: 'Investor', circle: 'business', angle: 135 },
-      { id: '13', name: 'Mentor', circle: 'business', angle: 225 },
-      { id: '14', name: 'Business Partner', circle: 'business', angle: 315 },
-      { id: '15', name: 'Client', circle: 'business', angle: 90 },
+      { id: '11', name: 'Co-founder', circle: 'business', angle: 45, lat: -23.5505, lng: -46.6333 }, // Sao Paulo
+      { id: '12', name: 'Investor', circle: 'business', angle: 135, lat: 1.3521, lng: 103.8198 }, // Singapore
+      { id: '13', name: 'Mentor', circle: 'business', angle: 225, lat: 19.4326, lng: -99.1332 }, // Mexico City
+      { id: '14', name: 'Business Partner', circle: 'business', angle: 315, lat: 25.2048, lng: 55.2708 }, // Dubai
+      { id: '15', name: 'Client', circle: 'business', angle: 90, lat: -34.6037, lng: -58.3816 }, // Buenos Aires
       
       // Acquaintances circle
-      { id: '16', name: 'Neighbor', circle: 'acquaintances', angle: 60 },
-      { id: '17', name: 'Old Classmate', circle: 'acquaintances', angle: 120 },
-      { id: '18', name: 'Coffee Shop Regular', circle: 'acquaintances', angle: 180 },
-      { id: '19', name: 'Book Club Member', circle: 'acquaintances', angle: 240 },
-      { id: '20', name: 'Dog Park Friend', circle: 'acquaintances', angle: 300 },
+      { id: '16', name: 'Neighbor', circle: 'acquaintances', angle: 60, lat: 59.3293, lng: 18.0686 }, // Stockholm
+      { id: '17', name: 'Old Classmate', circle: 'acquaintances', angle: 120, lat: 45.4215, lng: -75.6972 }, // Ottawa
+      { id: '18', name: 'Coffee Shop Regular', circle: 'acquaintances', angle: 180, lat: 41.9028, lng: 12.4964 }, // Rome
+      { id: '19', name: 'Book Club Member', circle: 'acquaintances', angle: 240, lat: 39.9042, lng: 116.4074 }, // Beijing
+      { id: '20', name: 'Dog Park Friend', circle: 'acquaintances', angle: 300, lat: -26.2041, lng: 28.0473 }, // Johannesburg
     ];
     setPeople(samplePeople);
   };
@@ -74,7 +79,27 @@ export default function NetworkVisualization() {
       </div>
 
       <div className="flex-1 w-full h-full">
-        <Network3D people={people} onPersonClick={handlePersonClick} />
+        {viewMode === 'circles' ? (
+          <Network3D people={people} onPersonClick={handlePersonClick} />
+        ) : (
+          <NetworkGlobe people={people} onPersonClick={handlePersonClick} />
+        )}
+      </div>
+
+      {/* View toggle at bottom */}
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50">
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'circles' | 'globe')}>
+          <TabsList className="bg-card/95 backdrop-blur border border-border">
+            <TabsTrigger value="circles" className="gap-2">
+              <Circle className="h-4 w-4" />
+              Circles
+            </TabsTrigger>
+            <TabsTrigger value="globe" className="gap-2">
+              <Globe className="h-4 w-4" />
+              Globe
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
     </div>
   );
