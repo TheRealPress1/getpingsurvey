@@ -4,109 +4,305 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { createChatWithUser } from '@/utils/chatUtils';
 
-interface Conversation {
+interface Connection {
   id: string;
-  other_user_id: string;
-  other_user_name: string;
-  other_user_avatar: string | null;
-  last_message: string | null;
-  last_message_time: string | null;
+  user_id: string;
+  target_user_id: string;
+  created_at: string;
+}
+
+interface Profile {
+  name: string;
+  avatar: string | null;
+}
+
+interface Message {
+  id: string;
+  content: string;
+  sender_id: string;
+  created_at: string;
 }
 
 export function ChatList() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { toast } = useToast();
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [activeChatUserId, setActiveChatUserId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-    loadConversations();
+    loadConnections();
   }, [user]);
 
-  const loadConversations = async () => {
+  const loadConnections = async () => {
     if (!user) return;
+    setLoading(true);
+
+    // Fetch connections
+    const { data: connectionRows, error } = await supabase
+      .from('connections')
+      .select('*')
+      .or(`user_id.eq.${user.id},target_user_id.eq.${user.id}`);
+
+    if (error) {
+      console.error(error);
+      setLoading(false);
+      return;
+    }
+
+    // Deduplicate
+    const dedupMap = new Map<string, Connection>();
+    (connectionRows || []).forEach((r) => {
+      const otherId = r.user_id === user.id ? r.target_user_id : r.user_id;
+      const existing = dedupMap.get(otherId);
+      if (!existing || new Date(r.created_at) < new Date(existing.created_at)) {
+        dedupMap.set(otherId, r as Connection);
+      }
+    });
+    const deduped = Array.from(dedupMap.values()).filter(r => {
+      const other = r.user_id === user.id ? r.target_user_id : r.user_id;
+      return other !== user.id;
+    });
+    setConnections(deduped);
+
+    // Fetch profiles
+    const otherIds = deduped.map(r => r.user_id === user.id ? r.target_user_id : r.user_id);
+    const unique = Array.from(new Set(otherIds));
+    if (unique.length) {
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, first_name, last_name, avatar_url')
+        .in('user_id', unique);
+      
+      if (profs) {
+        const map: Record<string, Profile> = {};
+        for (const p of profs) {
+          let displayName = p.display_name as string | null;
+          if (!displayName || displayName.trim() === '') {
+            const fn = (p as any).first_name;
+            const ln = (p as any).last_name;
+            if (fn || ln) displayName = [fn, ln].filter(Boolean).join(' ');
+          }
+          map[p.user_id as string] = { name: displayName || 'User', avatar: (p as any).avatar_url || null };
+        }
+        setProfiles(map);
+      }
+    }
+
+    await fetchUnreadCounts(unique);
+    setLoading(false);
+  };
+
+  const fetchUnreadCounts = async (userIds: string[]) => {
+    if (!user || userIds.length === 0) return;
     
     try {
-      // Get all conversation participants for the current user
-      const { data: participants } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', user.id);
+      const lastReadKey = `lastRead_${user.id}`;
+      const lastReadStr = localStorage.getItem(lastReadKey);
+      const lastRead = lastReadStr ? new Date(lastReadStr) : new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-      if (!participants || participants.length === 0) {
-        setConversations([]);
-        setLoading(false);
-        return;
-      }
-
-      const conversationIds = participants.map(p => p.conversation_id);
-
-      // Get messages for these conversations
-      const convos: Conversation[] = [];
+      const counts: Record<string, number> = {};
       
-      for (const convId of conversationIds) {
-        // Get the other participant
-        const { data: otherParticipants } = await supabase
+      for (const userId of userIds) {
+        const { data: convData } = await supabase
           .from('conversation_participants')
-          .select('user_id')
-          .eq('conversation_id', convId)
-          .neq('user_id', user.id)
-          .limit(1);
+          .select('conversation_id')
+          .eq('user_id', user.id);
 
-        if (!otherParticipants || otherParticipants.length === 0) continue;
-        
-        const otherUserId = otherParticipants[0].user_id;
+        if (convData && convData.length > 0) {
+          const { data: otherConvData } = await supabase
+            .from('conversation_participants')
+            .select('conversation_id')
+            .eq('user_id', userId)
+            .in('conversation_id', convData.map(c => c.conversation_id));
 
-        // Get profile info
-        const { data: profileData } = await supabase.rpc(
-          'get_public_profile_secure',
-          { target_user_id: otherUserId }
-        );
+          if (otherConvData && otherConvData.length > 0) {
+            const { count } = await supabase
+              .from('messages')
+              .select('*', { count: 'exact', head: true })
+              .in('conversation_id', otherConvData.map(c => c.conversation_id))
+              .eq('sender_id', userId)
+              .gte('created_at', lastRead.toISOString());
 
-        let displayName = 'User';
-        let avatarUrl = null;
-
-        if (profileData && profileData[0]) {
-          displayName = profileData[0].display_name || 'User';
-          avatarUrl = profileData[0].avatar_url;
+            counts[userId] = count || 0;
+          }
         }
-
-        // Get last message
-        const { data: lastMsg } = await supabase
-          .from('messages')
-          .select('content, created_at')
-          .eq('conversation_id', convId)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        convos.push({
-          id: convId,
-          other_user_id: otherUserId,
-          other_user_name: displayName,
-          other_user_avatar: avatarUrl,
-          last_message: lastMsg?.[0]?.content || null,
-          last_message_time: lastMsg?.[0]?.created_at || null,
-        });
       }
-
-      // Sort by last message time
-      convos.sort((a, b) => {
-        if (!a.last_message_time) return 1;
-        if (!b.last_message_time) return -1;
-        return new Date(b.last_message_time).getTime() - new Date(a.last_message_time).getTime();
-      });
-
-      setConversations(convos);
+      
+      setUnreadCounts(counts);
     } catch (error) {
-      console.error('Error loading conversations:', error);
-    } finally {
-      setLoading(false);
+      console.warn('Could not fetch unread counts:', error);
     }
   };
 
+  const handleChatClick = async (userId: string) => {
+    if (!user) return;
+    
+    try {
+      const convId = await createChatWithUser(userId, user.id);
+      setConversationId(convId);
+      setActiveChatUserId(userId);
+      await loadMessages(convId);
+      
+      // Mark as read
+      const lastReadKey = `lastRead_${user.id}`;
+      localStorage.setItem(lastReadKey, new Date().toISOString());
+      setUnreadCounts(prev => ({ ...prev, [userId]: 0 }));
+    } catch (error) {
+      console.error('Error opening chat:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to open chat',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const loadMessages = async (convId: string) => {
+    try {
+      setChatLoading(true);
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', convId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !conversationId || !user || chatLoading) return;
+
+    try {
+      setChatLoading(true);
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: newMessage.trim()
+        });
+
+      if (error) throw error;
+      setNewMessage('');
+      await loadMessages(conversationId);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send message',
+        variant: 'destructive',
+      });
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  // If in chat view
+  if (activeChatUserId && profiles[activeChatUserId]) {
+    const profile = profiles[activeChatUserId];
+    return (
+      <div className="h-full flex flex-col bg-background">
+        {/* Chat Header */}
+        <div className="border-b border-border p-4">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => {
+                setActiveChatUserId(null);
+                setMessages([]);
+                setConversationId(null);
+                setNewMessage('');
+              }}
+            >
+              <X className="w-5 h-5" />
+            </Button>
+            <Avatar className="w-10 h-10">
+              <AvatarImage src={profile.avatar || ''} alt={profile.name} />
+              <AvatarFallback>{profile.name[0]}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h2 className="font-semibold">{profile.name}</h2>
+              <p className="text-xs text-muted-foreground">Active now</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {chatLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-8">
+              <Avatar className="w-16 h-16 mx-auto mb-4">
+                <AvatarImage src={profile.avatar || ''} alt={profile.name} />
+                <AvatarFallback>{profile.name[0]}</AvatarFallback>
+              </Avatar>
+              <p className="text-muted-foreground">Say hello to start the conversation</p>
+            </div>
+          ) : (
+            messages.map((msg) => {
+              const isOwn = msg.sender_id === user?.id;
+              return (
+                <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-sm p-3 rounded-2xl ${isOwn ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-secondary text-secondary-foreground rounded-bl-md'}`}>
+                    <p className="text-sm">{msg.content}</p>
+                    <p className="text-xs opacity-70 mt-1">
+                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Input */}
+        <div className="p-4 border-t border-border">
+          <div className="flex gap-2">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+              placeholder={`Message ${profile.name}...`}
+              className="flex-1"
+              disabled={chatLoading}
+            />
+            <Button 
+              onClick={sendMessage} 
+              disabled={!newMessage.trim() || chatLoading}
+              size="icon"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // List view
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -118,7 +314,9 @@ export function ChatList() {
     );
   }
 
-  if (conversations.length === 0) {
+  const otherUserIds = connections.map(c => c.user_id === user?.id ? c.target_user_id : c.user_id);
+  
+  if (otherUserIds.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center max-w-md px-4">
@@ -134,36 +332,38 @@ export function ChatList() {
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-2">
-      {conversations.map((conv) => (
-        <Card
-          key={conv.id}
-          className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
-          onClick={() => navigate(`/chat/${conv.id}?to=${conv.other_user_id}`)}
-        >
-          <div className="flex items-center gap-3">
-            <Avatar className="w-12 h-12">
-              <AvatarImage src={conv.other_user_avatar || ''} alt={conv.other_user_name} />
-              <AvatarFallback>{conv.other_user_name[0]}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-foreground truncate">
-                {conv.other_user_name}
-              </h4>
-              <p className="text-sm text-muted-foreground truncate">
-                {conv.last_message || 'No messages yet'}
-              </p>
+      {otherUserIds.map((otherId) => {
+        const profile = profiles[otherId];
+        if (!profile) return null;
+        
+        return (
+          <Card
+            key={otherId}
+            className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+            onClick={() => handleChatClick(otherId)}
+          >
+            <div className="flex items-center gap-3">
+              <Avatar className="w-12 h-12">
+                <AvatarImage src={profile.avatar || ''} alt={profile.name} />
+                <AvatarFallback>{profile.name[0]}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-semibold text-foreground truncate">
+                    {profile.name}
+                  </h4>
+                  {unreadCounts[otherId] > 0 && (
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Tap to chat
+                </p>
+              </div>
             </div>
-            {conv.last_message_time && (
-              <span className="text-xs text-muted-foreground">
-                {new Date(conv.last_message_time).toLocaleDateString([], {
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </span>
-            )}
-          </div>
-        </Card>
-      ))}
+          </Card>
+        );
+      })}
     </div>
   );
 }

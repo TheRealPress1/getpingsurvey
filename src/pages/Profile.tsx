@@ -257,7 +257,7 @@ const Profile = () => {
           
           {/* Network in center with search */}
           <div className="absolute left-1/2 transform -translate-x-1/2">
-            <Button variant="ghost" className="flex items-center gap-2 hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full px-4 py-1.5 backdrop-blur-sm border border-primary/20 shadow-lg text-sm relative" onClick={() => navigate('/network')}>
+            <Button variant="ghost" className="flex items-center gap-2 hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-full px-4 py-1.5 backdrop-blur-sm border border-primary/20 shadow-lg text-sm relative" onClick={() => navigate('/network/visualize')}>
               <Search className="w-4 h-4 text-primary" />
               <span className="iridescent-text font-medium">Find Your Tribe</span>
               {unreadMessageCount > 0 && (
