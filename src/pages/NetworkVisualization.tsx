@@ -114,8 +114,8 @@ export default function NetworkVisualization() {
         </TabsContent>
 
         {/* View toggle at bottom */}
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50">
-          <TabsList className="bg-card/95 backdrop-blur border border-border">
+        <div className="fixed bottom-20 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 pb-2">
+          <TabsList className="bg-card/95 backdrop-blur border border-border shadow-lg">
             <TabsTrigger value="chats" className="gap-2">
               <MessageCircle className="h-4 w-4" />
               Chats
