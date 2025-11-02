@@ -28,6 +28,8 @@ export const NetworkGlobe = ({ people, onPersonClick }: NetworkGlobeProps) => {
   const isDraggingRef = useRef(false);
   const previousMousePositionRef = useRef({ x: 0, y: 0 });
   const spheresRef = useRef<Map<string, THREE.Mesh>>(new Map());
+  const globeRef = useRef<THREE.Mesh | null>(null);
+  const isZoomingRef = useRef(false);
   const [selectedPerson, setSelectedPerson] = useState<NetworkPerson | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
@@ -75,6 +77,7 @@ export const NetworkGlobe = ({ people, onPersonClick }: NetworkGlobeProps) => {
     });
     const globe = new THREE.Mesh(globeGeometry, globeMaterial);
     scene.add(globe);
+    globeRef.current = globe;
 
     // Add subtle green edge glow using a slightly larger transparent sphere
     const glowGeometry = new THREE.SphereGeometry(globeRadius + 0.05, 64, 64);
@@ -284,8 +287,44 @@ export const NetworkGlobe = ({ people, onPersonClick }: NetworkGlobeProps) => {
       if (intersects.length > 0) {
         const clickedSphere = intersects[0].object as THREE.Mesh;
         const person = clickedSphere.userData.person as NetworkPerson;
-        setSelectedPerson(person);
-        setShowMenu(true);
+        
+        // Get marker's world position
+        const worldPosition = new THREE.Vector3();
+        clickedSphere.getWorldPosition(worldPosition);
+        
+        // Animate camera zoom to the clicked marker
+        isZoomingRef.current = true;
+        const startPosition = camera.position.clone();
+        const startZ = camera.position.z;
+        const targetZ = 8; // Closer zoom
+        
+        let animationProgress = 0;
+        const animationDuration = 1000; // 1 second
+        const startTime = Date.now();
+        
+        const animateZoom = () => {
+          const elapsed = Date.now() - startTime;
+          animationProgress = Math.min(elapsed / animationDuration, 1);
+          
+          // Smooth easing function
+          const easeProgress = 1 - Math.pow(1 - animationProgress, 3);
+          
+          // Interpolate camera zoom
+          camera.position.z = startZ + (targetZ - startZ) * easeProgress;
+          
+          camera.lookAt(0, 2, 0);
+          
+          if (animationProgress < 1) {
+            requestAnimationFrame(animateZoom);
+          } else {
+            isZoomingRef.current = false;
+            setSelectedPerson(person);
+            setShowMenu(true);
+          }
+        };
+        
+        animateZoom();
+        
         if (onPersonClick) {
           onPersonClick(person);
         }
@@ -308,8 +347,8 @@ export const NetworkGlobe = ({ people, onPersonClick }: NetworkGlobeProps) => {
     const animate = () => {
       requestAnimationFrame(animate);
 
-      // Gentle rotation when not dragging
-      if (!isDraggingRef.current) {
+      // Gentle rotation when not dragging and not zooming
+      if (!isDraggingRef.current && !isZoomingRef.current) {
         globe.rotation.y += 0.002; // Rotate globe and everything on it
       }
 
@@ -407,6 +446,9 @@ export const NetworkGlobe = ({ people, onPersonClick }: NetworkGlobeProps) => {
                   <p className="font-semibold">{selectedPerson.name}</p>
                   <p className="text-xs text-muted-foreground capitalize">
                     {selectedPerson.circle.replace('_', ' ')}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Building connections globally
                   </p>
                 </div>
               </div>

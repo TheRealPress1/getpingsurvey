@@ -38,6 +38,7 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
   const touchDistanceRef = useRef<number | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<NetworkPerson | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const isZoomingRef = useRef(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -331,8 +332,43 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
       if (intersects.length > 0) {
         const clickedSphere = intersects[0].object as THREE.Mesh;
         const person = clickedSphere.userData.person as NetworkPerson;
-        setSelectedPerson(person);
-        setShowMenu(true);
+        
+        // Animate camera zoom to the clicked sphere
+        isZoomingRef.current = true;
+        const targetPosition = clickedSphere.position.clone();
+        const startPosition = camera.position.clone();
+        const startZ = camera.position.z;
+        const targetZ = 4; // Zoom in closer
+        const targetY = targetPosition.y + 2; // Position above the target
+        
+        let animationProgress = 0;
+        const animationDuration = 1000; // 1 second
+        const startTime = Date.now();
+        
+        const animateZoom = () => {
+          const elapsed = Date.now() - startTime;
+          animationProgress = Math.min(elapsed / animationDuration, 1);
+          
+          // Smooth easing function
+          const easeProgress = 1 - Math.pow(1 - animationProgress, 3);
+          
+          // Interpolate camera position
+          camera.position.z = startZ + (targetZ - startZ) * easeProgress;
+          camera.position.y = camera.position.z * CAMERA_ANGLE_RATIO;
+          
+          camera.lookAt(0, 0, 0);
+          
+          if (animationProgress < 1) {
+            requestAnimationFrame(animateZoom);
+          } else {
+            isZoomingRef.current = false;
+            setSelectedPerson(person);
+            setShowMenu(true);
+          }
+        };
+        
+        animateZoom();
+        
         if (onPersonClick) {
           onPersonClick(person);
         }
@@ -395,8 +431,8 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
     const animate = () => {
       requestAnimationFrame(animate);
 
-      // Gentle rotation when not dragging
-      if (!isDraggingRef.current) {
+      // Gentle rotation when not dragging and not zooming
+      if (!isDraggingRef.current && !isZoomingRef.current) {
         scene.rotation.y += 0.001;
       }
 
