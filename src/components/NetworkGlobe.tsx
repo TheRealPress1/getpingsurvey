@@ -292,75 +292,67 @@ export const NetworkGlobe = ({ people, onPersonClick }: NetworkGlobeProps) => {
         const clickedSphere = intersects[0].object as THREE.Mesh;
         const person = clickedSphere.userData.person as NetworkPerson;
         
-        // Get marker's world position
+        // Get marker's world position (on globe surface)
         const worldPosition = new THREE.Vector3();
         clickedSphere.getWorldPosition(worldPosition);
-        
-        const globe = globeRef.current;
-        if (globe) {
-          // Get the marker's local position relative to the globe
-          const localPosition = clickedSphere.position.clone();
-          
-          // Calculate the spherical coordinates of the marker
-          const phi = Math.acos(localPosition.y / (globeRadius + 0.2));
-          const theta = Math.atan2(localPosition.z, localPosition.x);
-          
-          // Calculate target globe rotation to bring marker to the front center
-          // We want the marker to face the camera directly
-          const targetRotationY = -theta;
-          const targetRotationX = -(phi - Math.PI / 2);
-          
-          const startRotationY = globe.rotation.y;
-          const startRotationX = globe.rotation.x;
-          
-          // Calculate shortest rotation path
-          let deltaY = targetRotationY - startRotationY;
-          let deltaX = targetRotationX - startRotationX;
-          
-          // Normalize angles to shortest path
-          while (deltaY > Math.PI) deltaY -= Math.PI * 2;
-          while (deltaY < -Math.PI) deltaY += Math.PI * 2;
-          while (deltaX > Math.PI) deltaX -= Math.PI * 2;
-          while (deltaX < -Math.PI) deltaX += Math.PI * 2;
-          
-          // Animate camera zoom and globe rotation
-          isZoomingRef.current = true;
-          const startZ = camera.position.z;
-          const targetZ = 7; // Closer zoom for better focus
-          
-          let animationProgress = 0;
-          const animationDuration = 1200; // Slightly longer for smoother animation
-          const startTime = Date.now();
-          
-          const animateZoom = () => {
-            const elapsed = Date.now() - startTime;
-            animationProgress = Math.min(elapsed / animationDuration, 1);
-            
-            // Smooth easing with ease-in-out
-            const easeProgress = animationProgress < 0.5
-              ? 4 * animationProgress * animationProgress * animationProgress
-              : 1 - Math.pow(-2 * animationProgress + 2, 3) / 2;
-            
-            // Rotate globe smoothly
-            globe.rotation.y = startRotationY + deltaY * easeProgress;
-            globe.rotation.x = startRotationX + deltaX * easeProgress;
-            
-            // Zoom camera smoothly
-            camera.position.z = startZ + (targetZ - startZ) * easeProgress;
-            camera.lookAt(0, 2, 0);
-            
-            if (animationProgress < 1) {
-              requestAnimationFrame(animateZoom);
-            } else {
-              isZoomingRef.current = false;
-              setSelectedPerson(person);
-              setShowMenu(true);
-            }
-          };
-          
-          animateZoom();
+
+        // Surface normal at the point (from globe center to marker)
+        const normal = worldPosition.clone().normalize();
+
+        // Tangent pointing "north" relative to world up (fallback if near poles)
+        const worldUp = new THREE.Vector3(0, 1, 0);
+        let tangentNorth = worldUp.clone().sub(normal.clone().multiplyScalar(worldUp.dot(normal)));
+        if (tangentNorth.lengthSq() < 1e-6) {
+          tangentNorth = new THREE.Vector3(1, 0, 0).cross(normal).normalize();
+        } else {
+          tangentNorth.normalize();
         }
-        
+
+        // Target camera position for bird's-eye 45° look-down
+        const camOut = 3.5; // distance away from surface along normal
+        const tilt = 2.5;   // offset towards "north" to create ~45° angle
+        const targetPosition = worldPosition
+          .clone()
+          .add(normal.clone().multiplyScalar(camOut))
+          .add(tangentNorth.clone().multiplyScalar(tilt));
+
+        // Animate camera move without rotating the globe
+        isZoomingRef.current = true;
+        const startPosition = camera.position.clone();
+        const minRadius = globeRadius + 1.5; // never pass through globe
+        camera.up.set(0, 1, 0);
+
+        let animationProgress = 0;
+        const animationDuration = 1200; // ms
+        const startTime = Date.now();
+
+        const animateZoom = () => {
+          const elapsed = Date.now() - startTime;
+          animationProgress = Math.min(elapsed / animationDuration, 1);
+
+          // Ease in-out cubic
+          const t = animationProgress < 0.5
+            ? 4 * animationProgress * animationProgress * animationProgress
+            : 1 - Math.pow(-2 * animationProgress + 2, 3) / 2;
+
+          const p = startPosition.clone().lerp(targetPosition, t);
+          const r = p.length();
+          if (r < minRadius) p.setLength(minRadius);
+
+          camera.position.copy(p);
+          camera.lookAt(worldPosition);
+
+          if (animationProgress < 1) {
+            requestAnimationFrame(animateZoom);
+          } else {
+            isZoomingRef.current = false;
+            setSelectedPerson(person);
+            setShowMenu(true);
+          }
+        };
+
+        animateZoom();
+
         if (onPersonClick) {
           onPersonClick(person);
         }
