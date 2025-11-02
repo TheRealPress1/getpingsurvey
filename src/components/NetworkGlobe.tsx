@@ -296,40 +296,56 @@ export const NetworkGlobe = ({ people, onPersonClick }: NetworkGlobeProps) => {
         const worldPosition = new THREE.Vector3();
         clickedSphere.getWorldPosition(worldPosition);
         
-        // Calculate direction from globe center to marker
-        const direction = worldPosition.clone().normalize();
-        
-        // Rotate globe to bring the marker to the front
         const globe = globeRef.current;
         if (globe) {
-          // Calculate target rotation
-          const targetRotationY = Math.atan2(direction.x, direction.z);
-          const targetRotationX = -Math.asin(direction.y);
+          // Get the marker's local position relative to the globe
+          const localPosition = clickedSphere.position.clone();
+          
+          // Calculate the spherical coordinates of the marker
+          const phi = Math.acos(localPosition.y / (globeRadius + 0.2));
+          const theta = Math.atan2(localPosition.z, localPosition.x);
+          
+          // Calculate target globe rotation to bring marker to the front center
+          // We want the marker to face the camera directly
+          const targetRotationY = -theta;
+          const targetRotationX = -(phi - Math.PI / 2);
           
           const startRotationY = globe.rotation.y;
           const startRotationX = globe.rotation.x;
           
+          // Calculate shortest rotation path
+          let deltaY = targetRotationY - startRotationY;
+          let deltaX = targetRotationX - startRotationX;
+          
+          // Normalize angles to shortest path
+          while (deltaY > Math.PI) deltaY -= Math.PI * 2;
+          while (deltaY < -Math.PI) deltaY += Math.PI * 2;
+          while (deltaX > Math.PI) deltaX -= Math.PI * 2;
+          while (deltaX < -Math.PI) deltaX += Math.PI * 2;
+          
           // Animate camera zoom and globe rotation
           isZoomingRef.current = true;
           const startZ = camera.position.z;
-          const targetZ = 8; // Closer zoom
+          const targetZ = 7; // Closer zoom for better focus
           
           let animationProgress = 0;
-          const animationDuration = 1000;
+          const animationDuration = 1200; // Slightly longer for smoother animation
           const startTime = Date.now();
           
           const animateZoom = () => {
             const elapsed = Date.now() - startTime;
             animationProgress = Math.min(elapsed / animationDuration, 1);
             
-            // Smooth easing
-            const easeProgress = 1 - Math.pow(1 - animationProgress, 3);
+            // Smooth easing with ease-in-out
+            const easeProgress = animationProgress < 0.5
+              ? 4 * animationProgress * animationProgress * animationProgress
+              : 1 - Math.pow(-2 * animationProgress + 2, 3) / 2;
             
-            // Rotate globe to bring marker to front
-            globe.rotation.y = startRotationY + (targetRotationY - startRotationY) * easeProgress;
-            globe.rotation.x = startRotationX + (targetRotationX - startRotationX) * easeProgress;
+            // Rotate globe smoothly
+            globe.rotation.y = startRotationY + deltaY * easeProgress;
+            globe.rotation.x = startRotationX + deltaX * easeProgress;
             
-            // Zoom camera
+            // Zoom camera smoothly
             camera.position.z = startZ + (targetZ - startZ) * easeProgress;
             camera.lookAt(0, 2, 0);
             
