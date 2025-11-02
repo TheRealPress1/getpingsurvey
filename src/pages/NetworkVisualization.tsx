@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Globe, Circle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, Globe, Circle, Search } from 'lucide-react';
 import { Network3D } from '@/components/Network3D';
 import { NetworkGlobe } from '@/components/NetworkGlobe';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -22,6 +23,7 @@ export default function NetworkVisualization() {
   const navigate = useNavigate();
   const [people, setPeople] = useState<NetworkPerson[]>([]);
   const [viewMode, setViewMode] = useState<'chats' | 'circles' | 'globe'>('chats');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     // Initialize with sample data for demonstration
@@ -68,21 +70,39 @@ export default function NetworkVisualization() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="absolute top-4 left-4 z-50 flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          className="hover:bg-primary/10 bg-card/90 backdrop-blur"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-4xl font-bold iridescent-text">visualize your circle</h1>
+      {/* Header */}
+      <div className="bg-background border-b border-border z-50">
+        <div className="p-4 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="hover:bg-primary/10"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-4xl font-bold iridescent-text">visualize your circle</h1>
+        </div>
+        
+        {/* Search bar - only show in chats view */}
+        {viewMode === 'chats' && (
+          <div className="px-4 pb-4">
+            <div className="relative max-w-2xl mx-auto">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'chats' | 'circles' | 'globe')} className="flex-1 flex flex-col w-full h-full pt-20">
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'chats' | 'circles' | 'globe')} className="flex-1 flex flex-col w-full h-full">
         <TabsContent value="chats" className="flex-1 m-0 h-full">
-          <ChatList />
+          <ChatList searchQuery={searchQuery} />
         </TabsContent>
         
         <TabsContent value="circles" className="flex-1 m-0 h-full">

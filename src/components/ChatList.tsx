@@ -29,7 +29,11 @@ interface Message {
   created_at: string;
 }
 
-export function ChatList() {
+interface ChatListProps {
+  searchQuery?: string;
+}
+
+export function ChatList({ searchQuery = '' }: ChatListProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -42,7 +46,6 @@ export function ChatList() {
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [chatLoading, setChatLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadConnections();
@@ -330,46 +333,35 @@ export function ChatList() {
   
   if (filteredUserIds.length === 0 && searchQuery) {
     return (
-      <div className="h-full flex flex-col">
-        <div className="p-4 border-b border-border">
-          <div className="relative">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <SearchIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-xl font-semibold mb-2">No results found</h3>
+          <p className="text-muted-foreground">
+            Try a different search term
+          </p>
         </div>
-        <div className="flex items-center justify-center flex-1">
-          <div className="text-center max-w-md px-4">
-            <SearchIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">No results found</h3>
-            <p className="text-muted-foreground">
-              Try a different search term
-            </p>
-          </div>
+      </div>
+    );
+  }
+
+  if (filteredUserIds.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-xl font-semibold mb-2">No conversations yet</h3>
+          <p className="text-muted-foreground">
+            Start connecting with people in your network to begin chatting
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-border">
-        <div className="relative">
-          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {filteredUserIds.map((otherId) => {
+    <div className="h-full overflow-y-auto p-4 space-y-2">
+      {filteredUserIds.map((otherId) => {
           const profile = profiles[otherId];
           if (!profile) return null;
           
@@ -401,7 +393,6 @@ export function ChatList() {
             </Card>
           );
         })}
-      </div>
     </div>
   );
 }
