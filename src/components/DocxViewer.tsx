@@ -12,14 +12,34 @@ export const DocxViewer: React.FC<DocxViewerProps> = ({ url, height = 600, class
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [mode, setMode] = React.useState<'office' | 'gview' | 'html'>('html');
+  const [mode, setMode] = React.useState<'office' | 'gview' | 'html'>('office');
 
-  // Stable default: render HTML preview for reliability
+  // Attempt high-fidelity viewers first (Office, then Google), then fall back to HTML renderer
   React.useEffect(() => {
-    setMode('html');
-    setError(null);
+    let cancelled = false;
+    let timeoutId: number | undefined;
+
     setLoading(true);
-    if (containerRef.current) containerRef.current.innerHTML = '';
+    setError(null);
+
+    const tryNext = (next: 'office' | 'gview' | 'html') => {
+      if (cancelled) return;
+      setMode(next);
+      setLoading(true);
+      setError(null);
+    };
+
+    // If a viewer doesn't load within 6s, fall back to the next option
+    timeoutId = window.setTimeout(() => {
+      if (cancelled) return;
+      if (mode === 'office') tryNext('gview');
+      else if (mode === 'gview') tryNext('html');
+    }, 6000);
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
   }, [url]);
 
   // HTML fallback using docx-preview when mode === 'html'
