@@ -114,7 +114,9 @@ const ProfileDetails = () => {
 
   const viewResume = () => {
     if (profile?.resume_url) {
-      setShowResume(true);
+      const filename = encodeURIComponent(profile.resume_filename || 'resume.pdf');
+      const url = encodeURIComponent(profile.resume_url);
+      navigate(`/resume?url=${url}&filename=${filename}`);
     }
   };
 

@@ -14,6 +14,7 @@ interface PDFViewerProps {
 const FUNCTIONS_BASE = 'https://ahksxziueqkacyaqtgeu.supabase.co/functions/v1';
 const buildFetchUrl = (rawUrl: string) => {
   try {
+    // Always proxy Supabase storage and signed public URLs
     if (/supabase\.co\/storage\/v1\//i.test(rawUrl)) {
       return `${FUNCTIONS_BASE}/get-resume?url=${encodeURIComponent(rawUrl)}`;
     }
@@ -77,7 +78,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, fileName = 'document.
   // Render PDF with PDF.js to avoid Chromium's built-in viewer restrictions
   useEffect(() => {
     if (!blobUrl) return;
-    // Use CDN for PDF.js worker to avoid build issues
+    // Use CDN worker fallback (more reliable than bundling worker here)
     pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
     let cancelled = false;
@@ -180,7 +181,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, fileName = 'document.
         className="relative w-full overflow-auto bg-muted/30"
         style={{ height }}
         aria-label={`PDF preview with ${pages} pages`}
-      />
+      >
+        {/* Ensure an element exists for screen readers even before render */}
+        {!pages && <div className="p-4 text-muted-foreground">Preparing preview…</div>}
+      </div>
     </div>
   );
 };

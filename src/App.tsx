@@ -23,6 +23,7 @@ import PublicPing from "./pages/PublicPing";
 import PublicProfileDetails from "./pages/PublicProfileDetails";
 import PublicRouteHandler from "./pages/PublicRouteHandler";
 import Chat from "./pages/Chat";
+import ResumePreview from "./pages/ResumePreview";
 
 const queryClient = new QueryClient();
 
