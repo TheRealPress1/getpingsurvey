@@ -211,10 +211,39 @@ async function extractTextFromResume(buffer: ArrayBuffer, fileName: string): Pro
     }
   }
   
-  // For Word docs (.doc, .docx) or other text formats
-  if (fileName.toLowerCase().match(/\.(doc|docx|txt)$/)) {
+  // For DOCX files - use mammoth for proper extraction
+  if (fileName.toLowerCase().endsWith('.docx')) {
     try {
-      console.log('Attempting text extraction from non-PDF file');
+      console.log('Detected DOCX file, using mammoth for parsing');
+      const mammoth = await import('https://esm.sh/mammoth@1.6.0');
+      
+      const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+      const text = result.value;
+      
+      console.log(`DOCX text extracted: ${text.length} characters`);
+      
+      if (text.length > 100) {
+        return text;
+      }
+      
+      console.warn('DOCX parsed but content too short');
+      return 'Resume content could not be extracted from DOCX. The file may be empty or corrupted.';
+    } catch (error) {
+      console.error('DOCX parsing error:', error);
+      return `Failed to parse DOCX: ${error instanceof Error ? error.message : 'Unknown error'}. Please try a different file.`;
+    }
+  }
+  
+  // For images (JPEG, PNG) - return message that OCR is not available
+  if (fileName.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+    console.log('Image file detected - cannot extract text from images');
+    return 'Image files cannot be parsed for text. Please upload a DOCX document or convert your resume to text format.';
+  }
+  
+  // Fallback for other text formats
+  if (fileName.toLowerCase().match(/\.(doc|txt)$/)) {
+    try {
+      console.log('Attempting text extraction from text file');
       const text = new TextDecoder('utf-8', { fatal: false }).decode(buffer);
       
       // Try to extract readable text (printable ASCII and common Unicode)
@@ -234,7 +263,7 @@ async function extractTextFromResume(buffer: ArrayBuffer, fileName: string): Pro
   }
   
   console.error('Could not extract text from file');
-  return 'Could not extract text from this file format. Please upload a PDF file with selectable text, or convert your document to PDF first.';
+  return 'Could not extract text from this file format. Please upload a DOCX document with selectable text.';
 }
 
 async function parseResumeWithAI(resumeText: string): Promise<ParsedResumeData> {

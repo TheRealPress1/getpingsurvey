@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Save, X, Camera, MapPin, Building2, Mail, Phone, ExternalLink, Plus, Trash2, Upload, Eye, EyeOff, LogOut, Edit, Briefcase, FileText, Download, Loader2 } from 'lucide-react';
 import { ResumeUpload } from './ResumeUpload';
+import { ResumeViewer } from './ResumeViewer';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import { SkillsInterestsSelector } from '@/components/SkillsInterestsSelector';
 import ImageCropper from '@/components/ImageCropper';
@@ -626,13 +627,11 @@ export const ProfileEdit: React.FC<ProfileEditProps> = ({ profile, onSave, onCan
               </div>
               
               {/* Embedded preview */}
-              <div className="border border-border rounded-lg overflow-hidden bg-muted/10">
-                <iframe
-                  src={`${profile.resume_url}#toolbar=0&navpanes=0&scrollbar=0`}
-                  className="w-full h-64 border-0"
-                  title="Resume Preview"
-                />
-              </div>
+              <ResumeViewer
+                url={profile.resume_url}
+                fileName={profile.resume_filename || 'resume'}
+                height={400}
+              />
             </div>
           )}
         </CardContent>
