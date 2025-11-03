@@ -11,6 +11,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OptimizedImage } from '@/components/OptimizedImage';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PDFViewer } from '@/components/PDFViewer';
 
 
 
@@ -27,6 +29,8 @@ const ProfileDetails = () => {
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [showResume, setShowResume] = useState(false);
+  const [parsingResume, setParsingResume] = useState(false);
   
 
   useEffect(() => {
@@ -103,14 +107,41 @@ const ProfileDetails = () => {
 
   const viewResume = () => {
     if (profile?.resume_url) {
-      // Use anchor tag to avoid popup blockers
-      const link = document.createElement('a');
-      link.href = profile.resume_url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      setShowResume(true);
+    }
+  };
+
+  const handleParseResume = async () => {
+    if (!user || !profile?.resume_url) return;
+    setParsingResume(true);
+    try {
+      toast({
+        title: "Parsing resume...",
+        description: "Extracting work experience from your resume."
+      });
+      const { data, error } = await supabase.functions.invoke('parse-resume', {
+        body: {
+          userId: user.id,
+          resumeUrl: profile.resume_url,
+          fileName: profile.resume_filename || 'resume.pdf'
+        }
+      });
+      if (error) throw error;
+      if (data && data.success === false) {
+        throw new Error(data.error || 'Failed to parse resume');
+      }
+      const workExpCount = data?.data?.work_experience?.length || 0;
+      const skillsCount = data?.data?.skills?.length || 0;
+      toast({
+        title: "Resume parsed",
+        description: `Extracted ${workExpCount} experiences and ${skillsCount} skills.`
+      });
+      await fetchProfile();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      toast({ title: "Parsing failed", description: msg, variant: "destructive" });
+    } finally {
+      setParsingResume(false);
     }
   };
 
@@ -231,26 +262,36 @@ const ProfileDetails = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      onClick={viewResume}
-                      variant="outline"
-                      size="lg"
-                      className="hover:scale-105 transition-transform duration-200 w-full sm:w-auto"
-                    >
-                      <Eye className="w-5 h-5 mr-2" />
-                      View Resume
-                    </Button>
-                    <Button
-                      onClick={downloadResume}
-                      variant="default"
-                      size="lg"
-                      className="hover:scale-105 transition-transform duration-200 w-full sm:w-auto"
-                    >
-                      <Download className="w-5 h-5 mr-2" />
-                      Download
-                    </Button>
-                  </div>
+                   <div className="flex flex-wrap gap-3">
+                     <Button
+                       onClick={viewResume}
+                       variant="outline"
+                       size="lg"
+                       className="hover:scale-105 transition-transform duration-200 w-full sm:w-auto"
+                     >
+                       <Eye className="w-5 h-5 mr-2" />
+                       View Resume
+                     </Button>
+                     <Button
+                       onClick={downloadResume}
+                       variant="default"
+                       size="lg"
+                       className="hover:scale-105 transition-transform duration-200 w-full sm:w-auto"
+                     >
+                       <Download className="w-5 h-5 mr-2" />
+                       Download
+                     </Button>
+                     <Button
+                       onClick={handleParseResume}
+                       disabled={parsingResume}
+                       variant="secondary"
+                       size="lg"
+                       className="hover:scale-105 transition-transform duration-200 w-full sm:w-auto"
+                     >
+                       <FileText className="w-5 h-5 mr-2" />
+                       {parsingResume ? 'Parsing...' : 'Parse Resume'}
+                     </Button>
+                   </div>
                 </div>
                 
               </>
@@ -355,6 +396,27 @@ const ProfileDetails = () => {
         </div>
 
       </main>
+
+      <Dialog open={showResume} onOpenChange={setShowResume}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Resume</DialogTitle>
+          </DialogHeader>
+          {profile?.resume_url && (
+            <PDFViewer
+              url={profile.resume_url}
+              fileName={profile.resume_filename || 'resume.pdf'}
+              height={640}
+            />
+          )}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setShowResume(false)}>Close</Button>
+            <Button onClick={downloadResume} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Download className="w-4 h-4 mr-2" /> Download
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
