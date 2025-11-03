@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { PDFViewer } from '@/components/PDFViewer';
+import { ResumeViewer } from '@/components/ResumeViewer';
 
 
 
@@ -400,9 +400,9 @@ const ProfileDetails = () => {
             <DialogTitle>Resume</DialogTitle>
           </DialogHeader>
           {profile?.resume_url && (
-            <PDFViewer
+            <ResumeViewer
               url={profile.resume_url}
-              fileName={profile.resume_filename || 'resume.pdf'}
+              fileName={profile.resume_filename || 'resume'}
               height={640}
             />
           )}

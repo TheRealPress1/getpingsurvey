@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useConnections } from "@/hooks/useConnections";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PDFViewer } from "@/components/PDFViewer";
+import { ResumeViewer } from "@/components/ResumeViewer";
 interface PublicProfile {
   user_id: string;
   display_name: string;
@@ -477,9 +477,9 @@ const PublicProfileDetails = () => {
             <DialogTitle>Resume</DialogTitle>
           </DialogHeader>
           {profile?.resume_url && (
-            <PDFViewer
+            <ResumeViewer
               url={profile.resume_url}
-              fileName={profile.resume_filename || 'resume.pdf'}
+              fileName={profile.resume_filename || 'resume'}
               height={640}
             />
           )}
