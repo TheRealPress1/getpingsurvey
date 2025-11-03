@@ -78,7 +78,7 @@ const PublicProfileDetails = () => {
       await trackProfileView();
       // Use SECURITY DEFINER RPC for anonymous public access
       const { data: profileData, error: profileError } = await supabase.rpc(
-        'get_public_profile_data',
+        'get_public_profile_secure',
         { target_user_id: userId }
       );
 
@@ -96,14 +96,6 @@ const PublicProfileDetails = () => {
 
       const p = profileData[0];
       
-      // Parse experience data
-      let experienceData: any[] = [];
-      if (p.experience && typeof p.experience === 'object' && Array.isArray(p.experience)) {
-        experienceData = p.experience;
-      } else if (p.work_experience && typeof p.work_experience === 'object' && Array.isArray(p.work_experience)) {
-        experienceData = p.work_experience;
-      }
-      
       setProfile({
         user_id: p.user_id,
         display_name: p.display_name,
@@ -113,25 +105,32 @@ const PublicProfileDetails = () => {
         company: p.company,
         job_title: p.job_title,
         website_url: p.website_url,
-        phone_number: (p as any).phone_number || null,
+        phone_number: p.phone_number,
         skills: p.skills || [],
         interests: p.interests || [],
         social_links: p.social_links || {},
-        experience: experienceData,
+        experience: [],
         resume_url: (p as any).resume_url,
         resume_filename: (p as any).resume_filename,
       });
 
-      // Fetch contact info (phone + email) using secure function
-      // Only returns data if user is connected or viewing own profile
-      const { data: contactData } = await supabase.rpc(
-        'get_user_contact_secure',
+      // Fetch full profile data including experience using get_public_profile_data
+      const { data: fullData } = await supabase.rpc(
+        'get_public_profile_data',
         { target_user_id: userId }
       );
 
-      // Only override phone if contact data has a phone and profile doesn't
-      if (contactData && contactData.length > 0 && contactData[0].phone_number && !(p as any).phone_number) {
-        setProfile(prev => prev ? { ...prev, phone_number: contactData[0].phone_number } : null);
+      if (fullData && fullData.length > 0) {
+        const fullProfile = fullData[0];
+        let experienceData: any[] = [];
+        
+        if (fullProfile.experience && typeof fullProfile.experience === 'object' && Array.isArray(fullProfile.experience)) {
+          experienceData = fullProfile.experience;
+        } else if (fullProfile.work_experience && typeof fullProfile.work_experience === 'object' && Array.isArray(fullProfile.work_experience)) {
+          experienceData = fullProfile.work_experience;
+        }
+        
+        setProfile(prev => prev ? { ...prev, experience: experienceData } : null);
       }
     } catch (error) {
       setError("Failed to load profile");
