@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useConnections } from "@/hooks/useConnections";
 import { OptimizedImage } from "@/components/OptimizedImage";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PDFViewer } from "@/components/PDFViewer";
 interface PublicProfile {
   user_id: string;
   display_name: string;
@@ -35,6 +37,7 @@ const PublicProfileDetails = () => {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showResume, setShowResume] = useState(false);
   
   const trackProfileView = async () => {
     if (!userId) return;
@@ -154,14 +157,7 @@ const PublicProfileDetails = () => {
 
   const viewResume = () => {
     if (profile?.resume_url) {
-      // Use anchor tag to avoid popup blockers
-      const link = document.createElement('a');
-      link.href = profile.resume_url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      setShowResume(true);
     }
   };
 
@@ -477,6 +473,27 @@ const PublicProfileDetails = () => {
           </Card>
         )}
       </main>
+
+      <Dialog open={showResume} onOpenChange={setShowResume}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Resume</DialogTitle>
+          </DialogHeader>
+          {profile?.resume_url && (
+            <PDFViewer
+              url={profile.resume_url}
+              fileName={profile.resume_filename || 'resume.pdf'}
+              height={640}
+            />
+          )}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setShowResume(false)}>Close</Button>
+            <Button onClick={downloadResume} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Download className="w-4 h-4 mr-2" /> Download
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
