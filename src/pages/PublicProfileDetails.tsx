@@ -301,7 +301,9 @@ const PublicProfileDetails = () => {
               const linkPhone = typeof (profile.social_links as any)?.phone === 'string'
                 ? (profile.social_links as any).phone
                 : (profile.social_links as any)?.phone?.url;
-              const phoneNumber = profile.phone_number || linkPhone;
+              // SECURITY: Only show phone number if user is authenticated and (connected OR viewing own profile)
+              const canViewPhone = user && (isConnected || user.id === userId);
+              const phoneNumber = canViewPhone ? (profile.phone_number || linkPhone) : null;
               return phoneNumber ? (
                 <div className="flex items-center gap-3 p-3 bg-secondary/20 rounded-lg">
                   <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">

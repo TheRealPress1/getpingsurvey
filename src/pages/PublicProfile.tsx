@@ -311,11 +311,13 @@ const PublicProfile = () => {
 
   const displayName = profile.display_name || 'User';
 
-  // Ensure phone number availability for display and contact card
+  // SECURITY: Only show phone number if user is authenticated and (connected OR viewing own profile)
+  const canViewPhone = user && (isConnected || user.id === userId);
+  
   const linkPhone = typeof (profile.social_links as any)?.phone === 'string'
     ? (profile.social_links as any).phone
     : (profile.social_links as any)?.phone?.url;
-  const phoneNumber = String(profile.phone_number || linkPhone || '').trim();
+  const phoneNumber = canViewPhone ? String(profile.phone_number || linkPhone || '').trim() : '';
 
   return (
     <div className="min-h-screen bg-background relative">

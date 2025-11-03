@@ -82,7 +82,8 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
       }
 
       // Determine phone from profile or social links
-      const rawPhone = profile.phone_number 
+      // Phone number should only be available if user has permission to view it
+      const rawPhone = profile.phone_number
         || (typeof (profile as any).social_links?.phone === 'string' ? (profile as any).social_links.phone : (profile as any).social_links?.phone?.url) 
         || '';
       const phone = String(rawPhone).trim();

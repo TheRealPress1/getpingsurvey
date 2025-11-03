@@ -38,23 +38,63 @@ serve(async (req) => {
       throw new Error('Missing required parameters: userId, resumeUrl, or fileName');
     }
 
+    // SECURITY: Validate resumeUrl to prevent SSRF attacks
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const allowedDomain = new URL(supabaseUrl).hostname;
+    
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(resumeUrl);
+    } catch (e) {
+      throw new Error('Invalid resume URL format');
+    }
+
+    // Only allow URLs from Supabase Storage
+    if (!parsedUrl.hostname.includes(allowedDomain) && !parsedUrl.hostname.includes('supabase.co')) {
+      throw new Error('Resume URL must be from Supabase Storage');
+    }
+
+    // SECURITY: Sanitize fileName to prevent path traversal
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 255);
+    
     console.log('=== Resume Parsing Started ===');
     console.log('User ID:', userId);
     console.log('Resume URL:', resumeUrl);
-    console.log('File name:', fileName);
+    console.log('File name:', sanitizedFileName);
 
-    // Download the resume file
+    // Download the resume file with size limit
     console.log('Downloading resume file...');
-    const resumeResponse = await fetch(resumeUrl);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    const resumeResponse = await fetch(resumeUrl, { 
+      signal: controller.signal,
+      headers: { 'Range': 'bytes=0-10485760' } // Max 10MB
+    });
+    clearTimeout(timeoutId);
     if (!resumeResponse.ok) {
       throw new Error(`Failed to download resume: ${resumeResponse.status} ${resumeResponse.statusText}`);
     }
 
     const resumeBuffer = await resumeResponse.arrayBuffer();
-    console.log('Resume downloaded, size:', resumeBuffer.byteLength, 'bytes');
+    const fileSizeBytes = resumeBuffer.byteLength;
+    console.log('Resume downloaded, size:', fileSizeBytes, 'bytes');
+
+    // SECURITY: Enforce file size limit (10MB)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (fileSizeBytes > MAX_FILE_SIZE) {
+      throw new Error(`File size exceeds maximum allowed size of ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+    }
+
+    // SECURITY: Validate file type by extension
+    const allowedExtensions = ['.pdf', '.docx', '.doc', '.txt'];
+    const fileExt = sanitizedFileName.toLowerCase().slice(sanitizedFileName.lastIndexOf('.'));
+    if (!allowedExtensions.includes(fileExt)) {
+      throw new Error(`File type ${fileExt} not allowed. Allowed types: ${allowedExtensions.join(', ')}`);
+    }
 
     // Extract text from resume
-    const resumeText = await extractTextFromResume(resumeBuffer, fileName);
+    const resumeText = await extractTextFromResume(resumeBuffer, sanitizedFileName);
     
     // Check if extraction was successful
     if (!resumeText || resumeText.length < 100) {
