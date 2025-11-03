@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Upload, FileText, Download, Loader2 } from 'lucide-react';
+import { Upload, FileText, Download, Loader2, Trash2 } from 'lucide-react';
 
 interface ResumeUploadProps {
   profile: any;
@@ -17,6 +17,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({ profile, onResumeUpl
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const processExistingResume = async () => {
     if (!user || !profile?.resume_url) return;
@@ -180,6 +181,58 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({ profile, onResumeUpl
     }
   };
 
+  const handleDeleteResume = async () => {
+    if (!user || !profile?.resume_url) return;
+
+    const confirmed = window.confirm('Are you sure you want to delete your resume? This action cannot be undone.');
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      // Extract file path from URL
+      const urlParts = profile.resume_url.split('/');
+      const filePath = `${user.id}/${urlParts[urlParts.length - 1]}`;
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('resumes')
+        .remove([filePath]);
+
+      if (storageError) {
+        console.error('Storage deletion error:', storageError);
+      }
+
+      // Update profile to remove resume references
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          resume_url: null,
+          resume_filename: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Resume deleted",
+        description: "Your resume has been removed from your profile."
+      });
+
+      onResumeUploaded();
+
+    } catch (error) {
+      console.error('Error deleting resume:', error);
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete resume. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {profile?.resume_url ? (
@@ -219,13 +272,31 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({ profile, onResumeUpl
               Download
             </Button>
             <Label htmlFor="resume-upload-replace">
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" asChild disabled={deleting}>
                 <span>
                   <Upload className="w-4 h-4 mr-2" />
                   Replace
                 </span>
               </Button>
             </Label>
+            <Button
+              onClick={handleDeleteResume}
+              variant="destructive"
+              size="sm"
+              disabled={deleting}
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </>
+              )}
+            </Button>
           </div>
         </div>
       ) : (
