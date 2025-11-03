@@ -39,14 +39,28 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, fileName = 'document.
         setLoading(true);
         setError(null);
         const fetchUrl = buildFetchUrl(url);
-        const resp = await fetch(fetchUrl, { cache: 'no-store', mode: 'cors' });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        console.log('Fetching PDF from:', fetchUrl);
+        const resp = await fetch(fetchUrl, { 
+          cache: 'no-store', 
+          mode: 'cors',
+          credentials: 'omit'
+        });
+        console.log('PDF fetch response:', resp.status, resp.statusText);
+        if (!resp.ok) {
+          const errorText = await resp.text().catch(() => '');
+          console.error('PDF fetch error response:', errorText);
+          throw new Error(`HTTP ${resp.status}: ${errorText || resp.statusText}`);
+        }
         const blob = await resp.blob();
+        console.log('PDF blob received:', blob.size, 'bytes, type:', blob.type);
         objectUrl = URL.createObjectURL(blob);
-        if (!revoked) setBlobUrl(objectUrl);
+        if (!revoked) {
+          console.log('Setting blob URL for rendering');
+          setBlobUrl(objectUrl);
+        }
       } catch (e: any) {
         console.error('PDF fetch failed:', e);
-        setError('Unable to load preview');
+        setError(e.message || 'Unable to load preview');
       } finally {
         setLoading(false);
       }
@@ -80,23 +94,29 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, fileName = 'document.
         container.innerHTML = '';
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          if (cancelled) return;
           const page = await pdf.getPage(pageNum);
           if (cancelled) return;
-          const viewport = page.getViewport({ scale: 1.2 });
+          const viewport = page.getViewport({ scale: 1.5 });
 
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
           if (!context) continue;
           canvas.width = viewport.width;
           canvas.height = viewport.height;
+          canvas.className = 'mx-auto shadow-lg';
 
           const wrapper = document.createElement('div');
-          wrapper.className = 'mb-6 flex justify-center';
+          wrapper.className = 'mb-6 flex justify-center bg-white p-4 rounded-lg';
           wrapper.appendChild(canvas);
           container.appendChild(wrapper);
 
-          await (page as any).render({ canvasContext: context, viewport, canvas }).promise;
+          await (page as any).render({ 
+            canvasContext: context, 
+            viewport 
+          }).promise;
         }
+        console.log(`Successfully rendered ${pdf.numPages} pages`);
       } catch (e) {
         console.error('PDF.js render failed:', e);
         setError('Unable to load preview');
