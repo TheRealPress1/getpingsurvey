@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { PDFViewer } from '@/components/PDFViewer';
+import { SimplePDFViewer } from '@/components/SimplePDFViewer';
 import { StarField } from '@/components/StarField';
 
 const useQuery = () => new URLSearchParams(useLocation().search);
@@ -26,7 +26,7 @@ const ResumePreview: React.FC = () => {
       </header>
       <main className="max-w-5xl mx-auto p-4 relative z-10">
         {url ? (
-          <PDFViewer url={url} fileName={fileName} height={720} />
+          <SimplePDFViewer url={url} fileName={fileName} height={720} />
         ) : (
           <div className="p-6 text-center border border-destructive/30 rounded-xl">
             <p className="text-destructive">Missing resume URL</p>

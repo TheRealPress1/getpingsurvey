@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { Button } from '@/components/ui/button';
 import { FileText, ExternalLink, Download, Loader2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SimplePDFViewer } from './SimplePDFViewer';
 
 // CRITICAL: Configure PDF.js worker from CDN
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
 interface PDFViewerProps {
   url: string;
@@ -117,26 +119,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
 
   if (error) {
     return (
-      <div className={cn('w-full border border-primary/20 rounded-xl overflow-hidden bg-background/30', className)}>
-        <div className="p-4 bg-primary/10 border-b border-primary/20">
-          <p className="font-semibold iridescent-text text-center">Resume Preview</p>
-        </div>
-        <div className="p-8 text-center flex flex-col items-center justify-center bg-muted/30" style={{ height }}>
-          <FileText className="w-12 h-12 text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground mb-4">{error}</p>
-          <p className="text-sm text-muted-foreground mb-4">Try downloading or opening in a new tab instead.</p>
-          <div className="flex gap-2">
-            <Button onClick={handleOpenNewTab} variant="outline">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Open in New Tab
-            </Button>
-            <Button onClick={handleDownload}>
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
-          </div>
-        </div>
-      </div>
+      <SimplePDFViewer url={url} fileName={fileName} height={height} className={className} />
     );
   }
 
