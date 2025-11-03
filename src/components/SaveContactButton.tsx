@@ -113,22 +113,44 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
         'END:VCARD',
       ].filter(Boolean).join('\r\n');
 
-      // Create blob and download
+      // Create blob and use native share API for contact transfer
       const blob = new Blob([vCard], { type: 'text/vcard' });
-      const url = window.URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${contactFileName}.vcf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const file = new File([blob], `${contactFileName}.vcf`, { type: 'text/vcard' });
 
-      toast({
-        title: "Contact Saved",
-        description: `${personName}'s contact has been saved to your device`,
-      });
+      // Try native share API (works on iOS for contact transfer)
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `${personName}'s Contact`,
+          });
+          
+          toast({
+            title: "Contact Shared",
+            description: `${personName}'s contact has been shared`,
+          });
+        } catch (err) {
+          // User cancelled or share failed
+          if ((err as Error).name !== 'AbortError') {
+            throw err;
+          }
+        }
+      } else {
+        // Fallback to download for non-supporting devices
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${contactFileName}.vcf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast({
+          title: "Contact Saved",
+          description: `${personName}'s contact has been saved to your device`,
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
