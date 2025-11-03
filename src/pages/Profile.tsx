@@ -181,7 +181,14 @@ const Profile = () => {
 
   const viewResume = () => {
     if (profile?.resume_url) {
-      window.open(profile.resume_url, '_blank');
+      // Use anchor tag to avoid popup blockers
+      const link = document.createElement('a');
+      link.href = profile.resume_url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
