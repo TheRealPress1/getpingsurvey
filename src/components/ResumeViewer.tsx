@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Download, ExternalLink, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { OptimizedImage } from '@/components/OptimizedImage';
+import { DocxViewer } from '@/components/DocxViewer';
 
 interface ResumeViewerProps {
   url: string;
@@ -68,22 +69,7 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
             />
           </div>
         ) : isDocx ? (
-          // Display DOCX as downloadable document
-          <div className="flex flex-col items-center justify-center text-center max-w-md">
-            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-              <FileText className="w-12 h-12 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">{fileName}</h3>
-            <p className="text-muted-foreground mb-6">
-              Word document preview is not available in browser. Download to view the full resume.
-            </p>
-            <div className="flex gap-3">
-              <Button onClick={handleDownload} size="lg">
-                <Download className="w-4 h-4 mr-2" />
-                Download Resume
-              </Button>
-            </div>
-          </div>
+          <DocxViewer url={url} height={height - 80} />
         ) : (
           // Fallback for other file types
           <div className="flex flex-col items-center justify-center text-center max-w-md">
