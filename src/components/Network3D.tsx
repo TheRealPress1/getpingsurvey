@@ -335,46 +335,10 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
         const clickedSphere = intersects[0].object as THREE.Mesh;
         const person = clickedSphere.userData.person as NetworkPerson;
         
-        // Get the sphere's world position
-        const targetWorldPos = new THREE.Vector3();
-        clickedSphere.getWorldPosition(targetWorldPos);
-        
-        // Calculate camera target position to focus on the dot
-        const startPosition = camera.position.clone();
-        const distance = 3; // Distance from the dot
-        const direction = targetWorldPos.clone().normalize();
-        const targetPosition = targetWorldPos.clone().add(
-          new THREE.Vector3(direction.x * distance, distance * 1.5, direction.z * distance)
-        );
-        
-        // Animate camera zoom to the clicked sphere
-        isZoomingRef.current = true;
-        
-        let animationProgress = 0;
-        const animationDuration = 1000; // 1 second
-        const startTime = Date.now();
-        
-        const animateZoom = () => {
-          const elapsed = Date.now() - startTime;
-          animationProgress = Math.min(elapsed / animationDuration, 1);
-          
-          // Smooth easing function
-          const easeProgress = 1 - Math.pow(1 - animationProgress, 3);
-          
-          // Interpolate camera position
-          camera.position.lerp(targetPosition, easeProgress * 0.1);
-          camera.lookAt(targetWorldPos);
-          
-          if (animationProgress < 1) {
-            requestAnimationFrame(animateZoom);
-          } else {
-            isZoomingRef.current = false;
-            setSelectedPerson(person);
-            setShowMenu(true);
-          }
-        };
-        
-        animateZoom();
+        // Navigate to profile immediately
+        if (person.userId) {
+          navigate(`/profile/${person.userId}`);
+        }
         
         if (onPersonClick) {
           onPersonClick(person);

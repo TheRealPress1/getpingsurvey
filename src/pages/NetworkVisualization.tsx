@@ -76,12 +76,20 @@ export default function NetworkVisualization() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/profile')}
+            onClick={() => {
+              if (viewMode === 'chats') {
+                navigate('/profile');
+              } else {
+                setViewMode('chats');
+              }
+            }}
             className="hover:bg-primary/10"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-4xl font-bold iridescent-text">visualize your circle</h1>
+          <h1 className="text-4xl font-bold iridescent-text">
+            {viewMode === 'chats' ? 'chats' : 'visualize your circle'}
+          </h1>
         </div>
         
         {/* Search bar - only show in chats view */}
