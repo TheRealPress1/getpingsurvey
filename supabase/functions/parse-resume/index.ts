@@ -152,17 +152,17 @@ async function extractTextFromResume(buffer: ArrayBuffer, fileName: string): Pro
   if (fileName.toLowerCase().endsWith('.pdf')) {
     try {
       console.log('Detected PDF file, using pdfjs-dist for parsing');
-      // Import pdfjs-dist - use a stable CDN version
-      const pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/+esm');
+      // Import pdfjs-dist from esm.sh which handles workers properly
+      const pdfjsLib = await import('https://esm.sh/pdfjs-dist@4.0.379');
       
-      // Configure worker
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
-      
-      // Load the PDF with proper configuration
+      // Load the PDF without worker (Deno doesn't support web workers in the same way)
       const loadingTask = pdfjsLib.getDocument({
         data: new Uint8Array(buffer),
         useSystemFonts: true,
         isEvalSupported: false,
+        useWorkerFetch: false,
+        disableAutoFetch: true,
+        disableStream: true,
       });
       
       const pdf = await loadingTask.promise;
