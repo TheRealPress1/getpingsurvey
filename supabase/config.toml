@@ -21,3 +21,6 @@ verify_jwt = true
 [functions.get-resume]
 verify_jwt = false
 
+[functions.share-contacts]
+verify_jwt = false
+

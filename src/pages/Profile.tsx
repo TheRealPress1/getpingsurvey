@@ -16,7 +16,7 @@ import GlobalSearch from "@/components/GlobalSearch";
 import SMSModal from "@/components/SMSModal";
 import ShareModal from "@/components/ShareModal";
 import { getPublicProfileUrl, isProduction } from "@/lib/environment";
-import { useContactSync } from "@/hooks/useContactSync";
+import { ContactSyncButton } from "@/components/ContactSyncButton";
 
 // Normalize URLs to ensure external links open correctly
 const normalizeUrl = (url: string) => {
@@ -44,7 +44,6 @@ const Profile = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
-  const { triggerFileUpload, syncing } = useContactSync();
 
   // Redirect if not authenticated - but only after loading is complete
   useEffect(() => {
@@ -410,18 +409,10 @@ const Profile = () => {
             <UserPlus className="w-4 h-4" />
             Invite a friend for 1 month free
           </Button>
-          <Button 
-            variant="outline" 
-            className="w-full max-w-sm border-primary text-primary hover:bg-primary/10"
-            onClick={triggerFileUpload}
-            disabled={syncing}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            {syncing ? 'Importing...' : 'Import Phone Contacts'}
-          </Button>
-          <p className="text-xs text-muted-foreground text-center max-w-sm">
-            Export contacts as vCard (.vcf) from your phone, then upload here
-          </p>
+          
+          <div className="w-full max-w-sm">
+            <ContactSyncButton />
+          </div>
         </div>
       </main>
       

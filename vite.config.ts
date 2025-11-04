@@ -41,7 +41,22 @@ export default defineConfig(({ mode }) => ({
             type: 'image/png',
             purpose: 'any maskable'
           }
-        ]
+        ],
+        share_target: {
+          action: '/api/share-contacts',
+          method: 'POST',
+          enctype: 'multipart/form-data',
+          params: {
+            title: 'title',
+            text: 'text',
+            files: [
+              {
+                name: 'contacts',
+                accept: ['text/vcard', 'text/x-vcard', 'text/directory', '.vcf']
+              }
+            ]
+          }
+        }
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg}'],
