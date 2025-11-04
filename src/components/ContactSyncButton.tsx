@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useContactSync } from '@/hooks/useContactSync';
 import { ContactPickerModal } from '@/components/ContactPickerModal';
+import { GoogleContactsButton } from '@/components/GoogleContactsButton';
 
 export function ContactSyncButton() {
   const [searchParams] = useSearchParams();
@@ -24,8 +25,16 @@ export function ContactSyncButton() {
   useEffect(() => {
     const error = searchParams?.get('error');
     const synced = searchParams?.get('synced');
+    const imported = searchParams?.get('imported');
 
-    if (synced) {
+    if (imported) {
+      const count = parseInt(imported);
+      toast({
+        title: "Contacts Imported!",
+        description: `Successfully imported ${count} contact${count !== 1 ? 's' : ''} from Google.`,
+      });
+      navigate('/contacts', { replace: true });
+    } else if (synced) {
       const count = parseInt(synced);
       toast({
         title: "Contacts Synced!",
@@ -36,13 +45,16 @@ export function ContactSyncButton() {
       let errorMessage = 'Failed to sync contacts. Please try again.';
       if (error === 'no-file') errorMessage = 'No contacts file received.';
       if (error === 'no-contacts') errorMessage = 'No valid contacts found in file.';
+      if (error === 'oauth_cancelled') errorMessage = 'Google import was cancelled.';
+      if (error === 'contacts_fetch_failed') errorMessage = 'Failed to fetch contacts from Google.';
+      if (error === 'user_not_found') errorMessage = 'Please sign in again to import contacts.';
       
       toast({
-        title: "Sync Failed",
+        title: "Import Failed",
         description: errorMessage,
         variant: "destructive"
       });
-      navigate('/profile', { replace: true });
+      navigate('/contacts', { replace: true });
     }
   }, [searchParams, toast, navigate]);
 
@@ -54,17 +66,33 @@ export function ContactSyncButton() {
   return (
     <>
       <div className="space-y-3">
+        <GoogleContactsButton />
+        
+        <p className="text-xs text-muted-foreground text-center">
+          Works on iPhone, Android & Desktop
+        </p>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or</span>
+          </div>
+        </div>
+
         <Button
           onClick={pickContacts}
           disabled={syncing}
-          className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-600 transition-all shadow-lg flex items-center justify-center gap-2"
+          variant="outline"
+          className="w-full py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
         >
           <Users className="w-5 h-5" />
           {syncing ? 'Syncing...' : 'Import Phone Contacts'}
         </Button>
 
         <p className="text-xs text-muted-foreground text-center">
-          Select contacts directly from your phone
+          Select contacts directly from your device
         </p>
       </div>
 
