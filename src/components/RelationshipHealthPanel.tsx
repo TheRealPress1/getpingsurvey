@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Pin, PinOff, Phone, MessageCircle, Calendar, TrendingUp, Activity, Clock, Heart, Target, Sliders as SlidersIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -41,9 +41,9 @@ export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthP
   const [messageGoal, setMessageGoal] = useState(20); // Messages per month
   const { toast } = useToast();
 
-  // Editable metrics - initialized from mock data but can be adjusted
-  const [editableMetrics, setEditableMetrics] = useState<HealthMetrics>({
-    lastInteractionAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+  // Initialize editable metrics when person changes
+  const [editableMetrics, setEditableMetrics] = useState<HealthMetrics>(() => ({
+    lastInteractionAt: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
     msgsSent30d: Math.floor(Math.random() * 50),
     msgsRecv30d: Math.floor(Math.random() * 50),
     calls30d: Math.floor(Math.random() * 10),
@@ -51,7 +51,24 @@ export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthP
     meetings30d: Math.floor(Math.random() * 8),
     streakDays: Math.floor(Math.random() * 30),
     sentiment30d: 0.5 + Math.random() * 0.5,
-  });
+  }));
+
+
+  // Reset metrics when person changes
+  useEffect(() => {
+    if (person) {
+      setEditableMetrics({
+        lastInteractionAt: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
+        msgsSent30d: Math.floor(Math.random() * 50),
+        msgsRecv30d: Math.floor(Math.random() * 50),
+        calls30d: Math.floor(Math.random() * 10),
+        callMinutes30d: Math.floor(Math.random() * 200),
+        meetings30d: Math.floor(Math.random() * 8),
+        streakDays: Math.floor(Math.random() * 30),
+        sentiment30d: 0.5 + Math.random() * 0.5,
+      });
+    }
+  }, [person?.id]);
 
   if (!person) return null;
 
