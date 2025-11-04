@@ -3,18 +3,46 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-interface Contact {
-  name: string[];
-  tel?: string[];
-  email?: string[];
-}
-
 export const useContactSync = () => {
   const [syncing, setSyncing] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const syncContacts = async () => {
+  const parseVCard = (vCardText: string) => {
+    const contacts: Array<{ name: string; phone?: string; email?: string }> = [];
+    const vCards = vCardText.split('BEGIN:VCARD');
+    
+    for (const vCard of vCards) {
+      if (!vCard.trim()) continue;
+      
+      let name = '';
+      let phone = '';
+      let email = '';
+      
+      const lines = vCard.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        
+        if (trimmed.startsWith('FN:')) {
+          name = trimmed.substring(3);
+        } else if (trimmed.startsWith('TEL')) {
+          const phoneMatch = trimmed.match(/:([\d\s\-\+\(\)]+)/);
+          if (phoneMatch) phone = phoneMatch[1].replace(/\s/g, '');
+        } else if (trimmed.startsWith('EMAIL')) {
+          const emailMatch = trimmed.match(/:(.+@.+)/);
+          if (emailMatch) email = emailMatch[1];
+        }
+      }
+      
+      if (name && (phone || email)) {
+        contacts.push({ name, phone: phone || undefined, email: email || undefined });
+      }
+    }
+    
+    return contacts;
+  };
+
+  const syncFromFile = async (file: File) => {
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -24,56 +52,34 @@ export const useContactSync = () => {
       return;
     }
 
-    // Check if Contact Picker API is supported
-    if (!('contacts' in navigator && 'ContactsManager' in window)) {
-      toast({
-        title: "Not Supported",
-        description: "Contact sync is only available on iOS Safari and some Android browsers.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
       setSyncing(true);
 
-      // Request contacts with name, phone, and email
-      const props = ['name', 'tel', 'email'];
-      const opts = { multiple: true };
-      
-      // @ts-ignore - Contact Picker API types not in TS yet
-      const contacts: Contact[] = await navigator.contacts.select(props, opts);
+      const text = await file.text();
+      const contacts = parseVCard(text);
 
-      if (!contacts || contacts.length === 0) {
+      if (contacts.length === 0) {
         toast({
-          title: "No Contacts Selected",
-          description: "You didn't select any contacts to sync.",
+          title: "No Contacts Found",
+          description: "The file doesn't contain valid contact information.",
+          variant: "destructive"
         });
         return;
       }
 
-      // Process and insert contacts
       let successCount = 0;
       let errorCount = 0;
 
       for (const contact of contacts) {
         try {
-          const name = contact.name?.[0] || 'Unknown';
-          const phone = contact.tel?.[0];
-          const email = contact.email?.[0];
-
-          // Skip if no phone or email
-          if (!phone && !email) continue;
-
-          // Insert into contacts table
           const { error } = await (supabase as any)
             .from('contacts')
             .insert({
               user_id: user.id,
-              name,
-              phone,
-              email,
-              source: 'phone_sync',
+              name: contact.name,
+              phone: contact.phone,
+              email: contact.email,
+              source: 'file_import',
               first_contact_date: new Date().toISOString().split('T')[0],
             });
 
@@ -90,21 +96,16 @@ export const useContactSync = () => {
       }
 
       toast({
-        title: "Contacts Synced!",
+        title: "Contacts Imported!",
         description: `Successfully imported ${successCount} contact${successCount !== 1 ? 's' : ''}${errorCount > 0 ? `. ${errorCount} failed.` : '.'}`,
       });
 
     } catch (error: any) {
-      console.error('Contact sync error:', error);
+      console.error('Contact import error:', error);
       
-      if (error.name === 'AbortError') {
-        // User cancelled
-        return;
-      }
-
       toast({
-        title: "Sync Failed",
-        description: error.message || "Failed to sync contacts. Please try again.",
+        title: "Import Failed",
+        description: error.message || "Failed to import contacts. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -112,5 +113,18 @@ export const useContactSync = () => {
     }
   };
 
-  return { syncContacts, syncing };
+  const triggerFileUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.vcf,.vcard';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        await syncFromFile(file);
+      }
+    };
+    input.click();
+  };
+
+  return { triggerFileUpload, syncing };
 };
