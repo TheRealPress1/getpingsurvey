@@ -188,6 +188,13 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
 
     // Helper function to calculate health score for color
     const getHealthScore = (person: NetworkPerson): number => {
+      // Randomly assign some relationships as needing attention (red)
+      const needsAttention = Math.random() < 0.15; // 15% chance of being red
+      
+      if (needsAttention) {
+        return 15 + Math.random() * 25; // 15-40 (red - needs attention)
+      }
+      
       // Mock health score based on person's circle - start with healthier relationships
       const baseScores: Record<string, number> = {
         'family': 85 + Math.random() * 15,      // 85-100 (very healthy)
