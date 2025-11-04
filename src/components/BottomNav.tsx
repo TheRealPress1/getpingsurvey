@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Users, PlaySquare, Search, MessageCircle, User } from "lucide-react";
+import { Users, PlaySquare, Search, MessageCircle, User, Contact } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,7 +47,7 @@ export const BottomNav = () => {
   const items = [
     { to: "/feed", label: "feed", icon: PlaySquare },
     { to: "/network", label: "tribe", icon: Users },
-    { to: "/network/visualize", label: "network", icon: Search },
+    { to: "/contacts", label: "contacts", icon: Contact },
     { to: "/chat", label: "chat", icon: MessageCircle, hasNotification: unreadMessageCount > 0 },
     { to: "/profile", label: "profile", icon: User },
   ];

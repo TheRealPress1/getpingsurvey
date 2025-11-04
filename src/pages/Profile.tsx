@@ -16,6 +16,7 @@ import GlobalSearch from "@/components/GlobalSearch";
 import SMSModal from "@/components/SMSModal";
 import ShareModal from "@/components/ShareModal";
 import { getPublicProfileUrl, isProduction } from "@/lib/environment";
+import { useContactSync } from "@/hooks/useContactSync";
 
 // Normalize URLs to ensure external links open correctly
 const normalizeUrl = (url: string) => {
@@ -43,6 +44,7 @@ const Profile = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const { syncContacts, syncing } = useContactSync();
 
   // Redirect if not authenticated - but only after loading is complete
   useEffect(() => {
@@ -407,6 +409,15 @@ const Profile = () => {
           <Button variant="outline" className="w-full max-w-sm border-primary/50 text-primary hover:bg-primary/5 flex items-center justify-center gap-2" onClick={() => setShowInviteModal(true)}>
             <UserPlus className="w-4 h-4" />
             Invite a friend for 1 month free
+          </Button>
+          <Button 
+            variant="outline" 
+            className="w-full max-w-sm border-primary text-primary hover:bg-primary/10"
+            onClick={syncContacts}
+            disabled={syncing}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            {syncing ? 'Syncing...' : 'Sync Phone Contacts'}
           </Button>
         </div>
       </main>

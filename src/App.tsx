@@ -24,6 +24,7 @@ import PublicProfileDetails from "./pages/PublicProfileDetails";
 import PublicRouteHandler from "./pages/PublicRouteHandler";
 import Chat from "./pages/Chat";
 import ResumePreview from "./pages/ResumePreview";
+import Contacts from "./pages/Contacts";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/network" element={<Network />} />
             <Route path="/network/visualize" element={<NetworkVisualization />} />
             <Route path="/tribe" element={<Network />} />
+            <Route path="/contacts" element={<Contacts />} />
             <Route path="/chat/:conversationId" element={<Chat />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
