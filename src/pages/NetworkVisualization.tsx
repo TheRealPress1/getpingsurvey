@@ -8,6 +8,7 @@ import { NetworkGlobe } from '@/components/NetworkGlobe';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ChatList } from '@/components/ChatList';
 import { MessageCircle } from 'lucide-react';
+import { RelationshipHealthPanel } from '@/components/RelationshipHealthPanel';
 
 interface NetworkPerson {
   id: string;
@@ -24,6 +25,7 @@ export default function NetworkVisualization() {
   const [people, setPeople] = useState<NetworkPerson[]>([]);
   const [viewMode, setViewMode] = useState<'chats' | 'circles' | 'globe'>('chats');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPerson, setSelectedPerson] = useState<NetworkPerson | null>(null);
 
   useEffect(() => {
     // Initialize with sample data for demonstration
@@ -66,6 +68,7 @@ export default function NetworkVisualization() {
 
   const handlePersonClick = (person: NetworkPerson) => {
     console.log('Person clicked:', person);
+    setSelectedPerson(person);
   };
 
   return (
@@ -139,6 +142,12 @@ export default function NetworkVisualization() {
           </TabsList>
         </div>
       </Tabs>
+
+      {/* Relationship Health Panel */}
+      <RelationshipHealthPanel 
+        person={selectedPerson} 
+        onClose={() => setSelectedPerson(null)} 
+      />
     </div>
   );
 }
