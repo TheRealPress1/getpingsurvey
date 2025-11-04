@@ -16,6 +16,7 @@ interface NetworkPerson {
 interface Network3DProps {
   people: NetworkPerson[];
   onPersonClick?: (person: NetworkPerson) => void;
+  personHealth?: Record<string, number>;
 }
 
 const CIRCLES = [
@@ -27,7 +28,7 @@ const CIRCLES = [
   { id: 'extended', label: 'Extended', radius: 9.5, color: 0x4ade80 },
 ];
 
-export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
+export const Network3D = ({ people, onPersonClick, personHealth }: Network3DProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -232,9 +233,11 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
 
       const position = new THREE.Vector3(x, y, z);
 
-      // Calculate health score and color
-      const healthScore = getHealthScore(person);
-      const healthColor = getHealthColor(healthScore);
+      // Calculate health score and color (use provided map if available)
+      const initialScore = personHealth && personHealth[person.id] !== undefined 
+        ? personHealth[person.id]!
+        : getHealthScore(person);
+      const healthColor = getHealthColor(initialScore);
 
       // Create person sphere with health-based color and pulsing glow
       const sphereGeometry = new THREE.SphereGeometry(0.15, 16, 16);
@@ -245,7 +248,7 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
       });
       const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
       sphere.position.set(x, y, z);
-      sphere.userData = { person, baseEmissive: 0.5, healthScore, healthColor };
+      sphere.userData = { person, baseEmissive: 0.5, healthScore: initialScore, healthColor };
       scene.add(sphere);
       spheres.set(person.id, sphere);
 
@@ -550,6 +553,20 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
       renderer.dispose();
     };
   }, [people]);
+
+  // Update node colors live when health scores change
+  useEffect(() => {
+    if (!personHealth || !spheresRef.current) return;
+    spheresRef.current.forEach((sphere, id) => {
+      const score = personHealth[id as string];
+      if (score === undefined) return;
+      const color = score >= 70 ? 0x22c55e : score >= 40 ? 0xeab308 : 0xef4444;
+      const mat = sphere.material as THREE.MeshPhongMaterial;
+      mat.color.setHex(color);
+      mat.emissive.setHex(color);
+      mat.needsUpdate = true;
+    });
+  }, [personHealth]);
 
   const handleViewProfile = () => {
     if (selectedPerson?.userId) {

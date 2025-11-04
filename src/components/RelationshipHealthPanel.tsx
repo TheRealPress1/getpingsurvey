@@ -30,9 +30,10 @@ interface HealthMetrics {
 interface RelationshipHealthPanelProps {
   person: NetworkPerson | null;
   onClose: () => void;
+  onHealthChange?: (personId: string, score: number) => void;
 }
 
-export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthPanelProps) {
+export function RelationshipHealthPanel({ person, onClose, onHealthChange }: RelationshipHealthPanelProps) {
   const [isPinned, setIsPinned] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
   const [showMetricSliders, setShowMetricSliders] = useState(false);
@@ -125,9 +126,13 @@ export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthP
   const updateMetric = (key: keyof HealthMetrics, value: number | Date) => {
     setEditableMetrics(prev => {
       const updated = { ...prev, [key]: value };
-      // Update cache immediately when slider changes
+      // Update cache and notify parent about health change to recolor nodes
       if (person) {
         setMetricsCache(cache => new Map(cache).set(person.id, updated));
+        if (onHealthChange) {
+          const { healthScore } = calculateHealthScore(person.circle, updated);
+          onHealthChange(person.id, Math.round(healthScore));
+        }
       }
       return updated;
     });

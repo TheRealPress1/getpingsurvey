@@ -26,6 +26,7 @@ export default function NetworkVisualization() {
   const [viewMode, setViewMode] = useState<'chats' | 'circles' | 'globe'>('chats');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPerson, setSelectedPerson] = useState<NetworkPerson | null>(null);
+  const [personHealth, setPersonHealth] = useState<Record<string, number>>({});
 
   useEffect(() => {
     // Initialize with sample data for demonstration
@@ -69,6 +70,10 @@ export default function NetworkVisualization() {
   const handlePersonClick = (person: NetworkPerson) => {
     console.log('Person clicked:', person);
     setSelectedPerson(person);
+  };
+
+  const handleHealthChange = (id: string, score: number) => {
+    setPersonHealth((prev) => ({ ...prev, [id]: score }));
   };
 
   return (
@@ -117,7 +122,7 @@ export default function NetworkVisualization() {
         </TabsContent>
         
         <TabsContent value="circles" className="flex-1 m-0 h-full">
-          <Network3D people={people} onPersonClick={handlePersonClick} />
+          <Network3D people={people} onPersonClick={handlePersonClick} personHealth={personHealth} />
         </TabsContent>
         
         <TabsContent value="globe" className="flex-1 m-0 h-full">
@@ -147,6 +152,7 @@ export default function NetworkVisualization() {
       <RelationshipHealthPanel 
         person={selectedPerson} 
         onClose={() => setSelectedPerson(null)} 
+        onHealthChange={handleHealthChange}
       />
     </div>
   );
