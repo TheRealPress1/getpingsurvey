@@ -35,15 +35,14 @@ interface RelationshipHealthPanelProps {
 export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthPanelProps) {
   const [isPinned, setIsPinned] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
+  const [showMetricSliders, setShowMetricSliders] = useState(false);
   const [contactGoal, setContactGoal] = useState(14); // Days between contacts
   const [callGoal, setCallGoal] = useState(60); // Minutes per month
   const [messageGoal, setMessageGoal] = useState(20); // Messages per month
   const { toast } = useToast();
 
-  if (!person) return null;
-
-  // Mock health metrics - in production, fetch from database
-  const metrics: HealthMetrics = {
+  // Editable metrics - initialized from mock data but can be adjusted
+  const [editableMetrics, setEditableMetrics] = useState<HealthMetrics>({
     lastInteractionAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
     msgsSent30d: Math.floor(Math.random() * 50),
     msgsRecv30d: Math.floor(Math.random() * 50),
@@ -52,9 +51,13 @@ export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthP
     meetings30d: Math.floor(Math.random() * 8),
     streakDays: Math.floor(Math.random() * 30),
     sentiment30d: 0.5 + Math.random() * 0.5,
-  };
+  });
 
-  const { healthScore, subMetrics, nextStep } = calculateHealthScore(person.circle, metrics);
+  if (!person) return null;
+
+
+  // Use editable metrics for calculations
+  const { healthScore, subMetrics, nextStep } = calculateHealthScore(person.circle, editableMetrics);
 
   // Mock trend data for sparkline
   const trendData = Array.from({ length: 12 }, (_, i) => 
@@ -90,6 +93,15 @@ export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthP
       title: "Goals Updated",
       description: "Your relationship goals have been saved.",
     });
+  };
+
+  const updateMetric = (key: keyof HealthMetrics, value: number | Date) => {
+    setEditableMetrics(prev => ({ ...prev, [key]: value }));
+  };
+
+  const getDaysSinceLastInteraction = () => {
+    if (!editableMetrics.lastInteractionAt) return 0;
+    return Math.floor((Date.now() - editableMetrics.lastInteractionAt.getTime()) / (1000 * 60 * 60 * 24));
   };
 
   return (
@@ -277,15 +289,26 @@ export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthP
               <Activity className="h-4 w-4" />
               Key Metrics
             </h4>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowGoals(!showGoals)}
-              className="h-7 text-xs"
-            >
-              <Target className="h-3 w-3 mr-1" />
-              {showGoals ? 'Hide' : 'Goals'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowMetricSliders(!showMetricSliders)}
+                className="h-7 text-xs"
+              >
+                <SlidersIcon className="h-3 w-3 mr-1" />
+                {showMetricSliders ? 'Hide' : 'Adjust'}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowGoals(!showGoals)}
+                className="h-7 text-xs"
+              >
+                <Target className="h-3 w-3 mr-1" />
+                {showGoals ? 'Hide' : 'Goals'}
+              </Button>
+            </div>
           </div>
           
           {Object.entries(subMetrics).map(([key, metric]) => (
@@ -319,6 +342,126 @@ export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthP
             </div>
           ))}
         </Card>
+
+        {/* Metric Adjustment Sliders */}
+        {showMetricSliders && (
+          <Card className="p-4 bg-gradient-to-br from-purple-500/5 to-blue-500/10 backdrop-blur border-purple-500/20 space-y-4 animate-in slide-in-from-top">
+            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <SlidersIcon className="h-4 w-4" />
+              Adjust Metrics
+            </h4>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="text-muted-foreground">Days Since Last Contact</label>
+                  <span className="font-semibold text-foreground">{getDaysSinceLastInteraction()} days</span>
+                </div>
+                <Slider
+                  value={[getDaysSinceLastInteraction()]}
+                  onValueChange={(value) => {
+                    const newDate = new Date(Date.now() - value[0] * 24 * 60 * 60 * 1000);
+                    updateMetric('lastInteractionAt', newDate);
+                  }}
+                  min={0}
+                  max={90}
+                  step={1}
+                  className="py-2"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="text-muted-foreground">Messages Sent (30d)</label>
+                  <span className="font-semibold text-foreground">{editableMetrics.msgsSent30d || 0}</span>
+                </div>
+                <Slider
+                  value={[editableMetrics.msgsSent30d || 0]}
+                  onValueChange={(value) => updateMetric('msgsSent30d', value[0])}
+                  min={0}
+                  max={100}
+                  step={1}
+                  className="py-2"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="text-muted-foreground">Messages Received (30d)</label>
+                  <span className="font-semibold text-foreground">{editableMetrics.msgsRecv30d || 0}</span>
+                </div>
+                <Slider
+                  value={[editableMetrics.msgsRecv30d || 0]}
+                  onValueChange={(value) => updateMetric('msgsRecv30d', value[0])}
+                  min={0}
+                  max={100}
+                  step={1}
+                  className="py-2"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="text-muted-foreground">Calls (30d)</label>
+                  <span className="font-semibold text-foreground">{editableMetrics.calls30d || 0}</span>
+                </div>
+                <Slider
+                  value={[editableMetrics.calls30d || 0]}
+                  onValueChange={(value) => updateMetric('calls30d', value[0])}
+                  min={0}
+                  max={30}
+                  step={1}
+                  className="py-2"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="text-muted-foreground">Call Minutes (30d)</label>
+                  <span className="font-semibold text-foreground">{editableMetrics.callMinutes30d || 0}</span>
+                </div>
+                <Slider
+                  value={[editableMetrics.callMinutes30d || 0]}
+                  onValueChange={(value) => updateMetric('callMinutes30d', value[0])}
+                  min={0}
+                  max={500}
+                  step={15}
+                  className="py-2"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="text-muted-foreground">Meetings (30d)</label>
+                  <span className="font-semibold text-foreground">{editableMetrics.meetings30d || 0}</span>
+                </div>
+                <Slider
+                  value={[editableMetrics.meetings30d || 0]}
+                  onValueChange={(value) => updateMetric('meetings30d', value[0])}
+                  min={0}
+                  max={20}
+                  step={1}
+                  className="py-2"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="text-muted-foreground">Streak Days</label>
+                  <span className="font-semibold text-foreground">{editableMetrics.streakDays || 0}</span>
+                </div>
+                <Slider
+                  value={[editableMetrics.streakDays || 0]}
+                  onValueChange={(value) => updateMetric('streakDays', value[0])}
+                  min={0}
+                  max={365}
+                  step={1}
+                  className="py-2"
+                />
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Next Step Suggestion */}
         <Card className={`p-4 bg-gradient-to-br ${getScoreGradient(healthScore)} border-2 relative overflow-hidden ${
@@ -359,27 +502,27 @@ export function RelationshipHealthPanel({ person, onClose }: RelationshipHealthP
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="space-y-1 p-2 rounded bg-card/30">
               <div className="text-muted-foreground">Messages sent</div>
-              <div className="text-lg font-bold text-foreground">{metrics.msgsSent30d}</div>
+              <div className="text-lg font-bold text-foreground">{editableMetrics.msgsSent30d}</div>
             </div>
             <div className="space-y-1 p-2 rounded bg-card/30">
               <div className="text-muted-foreground">Messages received</div>
-              <div className="text-lg font-bold text-foreground">{metrics.msgsRecv30d}</div>
+              <div className="text-lg font-bold text-foreground">{editableMetrics.msgsRecv30d}</div>
             </div>
             <div className="space-y-1 p-2 rounded bg-card/30">
               <div className="text-muted-foreground">Calls (30d)</div>
-              <div className="text-lg font-bold text-foreground">{metrics.calls30d}</div>
+              <div className="text-lg font-bold text-foreground">{editableMetrics.calls30d}</div>
             </div>
             <div className="space-y-1 p-2 rounded bg-card/30">
               <div className="text-muted-foreground">Call minutes</div>
-              <div className="text-lg font-bold text-foreground">{metrics.callMinutes30d}</div>
+              <div className="text-lg font-bold text-foreground">{editableMetrics.callMinutes30d}</div>
             </div>
             <div className="space-y-1 p-2 rounded bg-card/30">
               <div className="text-muted-foreground">Meetings (30d)</div>
-              <div className="text-lg font-bold text-foreground">{metrics.meetings30d}</div>
+              <div className="text-lg font-bold text-foreground">{editableMetrics.meetings30d}</div>
             </div>
             <div className="space-y-1 p-2 rounded bg-card/30">
               <div className="text-muted-foreground">Streak days</div>
-              <div className="text-lg font-bold text-foreground">{metrics.streakDays}</div>
+              <div className="text-lg font-bold text-foreground">{editableMetrics.streakDays}</div>
             </div>
           </div>
         </Card>

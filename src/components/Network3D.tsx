@@ -186,6 +186,26 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
       backgroundDots.push(dot);
     }
 
+    // Helper function to calculate health score for color
+    const getHealthScore = (person: NetworkPerson): number => {
+      // Mock health score based on person's circle - in production, fetch from database
+      const baseScores: Record<string, number> = {
+        'family': 75 + Math.random() * 20,
+        'friends': 60 + Math.random() * 30,
+        'business': 50 + Math.random() * 40,
+        'acquaintances': 40 + Math.random() * 40,
+        'network': 30 + Math.random() * 40,
+        'extended': 20 + Math.random() * 40,
+      };
+      return baseScores[person.circle] || 50;
+    };
+
+    const getHealthColor = (score: number): number => {
+      if (score >= 70) return 0x22c55e; // vibrant green
+      if (score >= 40) return 0xeab308; // vibrant yellow
+      return 0xef4444; // vibrant red
+    };
+
     // Create people spheres and connections
     const spheres = new Map<string, THREE.Mesh>();
     const lineMaterial = new THREE.LineBasicMaterial({ color: 0x4ade80, transparent: true, opacity: 0.3 });
@@ -205,16 +225,20 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
 
       const position = new THREE.Vector3(x, y, z);
 
-      // Create person sphere with pulsing glow
+      // Calculate health score and color
+      const healthScore = getHealthScore(person);
+      const healthColor = getHealthColor(healthScore);
+
+      // Create person sphere with health-based color and pulsing glow
       const sphereGeometry = new THREE.SphereGeometry(0.15, 16, 16);
       const sphereMaterial = new THREE.MeshPhongMaterial({
-        color: 0x4ade80,
-        emissive: 0x4ade80,
+        color: healthColor,
+        emissive: healthColor,
         emissiveIntensity: 0.5,
       });
       const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
       sphere.position.set(x, y, z);
-      sphere.userData = { person, baseEmissive: 0.5 };
+      sphere.userData = { person, baseEmissive: 0.5, healthScore, healthColor };
       scene.add(sphere);
       spheres.set(person.id, sphere);
 
@@ -224,12 +248,17 @@ export const Network3D = ({ people, onPersonClick }: Network3DProps) => {
       }
       peopleByCircle.get(person.circle)!.push({ person, position });
 
-      // Create connection line to center
+      // Create connection line to center with health-based color
       const points = [];
       points.push(new THREE.Vector3(0, 0, 0));
       points.push(new THREE.Vector3(x, y, z));
       const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-      const line = new THREE.Line(lineGeometry, lineMaterial);
+      const healthLineMaterial = new THREE.LineBasicMaterial({ 
+        color: healthColor, 
+        transparent: true, 
+        opacity: 0.4 
+      });
+      const line = new THREE.Line(lineGeometry, healthLineMaterial);
       scene.add(line);
     });
 
