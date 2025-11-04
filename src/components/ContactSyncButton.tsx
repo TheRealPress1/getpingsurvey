@@ -4,12 +4,22 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useContactSync } from '@/hooks/useContactSync';
+import { ContactPickerModal } from '@/components/ContactPickerModal';
 
 export function ContactSyncButton() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { triggerFileUpload, syncing } = useContactSync();
+  const { 
+    pickContacts, 
+    syncing, 
+    contacts, 
+    showContactPicker, 
+    setShowContactPicker,
+    importSelectedContacts,
+    toggleContact,
+    toggleAll
+  } = useContactSync();
 
   useEffect(() => {
     const error = searchParams?.get('error');
@@ -36,20 +46,37 @@ export function ContactSyncButton() {
     }
   }, [searchParams, toast, navigate]);
 
-  return (
-    <div className="space-y-3">
-      <Button
-        onClick={triggerFileUpload}
-        disabled={syncing}
-        className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-600 transition-all shadow-lg flex items-center justify-center gap-2"
-      >
-        <Users className="w-5 h-5" />
-        {syncing ? 'Syncing...' : 'Import Phone Contacts'}
-      </Button>
+  const handleImport = async () => {
+    const selectedContacts = contacts.filter(c => c.selected);
+    await importSelectedContacts(selectedContacts);
+  };
 
-      <p className="text-xs text-muted-foreground text-center">
-        Export contacts as vCard (.vcf) from your phone and select the file
-      </p>
-    </div>
+  return (
+    <>
+      <div className="space-y-3">
+        <Button
+          onClick={pickContacts}
+          disabled={syncing}
+          className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-600 transition-all shadow-lg flex items-center justify-center gap-2"
+        >
+          <Users className="w-5 h-5" />
+          {syncing ? 'Syncing...' : 'Import Phone Contacts'}
+        </Button>
+
+        <p className="text-xs text-muted-foreground text-center">
+          Select contacts directly from your phone
+        </p>
+      </div>
+
+      <ContactPickerModal
+        open={showContactPicker}
+        onClose={() => setShowContactPicker(false)}
+        contacts={contacts}
+        onToggle={toggleContact}
+        onToggleAll={toggleAll}
+        onImport={handleImport}
+        syncing={syncing}
+      />
+    </>
   );
 }
