@@ -107,17 +107,6 @@ const Landing = () => {
   return <div className="min-h-screen bg-background relative overflow-hidden">
       <StarField />
       
-      {/* 3D Ornament - Top Right */}
-      <div className="fixed top-8 right-8 z-20">
-        <Model3DViewer
-          modelUrl="https://ahksxziueqkacyaqtgeu.supabase.co/storage/v1/object/public/3d-models/Sharp%20v2%203D%20Model%20(1).glb"
-          autoRotate={true}
-          height="300px"
-          width="300px"
-          scale={1.5}
-        />
-      </div>
-      
       {/* Header */}
       <header className="border-b border-border p-4 relative z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
