@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      circle_members: {
+        Row: {
+          added_at: string | null
+          circle_id: string
+          contact_id: string
+          id: string
+          position_x: number | null
+          position_y: number | null
+          position_z: number | null
+          user_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          circle_id: string
+          contact_id: string
+          id?: string
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          user_id: string
+        }
+        Update: {
+          added_at?: string | null
+          circle_id?: string
+          contact_id?: string
+          id?: string
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_members_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "circle_members_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      circles: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       connections: {
         Row: {
           created_at: string
@@ -169,6 +241,56 @@ export type Database = {
         }
         Relationships: []
       }
+      health_scores: {
+        Row: {
+          calculated_at: string | null
+          consistency_score: number | null
+          contact_id: string
+          frequency_score: number | null
+          id: string
+          last_contact_days: number | null
+          recency_score: number | null
+          reciprocity_score: number | null
+          score: number | null
+          total_interactions: number | null
+          user_id: string
+        }
+        Insert: {
+          calculated_at?: string | null
+          consistency_score?: number | null
+          contact_id: string
+          frequency_score?: number | null
+          id?: string
+          last_contact_days?: number | null
+          recency_score?: number | null
+          reciprocity_score?: number | null
+          score?: number | null
+          total_interactions?: number | null
+          user_id: string
+        }
+        Update: {
+          calculated_at?: string | null
+          consistency_score?: number | null
+          contact_id?: string
+          frequency_score?: number | null
+          id?: string
+          last_contact_days?: number | null
+          recency_score?: number | null
+          reciprocity_score?: number | null
+          score?: number | null
+          total_interactions?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_scores_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       health_snapshots: {
         Row: {
           contact_id: string
@@ -206,31 +328,43 @@ export type Database = {
           contact_id: string
           created_at: string | null
           date: string
+          direction: string | null
           duration_minutes: number | null
           id: string
+          metadata: Json | null
           notes: string | null
+          occurred_at: string | null
           quality_rating: number | null
           type: string
+          user_id: string | null
         }
         Insert: {
           contact_id: string
           created_at?: string | null
           date: string
+          direction?: string | null
           duration_minutes?: number | null
           id?: string
+          metadata?: Json | null
           notes?: string | null
+          occurred_at?: string | null
           quality_rating?: number | null
           type: string
+          user_id?: string | null
         }
         Update: {
           contact_id?: string
           created_at?: string | null
           date?: string
+          direction?: string | null
           duration_minutes?: number | null
           id?: string
+          metadata?: Json | null
           notes?: string | null
+          occurred_at?: string | null
           quality_rating?: number | null
           type?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -348,6 +482,7 @@ export type Database = {
           ai_processed: boolean | null
           avatar_url: string | null
           bio: string | null
+          circles_onboarded: boolean | null
           company: string | null
           created_at: string
           display_name: string | null
@@ -377,6 +512,7 @@ export type Database = {
           ai_processed?: boolean | null
           avatar_url?: string | null
           bio?: string | null
+          circles_onboarded?: boolean | null
           company?: string | null
           created_at?: string
           display_name?: string | null
@@ -406,6 +542,7 @@ export type Database = {
           ai_processed?: boolean | null
           avatar_url?: string | null
           bio?: string | null
+          circles_onboarded?: boolean | null
           company?: string | null
           created_at?: string
           display_name?: string | null
@@ -432,6 +569,47 @@ export type Database = {
           work_experience?: Json | null
         }
         Relationships: []
+      }
+      relationship_goals: {
+        Row: {
+          contact_frequency_days: number | null
+          contact_id: string
+          created_at: string | null
+          id: string
+          monthly_call_minutes: number | null
+          monthly_messages: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_frequency_days?: number | null
+          contact_id: string
+          created_at?: string | null
+          id?: string
+          monthly_call_minutes?: number | null
+          monthly_messages?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_frequency_days?: number | null
+          contact_id?: string
+          created_at?: string | null
+          id?: string
+          monthly_call_minutes?: number | null
+          monthly_messages?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationship_goals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       social_media_data: {
         Row: {
