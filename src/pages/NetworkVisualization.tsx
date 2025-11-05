@@ -40,93 +40,63 @@ export default function NetworkVisualization() {
   const loadRealConnections = async () => {
     if (!user) return;
 
-    // Fetch all connections for the user
-    const { data: connections } = await supabase
+    // Fetch both directions of connections (user is either side)
+    const { data: connections, error } = await supabase
       .from('connections')
-      .select('target_user_id')
-      .eq('user_id', user.id);
+      .select('user_id, target_user_id')
+      .or(`user_id.eq.${user.id},target_user_id.eq.${user.id}`);
+
+    if (error) {
+      console.error('Error loading connections', error);
+      setPeople([]);
+      return;
+    }
 
     if (!connections || connections.length === 0) {
       setPeople([]);
       return;
     }
 
-    // Get contact details for each connection
-    const { data: contacts } = await supabase
-      .from('contacts')
-      .select('*')
-      .eq('user_id', user.id);
+    // Derive the other user's id for each connection
+    const otherUserIds = Array.from(
+      new Set(
+        connections.map((c: any) => (c.user_id === user.id ? c.target_user_id : c.user_id))
+      )
+    );
 
-    // Get profiles for connected users
-    const targetUserIds = connections.map(c => c.target_user_id);
-    const { data: profiles } = await supabase
+    if (otherUserIds.length === 0) {
+      setPeople([]);
+      return;
+    }
+
+    // Fetch profiles for connected users
+    const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('user_id, display_name, location')
-      .in('user_id', targetUserIds);
+      .in('user_id', otherUserIds);
 
-    // Get health scores
-    const { data: healthScores } = await supabase
-      .from('health_scores')
-      .select('contact_id, score')
-      .eq('user_id', user.id);
+    if (profilesError) {
+      console.error('Error loading profiles', profilesError);
+      setPeople([]);
+      return;
+    }
 
-    const healthMap: Record<string, number> = {};
-    healthScores?.forEach(h => {
-      if (h.contact_id && h.score !== null) {
-        healthMap[h.contact_id] = h.score;
-      }
-    });
-    setPersonHealth(healthMap);
+    const count = profiles?.length || 0;
+    const angleIncrement = 360 / (count || 1);
 
-    // Combine contacts and profiles
-    const networkPeople: NetworkPerson[] = [];
-    let angleIncrement = 360 / (connections.length || 1);
-    let currentAngle = 0;
-
-    // Add contacts first
-    contacts?.forEach((contact, index) => {
-      // Assign circle based on tags or default to acquaintances
-      let circle: 'family' | 'friends' | 'business' | 'acquaintances' = 'acquaintances';
-      if (contact.tags?.includes('family')) circle = 'family';
-      else if (contact.tags?.includes('friends') || contact.tags?.includes('friend')) circle = 'friends';
-      else if (contact.tags?.includes('work') || contact.tags?.includes('business')) circle = 'business';
-
-      // Generate random but consistent coordinates
-      const lat = (Math.sin(currentAngle * Math.PI / 180) * 60) + (Math.random() * 20 - 10);
-      const lng = (Math.cos(currentAngle * Math.PI / 180) * 180) + (Math.random() * 20 - 10);
-
-      networkPeople.push({
-        id: contact.id,
-        name: contact.name,
-        circle,
-        angle: currentAngle,
+    const networkPeople: NetworkPerson[] = (profiles || []).map((p, i) => {
+      const angle = i * angleIncrement;
+      const lat = (Math.sin(angle * Math.PI / 180) * 50) + (Math.random() * 10 - 5);
+      const lng = (Math.cos(angle * Math.PI / 180) * 120) + (Math.random() * 10 - 5);
+      return {
+        id: p.user_id,
+        name: p.display_name || 'Connection',
+        circle: 'friends',
+        angle,
         lat: Math.max(-85, Math.min(85, lat)),
         lng,
-        userId: undefined
-      });
-
-      currentAngle += angleIncrement;
-    });
-
-    // Add connected profiles that aren't already in contacts
-    const contactUserIds = new Set(contacts?.map(c => c.id) || []);
-    profiles?.forEach((profile) => {
-      if (!contactUserIds.has(profile.user_id)) {
-        const lat = (Math.sin(currentAngle * Math.PI / 180) * 60) + (Math.random() * 20 - 10);
-        const lng = (Math.cos(currentAngle * Math.PI / 180) * 180) + (Math.random() * 20 - 10);
-
-        networkPeople.push({
-          id: profile.user_id,
-          name: profile.display_name || 'User',
-          circle: 'friends',
-          angle: currentAngle,
-          lat: Math.max(-85, Math.min(85, lat)),
-          lng,
-          userId: profile.user_id
-        });
-
-        currentAngle += angleIncrement;
-      }
+        userId: p.user_id,
+      };
     });
 
     setPeople(networkPeople);
