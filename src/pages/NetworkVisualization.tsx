@@ -9,6 +9,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ChatList } from '@/components/ChatList';
 import { MessageCircle } from 'lucide-react';
 import { RelationshipHealthPanel } from '@/components/RelationshipHealthPanel';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface NetworkPerson {
   id: string;
@@ -22,6 +24,7 @@ interface NetworkPerson {
 
 export default function NetworkVisualization() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [people, setPeople] = useState<NetworkPerson[]>([]);
   const [viewMode, setViewMode] = useState<'chats' | 'circles' | 'globe'>('chats');
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,42 +32,104 @@ export default function NetworkVisualization() {
   const [personHealth, setPersonHealth] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    // Initialize with sample data for demonstration
-    initializeSampleNetwork();
-  }, []);
+    if (user) {
+      loadRealConnections();
+    }
+  }, [user]);
 
-  const initializeSampleNetwork = () => {
-    // Sample network for visualization - dots evenly distributed globally
-    const samplePeople: NetworkPerson[] = [
-      // Northern Hemisphere - spread across different longitudes
-      { id: '1', name: 'Mom', circle: 'family', angle: 0, lat: 40.7128, lng: -74.0060 }, // New York
-      { id: '2', name: 'Dad', circle: 'family', angle: 90, lat: 51.5074, lng: -0.1278 }, // London
-      { id: '3', name: 'Sister', circle: 'family', angle: 180, lat: 48.8566, lng: 2.3522 }, // Paris
-      { id: '4', name: 'Brother', circle: 'family', angle: 270, lat: 35.6762, lng: 139.6503 }, // Tokyo
-      
-      // Mid-latitude spread
-      { id: '5', name: 'Best Friend', circle: 'friends', angle: 30, lat: 37.7749, lng: -122.4194 }, // San Francisco
-      { id: '6', name: 'College Friend', circle: 'friends', angle: 90, lat: 55.7558, lng: 37.6173 }, // Moscow
-      { id: '7', name: 'Gym Buddy', circle: 'friends', angle: 150, lat: 52.5200, lng: 13.4050 }, // Berlin
-      { id: '8', name: 'Roommate', circle: 'friends', angle: 210, lat: 25.2048, lng: 55.2708 }, // Dubai
-      { id: '9', name: 'Childhood Friend', circle: 'friends', angle: 270, lat: 1.3521, lng: 103.8198 }, // Singapore
-      { id: '10', name: 'Travel Buddy', circle: 'friends', angle: 330, lat: 19.4326, lng: -99.1332 }, // Mexico City
-      
-      // Southern Hemisphere - balanced distribution
-      { id: '11', name: 'Co-founder', circle: 'business', angle: 45, lat: -23.5505, lng: -46.6333 }, // São Paulo
-      { id: '12', name: 'Investor', circle: 'business', angle: 135, lat: -33.8688, lng: 151.2093 }, // Sydney
-      { id: '13', name: 'Mentor', circle: 'business', angle: 225, lat: -34.6037, lng: -58.3816 }, // Buenos Aires
-      { id: '14', name: 'Business Partner', circle: 'business', angle: 315, lat: -26.2041, lng: 28.0473 }, // Johannesburg
-      
-      // Arctic/tropical mix for global coverage
-      { id: '15', name: 'Client', circle: 'business', angle: 90, lat: 59.3293, lng: 18.0686 }, // Stockholm
-      { id: '16', name: 'Neighbor', circle: 'acquaintances', angle: 60, lat: -41.2865, lng: 174.7762 }, // Wellington
-      { id: '17', name: 'Old Classmate', circle: 'acquaintances', angle: 120, lat: 13.7563, lng: 100.5018 }, // Bangkok
-      { id: '18', name: 'Coffee Shop Regular', circle: 'acquaintances', angle: 180, lat: 30.0444, lng: 31.2357 }, // Cairo
-      { id: '19', name: 'Book Club Member', circle: 'acquaintances', angle: 240, lat: 39.9042, lng: 116.4074 }, // Beijing
-      { id: '20', name: 'Dog Park Friend', circle: 'acquaintances', angle: 300, lat: 37.5665, lng: 126.9780 }, // Seoul
-    ];
-    setPeople(samplePeople);
+  const loadRealConnections = async () => {
+    if (!user) return;
+
+    // Fetch all connections for the user
+    const { data: connections } = await supabase
+      .from('connections')
+      .select('target_user_id')
+      .eq('user_id', user.id);
+
+    if (!connections || connections.length === 0) {
+      setPeople([]);
+      return;
+    }
+
+    // Get contact details for each connection
+    const { data: contacts } = await supabase
+      .from('contacts')
+      .select('*')
+      .eq('user_id', user.id);
+
+    // Get profiles for connected users
+    const targetUserIds = connections.map(c => c.target_user_id);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, display_name, location')
+      .in('user_id', targetUserIds);
+
+    // Get health scores
+    const { data: healthScores } = await supabase
+      .from('health_scores')
+      .select('contact_id, score')
+      .eq('user_id', user.id);
+
+    const healthMap: Record<string, number> = {};
+    healthScores?.forEach(h => {
+      if (h.contact_id && h.score !== null) {
+        healthMap[h.contact_id] = h.score;
+      }
+    });
+    setPersonHealth(healthMap);
+
+    // Combine contacts and profiles
+    const networkPeople: NetworkPerson[] = [];
+    let angleIncrement = 360 / (connections.length || 1);
+    let currentAngle = 0;
+
+    // Add contacts first
+    contacts?.forEach((contact, index) => {
+      // Assign circle based on tags or default to acquaintances
+      let circle: 'family' | 'friends' | 'business' | 'acquaintances' = 'acquaintances';
+      if (contact.tags?.includes('family')) circle = 'family';
+      else if (contact.tags?.includes('friends') || contact.tags?.includes('friend')) circle = 'friends';
+      else if (contact.tags?.includes('work') || contact.tags?.includes('business')) circle = 'business';
+
+      // Generate random but consistent coordinates
+      const lat = (Math.sin(currentAngle * Math.PI / 180) * 60) + (Math.random() * 20 - 10);
+      const lng = (Math.cos(currentAngle * Math.PI / 180) * 180) + (Math.random() * 20 - 10);
+
+      networkPeople.push({
+        id: contact.id,
+        name: contact.name,
+        circle,
+        angle: currentAngle,
+        lat: Math.max(-85, Math.min(85, lat)),
+        lng,
+        userId: undefined
+      });
+
+      currentAngle += angleIncrement;
+    });
+
+    // Add connected profiles that aren't already in contacts
+    const contactUserIds = new Set(contacts?.map(c => c.id) || []);
+    profiles?.forEach((profile) => {
+      if (!contactUserIds.has(profile.user_id)) {
+        const lat = (Math.sin(currentAngle * Math.PI / 180) * 60) + (Math.random() * 20 - 10);
+        const lng = (Math.cos(currentAngle * Math.PI / 180) * 180) + (Math.random() * 20 - 10);
+
+        networkPeople.push({
+          id: profile.user_id,
+          name: profile.display_name || 'User',
+          circle: 'friends',
+          angle: currentAngle,
+          lat: Math.max(-85, Math.min(85, lat)),
+          lng,
+          userId: profile.user_id
+        });
+
+        currentAngle += angleIncrement;
+      }
+    });
+
+    setPeople(networkPeople);
   };
 
   const handlePersonClick = (person: NetworkPerson) => {
