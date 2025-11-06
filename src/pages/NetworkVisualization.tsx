@@ -160,92 +160,92 @@ export default function NetworkVisualization() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             
-            {/* Circle selector dropdown */}
-            {viewMode === 'circles' && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full h-10 w-10 border-2"
-                  >
-                    <Circle className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-card z-[100]" align="start">
-                  <DropdownMenuItem onClick={() => {
-                    setCircleType('my');
-                    setSelectedIndustry(null);
-                    setSelectedEvent(null);
-                    loadRealConnections();
-                  }}>
-                    My circle
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        Industry circles
-                        <ChevronDown className="h-4 w-4 ml-auto" />
-                      </DropdownMenuItem>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-card z-[100]" side="right">
-                      <DropdownMenuItem onClick={() => {
-                        setCircleType('industry');
-                        setSelectedIndustry('AI');
-                      }}>
-                        AI circle
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        setCircleType('industry');
-                        setSelectedIndustry('Tech');
-                      }}>
-                        Tech circle
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        setCircleType('industry');
-                        setSelectedIndustry('Sustainability');
-                      }}>
-                        Sustainability circle
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        Event circles
-                        <ChevronDown className="h-4 w-4 ml-auto" />
-                      </DropdownMenuItem>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-card z-[100]" side="right">
-                      {userEvents.length === 0 ? (
-                        <DropdownMenuItem disabled>
-                          No events attended yet
-                        </DropdownMenuItem>
-                      ) : (
-                        userEvents.map((event: any) => (
-                          <DropdownMenuItem
-                            key={event.id}
-                            onClick={() => {
-                              setCircleType('event');
-                              setSelectedEvent(event.id);
-                            }}
-                          >
-                            {event.name}
-                          </DropdownMenuItem>
-                        ))
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            
             <h1 className="text-4xl font-bold iridescent-text">
               {viewMode === 'chats' ? 'chats' : 'visualize your circle'}
             </h1>
           </div>
+          
+          {/* Circle selector dropdown */}
+          {viewMode === 'circles' && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full h-10 w-10 border-2"
+                >
+                  <Circle className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-card z-[100]" align="end">
+                <DropdownMenuItem onClick={() => {
+                  setCircleType('my');
+                  setSelectedIndustry(null);
+                  setSelectedEvent(null);
+                  loadRealConnections();
+                }}>
+                  My circle
+                </DropdownMenuItem>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      Industry circles
+                      <ChevronDown className="h-4 w-4 ml-auto" />
+                    </DropdownMenuItem>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-card z-[100]" side="right">
+                    <DropdownMenuItem onClick={() => {
+                      setCircleType('industry');
+                      setSelectedIndustry('AI');
+                    }}>
+                      AI circle
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      setCircleType('industry');
+                      setSelectedIndustry('Tech');
+                    }}>
+                      Tech circle
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      setCircleType('industry');
+                      setSelectedIndustry('Sustainability');
+                    }}>
+                      Sustainability circle
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      Event circles
+                      <ChevronDown className="h-4 w-4 ml-auto" />
+                    </DropdownMenuItem>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-card z-[100]" side="right">
+                    {userEvents.length === 0 ? (
+                      <DropdownMenuItem disabled>
+                        No events attended yet
+                      </DropdownMenuItem>
+                    ) : (
+                      userEvents.map((event: any) => (
+                        <DropdownMenuItem
+                          key={event.id}
+                          onClick={() => {
+                            setCircleType('event');
+                            setSelectedEvent(event.id);
+                          }}
+                        >
+                          {event.name}
+                        </DropdownMenuItem>
+                      ))
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
         
         {/* Search bar - only show in chats view */}
