@@ -12,6 +12,7 @@ interface NetworkPerson {
   circle: 'family' | 'friends' | 'business' | 'acquaintances' | 'network' | 'extended';
   angle: number;
   userId?: string;
+  isConnected?: boolean;
 }
 
 interface Network3DProps {
@@ -317,17 +318,20 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       peopleByCircle.get(person.circle)!.push({ person, position });
 
       // Create connection line to center with health-based color
-      const points = [];
-      points.push(new THREE.Vector3(0, 0, 0));
-      points.push(new THREE.Vector3(x, y, z));
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-      const healthLineMaterial = new THREE.LineBasicMaterial({ 
-        color: healthColor, 
-        transparent: true, 
-        opacity: 0.4 
-      });
-      const line = new THREE.Line(lineGeometry, healthLineMaterial);
-      scene.add(line);
+      // Only draw line if person is connected (or if it's "my circle" mode)
+      if (person.isConnected !== false) {
+        const points = [];
+        points.push(new THREE.Vector3(0, 0, 0));
+        points.push(new THREE.Vector3(x, y, z));
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        const healthLineMaterial = new THREE.LineBasicMaterial({ 
+          color: healthColor, 
+          transparent: true, 
+          opacity: 0.4 
+        });
+        const line = new THREE.Line(lineGeometry, healthLineMaterial);
+        scene.add(line);
+      }
     });
 
     // Create interconnections between people on different circles

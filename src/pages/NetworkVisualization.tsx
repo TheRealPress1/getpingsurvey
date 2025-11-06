@@ -21,11 +21,12 @@ import {
 interface NetworkPerson {
   id: string;
   name: string;
-  circle: 'family' | 'friends' | 'business' | 'acquaintances';
+  circle: 'family' | 'friends' | 'business' | 'acquaintances' | 'network' | 'extended';
   angle: number;
   lat: number;
   lng: number;
   userId?: string;
+  isConnected?: boolean;
 }
 
 export default function NetworkVisualization() {
@@ -48,6 +49,39 @@ export default function NetworkVisualization() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user && circleType === 'event' && userEvents.length > 0) {
+      loadEventAttendees();
+    }
+  }, [user, circleType, userEvents]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Subscribe to real-time event attendance changes
+    const channel = supabase
+      .channel('event-attendance-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_attendances'
+        },
+        (payload) => {
+          console.log('Event attendance changed:', payload);
+          if (circleType === 'event') {
+            loadEventAttendees();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, circleType]);
+
   const loadUserEvents = async () => {
     if (!user) return;
 
@@ -63,6 +97,96 @@ export default function NetworkVisualization() {
     }
 
     setUserEvents(attendances?.map(a => a.events).filter(Boolean) || []);
+  };
+
+  const loadEventAttendees = async () => {
+    if (!user || userEvents.length === 0) return;
+
+    // Get all attendees for events the user is attending
+    const eventIds = userEvents.map(e => e.id);
+    
+    const { data: attendances, error } = await supabase
+      .from('event_attendances')
+      .select('user_id, event_id')
+      .in('event_id', eventIds)
+      .eq('status', 'going')
+      .neq('user_id', user.id); // Exclude current user
+
+    if (error) {
+      console.error('Error loading event attendees', error);
+      return;
+    }
+
+    if (!attendances || attendances.length === 0) {
+      setPeople([]);
+      return;
+    }
+
+    // Get unique user IDs
+    const attendeeUserIds = Array.from(new Set(attendances.map(a => a.user_id)));
+
+    // Fetch profiles for attendees
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('user_id, display_name')
+      .in('user_id', attendeeUserIds);
+
+    if (profilesError) {
+      console.error('Error loading attendee profiles', profilesError);
+      return;
+    }
+
+    // Check which attendees the user is connected to
+    const { data: connections, error: connectionsError } = await supabase
+      .from('connections')
+      .select('user_id, target_user_id')
+      .or(`user_id.eq.${user.id},target_user_id.eq.${user.id}`);
+
+    if (connectionsError) {
+      console.error('Error loading connections', connectionsError);
+    }
+
+    // Create a set of connected user IDs
+    const connectedUserIds = new Set(
+      connections?.map((c: any) => 
+        c.user_id === user.id ? c.target_user_id : c.user_id
+      ) || []
+    );
+
+    // Group attendees by event
+    const attendeesByEvent = new Map<string, any[]>();
+    attendances.forEach((attendance) => {
+      if (!attendeesByEvent.has(attendance.event_id)) {
+        attendeesByEvent.set(attendance.event_id, []);
+      }
+      attendeesByEvent.get(attendance.event_id)!.push(attendance.user_id);
+    });
+
+    // Create network people for each event ring
+    const networkPeople: NetworkPerson[] = [];
+    
+    userEvents.forEach((event, eventIndex) => {
+      const attendeeIds = attendeesByEvent.get(event.id) || [];
+      const attendeeProfiles = profiles?.filter(p => attendeeIds.includes(p.user_id)) || [];
+      
+      attendeeProfiles.forEach((profile, i) => {
+        const totalInRing = attendeeProfiles.length;
+        const angle = (360 / Math.max(totalInRing, 1)) * i;
+        
+        networkPeople.push({
+          id: profile.user_id,
+          name: profile.display_name || 'Attendee',
+          circle: `event-${eventIndex}` as any,
+          angle,
+          lat: 0,
+          lng: 0,
+          userId: profile.user_id,
+          isConnected: connectedUserIds.has(profile.user_id)
+        });
+      });
+    });
+
+    setPeople(networkPeople);
   };
 
   const loadRealConnections = async () => {
