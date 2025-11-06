@@ -141,29 +141,6 @@ export default function NetworkVisualization() {
               {viewMode === 'chats' ? 'chats' : 'visualize your circle'}
             </h1>
           </div>
-          
-          {/* My circle dropdown in header */}
-          {viewMode !== 'chats' && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="default" className="gap-2">
-                  My circle
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-card z-[100]" align="end">
-                <DropdownMenuItem onClick={() => navigate('/connections')}>
-                  Event circles
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  Industry circles
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  Location circles
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
         </div>
         
         {/* Search bar - only show in chats view */}
