@@ -198,10 +198,30 @@ export default function NetworkVisualization() {
               <MessageCircle className="h-4 w-4" />
               Chats
             </TabsTrigger>
-            <TabsTrigger value="circles" className="gap-2">
-              <Circle className="h-4 w-4" />
-              My circle
-            </TabsTrigger>
+            <div className="relative flex items-center">
+              <TabsTrigger value="circles" className="gap-2 pr-8">
+                <Circle className="h-4 w-4" />
+                My circle
+              </TabsTrigger>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="absolute right-2 p-1 hover:bg-accent/50 rounded">
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-card z-[100]" align="end">
+                  <DropdownMenuItem onClick={() => navigate('/connections')}>
+                    Event circles
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    Industry circles
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    Location circles
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </TabsList>
         </div>
       </Tabs>
