@@ -187,62 +187,38 @@ export default function NetworkVisualization() {
                   My circle
                 </DropdownMenuItem>
                 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      Industry circles
-                      <ChevronDown className="h-4 w-4 ml-auto" />
-                    </DropdownMenuItem>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-card z-[100]" side="right">
-                    <DropdownMenuItem onClick={() => {
-                      setCircleType('industry');
-                      setSelectedIndustry('AI');
-                    }}>
-                      AI circle
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                      setCircleType('industry');
-                      setSelectedIndustry('Tech');
-                    }}>
-                      Tech circle
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                      setCircleType('industry');
-                      setSelectedIndustry('Sustainability');
-                    }}>
-                      Sustainability circle
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <DropdownMenuItem onClick={() => {
+                  setCircleType('industry');
+                  setSelectedIndustry('AI');
+                }}>
+                  AI circle
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem onClick={() => {
+                  setCircleType('industry');
+                  setSelectedIndustry('Tech');
+                }}>
+                  Tech circle
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem onClick={() => {
+                  setCircleType('industry');
+                  setSelectedIndustry('Sustainability');
+                }}>
+                  Sustainability circle
+                </DropdownMenuItem>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      Event circles
-                      <ChevronDown className="h-4 w-4 ml-auto" />
-                    </DropdownMenuItem>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-card z-[100]" side="right">
-                    {userEvents.length === 0 ? (
-                      <DropdownMenuItem disabled>
-                        No events attended yet
-                      </DropdownMenuItem>
-                    ) : (
-                      userEvents.map((event: any) => (
-                        <DropdownMenuItem
-                          key={event.id}
-                          onClick={() => {
-                            setCircleType('event');
-                            setSelectedEvent(event.id);
-                          }}
-                        >
-                          {event.name}
-                        </DropdownMenuItem>
-                      ))
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {userEvents.length > 0 && userEvents.map((event: any) => (
+                  <DropdownMenuItem
+                    key={event.id}
+                    onClick={() => {
+                      setCircleType('event');
+                      setSelectedEvent(event.id);
+                    }}
+                  >
+                    {event.name}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -274,7 +250,7 @@ export default function NetworkVisualization() {
         </TabsContent>
 
         {/* View toggle at bottom */}
-        <div className="fixed bottom-20 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 pb-2">
+        <div className="fixed bottom-20 sm:bottom-8 left-1/2 -translate-x-1/2 sm:-translate-x-[60%] z-50 pb-2">
           <TabsList className="bg-card/95 backdrop-blur border border-border shadow-lg">
             <TabsTrigger value="chats" className="gap-2">
               <MessageCircle className="h-4 w-4" />
