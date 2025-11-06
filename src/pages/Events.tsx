@@ -9,7 +9,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import { RecommendedEvents } from '@/components/RecommendedEvents';
-import { EventModal } from '@/components/EventModal';
 
 interface Event {
   id: string;
@@ -36,7 +35,6 @@ export default function Events() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -108,7 +106,6 @@ export default function Events() {
         description: `Marked as ${status}!`,
       });
 
-      setSelectedEvent(null);
       // Refresh events to show updated attendance
       fetchEvents();
     } catch (error: any) {
@@ -206,69 +203,72 @@ export default function Events() {
               const attendeeCount = getAttendeeCount(event);
 
               return (
-                <Card key={event.id} className="overflow-hidden hover:border-primary/50 transition-all cursor-pointer">
-                  <div onClick={() => setSelectedEvent(event)}>
-                    {event.image_url && (
-                      <div className="relative h-48 w-full overflow-hidden">
-                        <OptimizedImage
-                          src={event.image_url}
-                          alt={event.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    
-                    <div className="p-4 space-y-3">
-                      <div>
-                        <h3 className="font-semibold text-lg line-clamp-2 mb-1">{event.name}</h3>
-                        {event.category && (
-                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
-                            {event.category}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="space-y-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-primary" />
-                          <span>{formatDate(event.start_date)}</span>
-                        </div>
-                        
-                        {event.venue_name && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-primary" />
-                            <span className="line-clamp-1">{event.venue_name}</span>
-                          </div>
-                        )}
-
-                        {attendeeCount > 0 && (
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-primary" />
-                            <span>{attendeeCount} going from your network</span>
-                          </div>
-                        )}
-                      </div>
+                <Card key={event.id} className="overflow-hidden hover:border-primary/50 transition-all">
+                  {event.image_url && (
+                    <div className="relative h-48 w-full overflow-hidden">
+                      <OptimizedImage
+                        src={event.image_url}
+                        alt={event.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  </div>
+                  )}
+                  
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-lg line-clamp-2 mb-1">{event.name}</h3>
+                      {event.category && (
+                        <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                          {event.category}
+                        </span>
+                      )}
+                    </div>
 
-                  <div className="px-4 pb-4 flex gap-2">
-                    {userStatus === 'going' ? (
-                      <Button variant="default" size="sm" className="flex-1" disabled>
-                        Going ✓
-                      </Button>
-                    ) : (
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-primary" />
+                        <span>{formatDate(event.start_date)}</span>
+                      </div>
+                      
+                      {event.venue_name && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          <span className="line-clamp-1">{event.venue_name}</span>
+                        </div>
+                      )}
+
+                      {attendeeCount > 0 && (
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-primary" />
+                          <span>{attendeeCount} going from your network</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      {userStatus === 'going' ? (
+                        <Button variant="default" size="sm" className="flex-1" disabled>
+                          Going ✓
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleAttendance(event.id, 'going')}
+                        >
+                          I'm Going
+                        </Button>
+                      )}
+                      
                       <Button
-                        variant="default"
+                        variant="outline"
                         size="sm"
-                        className="flex-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedEvent(event);
-                        }}
+                        onClick={() => window.open(event.url, '_blank')}
                       >
-                        View Details
+                        <ExternalLink className="w-4 h-4" />
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </Card>
               );
@@ -277,15 +277,6 @@ export default function Events() {
           </div>
         )}
       </main>
-
-      {/* Event Modal */}
-      <EventModal
-        event={selectedEvent}
-        isOpen={!!selectedEvent}
-        onClose={() => setSelectedEvent(null)}
-        onGoing={() => selectedEvent && handleAttendance(selectedEvent.id, 'going')}
-        attendeeCount={selectedEvent ? getAttendeeCount(selectedEvent) : 0}
-      />
     </div>
   );
 }
