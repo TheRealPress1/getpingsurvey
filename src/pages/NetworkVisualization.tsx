@@ -34,6 +34,9 @@ export default function NetworkVisualization() {
   const [people, setPeople] = useState<NetworkPerson[]>([]);
   const [viewMode, setViewMode] = useState<'chats' | 'circles'>('chats');
   const [circleType, setCircleType] = useState<'my' | 'event' | 'industry'>('my');
+  const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
+  const [userEvents, setUserEvents] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPerson, setSelectedPerson] = useState<NetworkPerson | null>(null);
   const [personHealth, setPersonHealth] = useState<Record<string, number>>({});
@@ -41,8 +44,26 @@ export default function NetworkVisualization() {
   useEffect(() => {
     if (user) {
       loadRealConnections();
+      loadUserEvents();
     }
   }, [user]);
+
+  const loadUserEvents = async () => {
+    if (!user) return;
+
+    const { data: attendances, error } = await supabase
+      .from('event_attendances')
+      .select('event_id, events(id, name)')
+      .eq('user_id', user.id)
+      .eq('status', 'going');
+
+    if (error) {
+      console.error('Error loading user events', error);
+      return;
+    }
+
+    setUserEvents(attendances?.map(a => a.events).filter(Boolean) || []);
+  };
 
   const loadRealConnections = async () => {
     if (!user) return;
@@ -138,6 +159,89 @@ export default function NetworkVisualization() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            
+            {/* Circle selector dropdown */}
+            {viewMode === 'circles' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full h-10 w-10 border-2"
+                  >
+                    <Circle className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-card z-[100]" align="start">
+                  <DropdownMenuItem onClick={() => {
+                    setCircleType('my');
+                    setSelectedIndustry(null);
+                    setSelectedEvent(null);
+                    loadRealConnections();
+                  }}>
+                    My circle
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        Industry circles
+                        <ChevronDown className="h-4 w-4 ml-auto" />
+                      </DropdownMenuItem>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-card z-[100]" side="right">
+                      <DropdownMenuItem onClick={() => {
+                        setCircleType('industry');
+                        setSelectedIndustry('AI');
+                      }}>
+                        AI circle
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        setCircleType('industry');
+                        setSelectedIndustry('Tech');
+                      }}>
+                        Tech circle
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        setCircleType('industry');
+                        setSelectedIndustry('Sustainability');
+                      }}>
+                        Sustainability circle
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        Event circles
+                        <ChevronDown className="h-4 w-4 ml-auto" />
+                      </DropdownMenuItem>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-card z-[100]" side="right">
+                      {userEvents.length === 0 ? (
+                        <DropdownMenuItem disabled>
+                          No events attended yet
+                        </DropdownMenuItem>
+                      ) : (
+                        userEvents.map((event: any) => (
+                          <DropdownMenuItem
+                            key={event.id}
+                            onClick={() => {
+                              setCircleType('event');
+                              setSelectedEvent(event.id);
+                            }}
+                          >
+                            {event.name}
+                          </DropdownMenuItem>
+                        ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            
             <h1 className="text-4xl font-bold iridescent-text">
               {viewMode === 'chats' ? 'chats' : 'visualize your circle'}
             </h1>
@@ -176,26 +280,10 @@ export default function NetworkVisualization() {
               <MessageCircle className="h-4 w-4" />
               Chats
             </TabsTrigger>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <TabsTrigger value="circles" className="gap-2">
-                  <Circle className="h-4 w-4" />
-                  My circle
-                  <ChevronDown className="h-3 w-3" />
-                </TabsTrigger>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-card z-[100] mb-2" align="center" side="top">
-                <DropdownMenuItem onClick={() => setCircleType('my')}>
-                  My circle
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCircleType('event')}>
-                  Circle by event
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCircleType('industry')}>
-                  Circle by industry
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <TabsTrigger value="circles" className="gap-2">
+              <Circle className="h-4 w-4" />
+              My circle
+            </TabsTrigger>
           </TabsList>
         </div>
       </Tabs>
