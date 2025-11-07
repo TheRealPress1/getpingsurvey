@@ -30,3 +30,6 @@ verify_jwt = false
 [functions.fetch-eventbrite-events]
 verify_jwt = true
 
+[functions.vcard]
+verify_jwt = false
+
