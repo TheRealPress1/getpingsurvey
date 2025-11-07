@@ -20,10 +20,10 @@ export const CircleStrengthBar = ({ people, personHealth }: CircleStrengthBarPro
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {/* Iridescent Shimmering Text */}
+      {/* Iridescent Shimmering Text - Green to Pink */}
       <div className="relative text-2xl uppercase tracking-wider font-bold">
         <div 
-          className="bg-gradient-to-r from-primary via-yellow-400 to-primary bg-clip-text text-transparent animate-pulse"
+          className="iridescent-text shimmer"
           style={{
             backgroundSize: '200% 200%',
             animation: 'shimmer 3s ease-in-out infinite',
@@ -33,31 +33,40 @@ export const CircleStrengthBar = ({ people, personHealth }: CircleStrengthBarPro
         </div>
         {/* Glow effect */}
         <div 
-          className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-400 to-primary bg-clip-text text-transparent blur-sm opacity-50"
+          className="absolute inset-0 blur-sm opacity-50"
           style={{
+            background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, rgba(255, 192, 203, 0.9) 50%, hsl(var(--primary)) 100%)',
             backgroundSize: '200% 200%',
             animation: 'shimmer 3s ease-in-out infinite',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
           }}
         >
           how strong is your circle?
         </div>
       </div>
       
-      {/* Glowing Bar - Bigger */}
+      {/* Glowing Bar - Green to Pink Gradient */}
       <div className="relative w-80 h-3 bg-black/50 rounded-full overflow-hidden border border-primary/30">
         {/* Glow Effect Layer */}
         <div 
-          className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-primary/60 to-yellow-400/0 blur-md"
-          style={{ width: `${percentage}%` }}
-        />
-        
-        {/* Bar Fill with Gradient */}
-        <div 
-          className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-400 to-primary transition-all duration-700 ease-out shadow-[0_0_30px_rgba(0,255,102,0.8)]"
+          className="absolute inset-0 blur-md"
           style={{ 
             width: `${percentage}%`,
+            background: 'linear-gradient(90deg, rgba(0, 255, 102, 0) 0%, rgba(0, 255, 102, 0.6) 25%, rgba(255, 192, 203, 0.6) 75%, rgba(255, 192, 203, 0) 100%)',
+          }}
+        />
+        
+        {/* Bar Fill with Green-Pink Gradient */}
+        <div 
+          className="absolute inset-0 transition-all duration-700 ease-out"
+          style={{ 
+            width: `${percentage}%`,
+            background: 'linear-gradient(90deg, hsl(var(--primary)) 0%, rgba(255, 192, 203, 0.9) 50%, hsl(var(--primary)) 100%)',
             backgroundSize: '200% 200%',
             animation: 'shimmer 3s ease-in-out infinite',
+            boxShadow: '0 0 30px rgba(0, 255, 102, 0.6), 0 0 20px rgba(255, 192, 203, 0.4)',
           }}
         />
         
