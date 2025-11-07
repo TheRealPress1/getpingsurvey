@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { getShareableUrl } from "@/lib/environment";
 import { OptimizedImage } from "@/components/OptimizedImage";
 
 interface SearchResult {
@@ -23,6 +23,7 @@ interface GlobalSearchProps {
 }
 
 const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -55,7 +56,7 @@ const GlobalSearch = ({ isOpen, onClose }: GlobalSearchProps) => {
   };
 
   const handleProfileClick = (userId: string) => {
-    window.open(getShareableUrl(`/ping/${userId}`), '_blank');
+    navigate(`/ping/${userId}`);
     onClose();
   };
 
