@@ -20,10 +20,10 @@ export const CircleStrengthBar = ({ people, personHealth }: CircleStrengthBarPro
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {/* Iridescent Shimmering Text - Green to Pink */}
+      {/* Iridescent Shimmering Text - Green to Pink - LOWERCASE */}
       <div className="relative text-2xl uppercase tracking-wider font-bold">
         <div 
-          className="iridescent-text shimmer"
+          className="iridescent-text shimmer lowercase"
           style={{
             backgroundSize: '200% 200%',
             animation: 'shimmer 3s ease-in-out infinite',
@@ -33,7 +33,7 @@ export const CircleStrengthBar = ({ people, personHealth }: CircleStrengthBarPro
         </div>
         {/* Glow effect */}
         <div 
-          className="absolute inset-0 blur-sm opacity-50"
+          className="absolute inset-0 blur-sm opacity-50 lowercase"
           style={{
             background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, rgba(255, 192, 203, 0.9) 50%, hsl(var(--primary)) 100%)',
             backgroundSize: '200% 200%',

@@ -1,10 +1,11 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export interface HealthMetrics {
-  frequency: number;
   recency: number;
+  frequency: number;
   reciprocity: number;
-  consistency: number;
+  sentiment: number;
+  tenure: number;
   overall: number;
 }
 
@@ -19,45 +20,46 @@ export async function calculateHealthScore(
     .eq('contact_id', contactId)
     .order('occurred_at', { ascending: false });
 
+  const { data: contact } = await supabase
+    .from('contacts')
+    .select('first_contact_date')
+    .eq('id', contactId)
+    .single();
+
   if (!interactions || interactions.length === 0) {
     return {
-      frequency: 0,
       recency: 0,
+      frequency: 0,
       reciprocity: 0,
-      consistency: 0,
+      sentiment: 0,
+      tenure: 0,
       overall: 0
     };
   }
 
-  const { data: goals } = await supabase
-    .from('relationship_goals')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('contact_id', contactId)
-    .single();
-
-  const targetFrequency = goals?.contact_frequency_days || 14;
-
-  const frequency = calculateFrequency(interactions, targetFrequency);
   const recency = calculateRecency(interactions);
+  const frequency = calculateFrequency(interactions);
   const reciprocity = calculateReciprocity(interactions);
-  const consistency = calculateConsistency(interactions);
+  const sentiment = calculateSentiment(interactions);
+  const tenure = calculateTenure(contact?.first_contact_date);
 
+  // 5-Factor weighted model
   const overall = Math.round(
-    frequency * 0.3 +
-    recency * 0.3 +
-    reciprocity * 0.2 +
-    consistency * 0.2
+    recency * 0.30 +
+    frequency * 0.25 +
+    reciprocity * 0.20 +
+    sentiment * 0.15 +
+    tenure * 0.10
   );
 
   await supabase.from('health_scores').upsert({
     user_id: userId,
     contact_id: contactId,
     score: overall,
-    frequency_score: frequency,
     recency_score: recency,
+    frequency_score: frequency,
     reciprocity_score: reciprocity,
-    consistency_score: consistency,
+    consistency_score: sentiment, // Using consistency field for sentiment
     last_contact_days: getDaysSinceLastContact(interactions),
     total_interactions: interactions.length,
     calculated_at: new Date().toISOString()
@@ -66,15 +68,31 @@ export async function calculateHealthScore(
   });
 
   return {
-    frequency,
     recency,
+    frequency,
     reciprocity,
-    consistency,
+    sentiment,
+    tenure,
     overall
   };
 }
 
-function calculateFrequency(interactions: any[], targetDays: number): number {
+// 1. Recency (30%) - How long since last contact
+function calculateRecency(interactions: any[]): number {
+  if (!interactions.length) return 0;
+  
+  const daysSince = getDaysSinceLastContact(interactions);
+  
+  // Exponential decay
+  if (daysSince <= 7) return 100;
+  if (daysSince <= 30) return 80;
+  if (daysSince <= 60) return 55;
+  if (daysSince <= 90) return 30;
+  return Math.max(0, 30 - (daysSince - 90) * 0.5); // Further decay
+}
+
+// 2. Frequency (25%) - Consistency of touchpoints
+function calculateFrequency(interactions: any[]): number {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   
@@ -82,74 +100,85 @@ function calculateFrequency(interactions: any[], targetDays: number): number {
     i => new Date(i.occurred_at) > thirtyDaysAgo
   );
 
-  const expectedInteractions = 30 / targetDays;
-  const actualInteractions = recentInteractions.length;
+  const count = recentInteractions.length;
   
-  const score = Math.min(100, (actualInteractions / expectedInteractions) * 100);
-  return Math.round(score);
+  // Scoring based on touchpoints per month
+  if (count >= 5) return 95; // High: 90-100
+  if (count >= 2) return 75; // Medium: 60-89
+  if (count >= 1) return 50; // Low: 40-59
+  return 20; // None: 0-39
 }
 
-function calculateRecency(interactions: any[]): number {
-  const lastInteraction = interactions[0];
-  if (!lastInteraction) return 0;
-
-  const daysSince = getDaysSinceLastContact(interactions);
-  
-  let score = 100;
-  if (daysSince > 60) score = 0;
-  else if (daysSince > 30) score = 30;
-  else if (daysSince > 14) score = 60;
-  else if (daysSince > 7) score = 80;
-  else score = 100 - (daysSince * 5);
-  
-  return Math.max(0, Math.round(score));
-}
-
+// 3. Reciprocity (20%) - Balance of initiation
 function calculateReciprocity(interactions: any[]): number {
-  const sent = interactions.filter(i => i.direction === 'sent').length;
-  const received = interactions.filter(i => i.direction === 'received').length;
-  const mutual = interactions.filter(i => i.direction === 'mutual').length;
+  const userInitiated = interactions.filter(i => i.direction === 'outgoing').length;
+  const contactInitiated = interactions.filter(i => i.direction === 'incoming').length;
+  const total = interactions.length;
 
-  const total = sent + received + mutual;
   if (total === 0) return 0;
 
-  const balance = received > 0 ? Math.min(sent / received, received / sent) : 0;
-  const mutualBonus = (mutual / total) * 20;
+  const userPercent = (userInitiated / total) * 100;
   
-  const score = (balance * 80) + mutualBonus;
-  return Math.round(Math.min(100, score));
+  // Perfect balance (40-60%): 90-100
+  if (userPercent >= 40 && userPercent <= 60) return 95;
+  
+  // Slightly one-sided (20-39% or 61-80%): 70-89
+  if ((userPercent >= 20 && userPercent < 40) || (userPercent > 60 && userPercent <= 80)) return 75;
+  
+  // Mostly one-sided (<20% or >80%): 0-69
+  return 35;
 }
 
-function calculateConsistency(interactions: any[]): number {
-  if (interactions.length < 2) return 0;
+// 4. Sentiment (15%) - Emotional quality
+function calculateSentiment(interactions: any[]): number {
+  // Use quality_rating if available, otherwise infer from notes/metadata
+  const ratingsSum = interactions.reduce((sum, i) => {
+    if (i.quality_rating) return sum + i.quality_rating;
+    // Default to positive if no rating
+    return sum + 4; // Assuming 1-5 scale, default to 4
+  }, 0);
 
-  const gaps: number[] = [];
-  for (let i = 0; i < interactions.length - 1; i++) {
-    const gap = Math.abs(
-      new Date(interactions[i].occurred_at).getTime() - 
-      new Date(interactions[i + 1].occurred_at).getTime()
-    );
-    gaps.push(gap / (1000 * 60 * 60 * 24));
-  }
+  const avgRating = ratingsSum / interactions.length;
+  
+  // Convert 1-5 scale to 0-100
+  // 4-5 → 90-100 (Positive)
+  // 3-4 → 60-89 (Neutral)
+  // 1-3 → 0-59 (Negative)
+  if (avgRating >= 4) return 95;
+  if (avgRating >= 3) return 75;
+  return 40;
+}
 
-  const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
-  const variance = gaps.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / gaps.length;
-  const stdDev = Math.sqrt(variance);
-
-  const score = Math.max(0, 100 - (stdDev * 3.33));
-  return Math.round(score);
+// 5. Tenure (10%) - Duration and embeddedness
+function calculateTenure(firstContactDate: string | null): number {
+  if (!firstContactDate) return 50; // Default for unknown
+  
+  const start = new Date(firstContactDate);
+  const now = new Date();
+  const daysSince = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const monthsSince = daysSince / 30;
+  
+  // Known 1+ year (12+ months): 90-100
+  if (monthsSince >= 12) return 95;
+  
+  // Known 3-12 months: 70-89
+  if (monthsSince >= 3) return 80;
+  
+  // Known <3 months: 0-69
+  return 50;
 }
 
 function getDaysSinceLastContact(interactions: any[]): number {
-  if (interactions.length === 0) return 999;
+  if (!interactions || interactions.length === 0) return 999;
   
-  const lastInteraction = new Date(interactions[0].occurred_at);
+  const lastInteraction = interactions[0];
+  const lastDate = new Date(lastInteraction.occurred_at);
   const now = new Date();
-  const diffTime = Math.abs(now.getTime() - lastInteraction.getTime());
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-export async function calculateAllHealthScores(userId: string) {
+export async function calculateAllHealthScores(userId: string): Promise<void> {
   const { data: contacts } = await supabase
     .from('contacts')
     .select('id')
