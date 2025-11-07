@@ -1,47 +1,58 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { X } from 'lucide-react';
 
 interface ProfileHealthModalProps {
   person: any;
   isOpen: boolean;
   onClose: () => void;
   userId: string;
+  position?: { x: number; y: number }; // Screen position to float near
 }
 
-interface HealthScores {
+interface HealthData {
+  overall: number;
   recency: number;
   frequency: number;
   reciprocity: number;
   sentiment: number;
   tenure: number;
-  overall: number;
 }
 
-export const ProfileHealthModal = ({ person, isOpen, onClose, userId }: ProfileHealthModalProps) => {
-  const [healthScores, setHealthScores] = useState<HealthScores>({
+export const ProfileHealthModal = ({ person, isOpen, onClose, userId, position }: ProfileHealthModalProps) => {
+  const [healthData, setHealthData] = useState<HealthData>({
+    overall: 0,
     recency: 0,
     frequency: 0,
     reciprocity: 0,
     sentiment: 0,
-    tenure: 0,
-    overall: 0
+    tenure: 0
   });
   const [profileData, setProfileData] = useState<any>(null);
+  const [step, setStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Question answers
+  const [lastContactDays, setLastContactDays] = useState('');
+  const [monthlyTouchpoints, setMonthlyTouchpoints] = useState('');
+  const [initiationBalance, setInitiationBalance] = useState('');
+  const [interactionQuality, setInteractionQuality] = useState('');
+  const [relationshipMonths, setRelationshipMonths] = useState('');
 
   useEffect(() => {
     if (person && isOpen) {
-      loadHealthScores();
+      loadHealthData();
       loadProfileData();
+      setStep(0);
     }
   }, [person, isOpen]);
 
-  const loadHealthScores = async () => {
+  const loadHealthData = async () => {
     if (!person) return;
 
     const { data } = await supabase
@@ -52,12 +63,12 @@ export const ProfileHealthModal = ({ person, isOpen, onClose, userId }: ProfileH
       .single();
 
     if (data) {
-      setHealthScores({
+      setHealthData({
         recency: data.recency_score || 0,
         frequency: data.frequency_score || 0,
         reciprocity: data.reciprocity_score || 0,
-        sentiment: data.consistency_score || 0, // Using consistency field for sentiment
-        tenure: 50, // Default tenure score
+        sentiment: data.consistency_score || 0,
+        tenure: 50,
         overall: data.score || 0
       });
     }
@@ -75,176 +86,206 @@ export const ProfileHealthModal = ({ person, isOpen, onClose, userId }: ProfileH
     setProfileData(data);
   };
 
-  const handleScoreChange = (factor: keyof Omit<HealthScores, 'overall'>, value: number[]) => {
-    setHealthScores(prev => {
-      const newScores = { ...prev, [factor]: value[0] };
-      
-      // Recalculate overall with 5-factor model weights
-      newScores.overall = Math.round(
-        newScores.recency * 0.30 +
-        newScores.frequency * 0.25 +
-        newScores.reciprocity * 0.20 +
-        newScores.sentiment * 0.15 +
-        newScores.tenure * 0.10
-      );
-      
-      return newScores;
-    });
-  };
-
-  const handleSave = async () => {
+  const handleCalculate = async () => {
     setIsSaving(true);
     try {
-      await supabase.from('health_scores').upsert({
-        user_id: userId,
+      // Log interaction with the gathered data
+      const days = parseInt(lastContactDays) || 0;
+      const touchpoints = parseInt(monthlyTouchpoints) || 0;
+      const balance = parseInt(initiationBalance) || 50;
+      const quality = parseInt(interactionQuality) || 3;
+      const months = parseInt(relationshipMonths) || 0;
+
+      // Create an interaction record with metadata
+      await supabase.from('interactions').insert({
         contact_id: person.id,
-        recency_score: healthScores.recency,
-        frequency_score: healthScores.frequency,
-        reciprocity_score: healthScores.reciprocity,
-        consistency_score: healthScores.sentiment,
-        score: healthScores.overall,
-        calculated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,contact_id'
+        type: 'message',
+        date: new Date().toISOString().split('T')[0],
+        direction: balance > 60 ? 'outgoing' : balance < 40 ? 'incoming' : 'mutual',
+        quality_rating: quality,
+        metadata: {
+          days_since_last: days,
+          monthly_touchpoints: touchpoints,
+          initiation_balance: balance,
+          relationship_months: months
+        }
       });
 
-      toast('Health scores updated successfully!');
+      // Trigger backend health score calculation
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL || 'https://ahksxziueqkacyaqtgeu.supabase.co'}/functions/v1/calculate-health-scores`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ userId, contactId: person.id })
+      });
+
+      if (!response.ok) throw new Error('Failed to calculate health score');
+
+      // Reload health data
+      await loadHealthData();
+      toast('relationship health updated!');
       onClose();
     } catch (error) {
-      console.error('Error saving health scores:', error);
-      toast('Failed to update health scores', { className: 'bg-destructive' });
+      console.error('Error calculating health scores:', error);
+      toast('failed to update', { className: 'bg-destructive' });
     } finally {
       setIsSaving(false);
     }
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return { label: 'Thriving', color: 'text-green-500' };
-    if (score >= 60) return { label: 'Strong', color: 'text-blue-500' };
-    if (score >= 40) return { label: 'Stable', color: 'text-yellow-500' };
-    if (score >= 20) return { label: 'At-Risk', color: 'text-orange-500' };
-    return { label: 'Dormant', color: 'text-red-500' };
+    if (score >= 80) return { label: 'thriving', color: 'text-green-500' };
+    if (score >= 60) return { label: 'strong', color: 'text-blue-500' };
+    if (score >= 40) return { label: 'stable', color: 'text-yellow-500' };
+    if (score >= 20) return { label: 'at-risk', color: 'text-orange-500' };
+    return { label: 'dormant', color: 'text-red-500' };
   };
 
-  const overallStatus = getScoreLabel(healthScores.overall);
+  const questions = [
+    {
+      title: 'when did you last connect?',
+      subtitle: 'helps us measure recency (30%)',
+      placeholder: 'days ago',
+      value: lastContactDays,
+      onChange: setLastContactDays,
+      type: 'number'
+    },
+    {
+      title: 'how often do you touch base?',
+      subtitle: 'helps us measure frequency (25%)',
+      placeholder: 'touchpoints per month',
+      value: monthlyTouchpoints,
+      onChange: setMonthlyTouchpoints,
+      type: 'number'
+    },
+    {
+      title: 'who usually reaches out?',
+      subtitle: 'helps us measure reciprocity (20%)',
+      placeholder: '0 (them) to 100 (you)',
+      value: initiationBalance,
+      onChange: setInitiationBalance,
+      type: 'number'
+    },
+    {
+      title: 'how are your interactions?',
+      subtitle: 'helps us measure sentiment (15%)',
+      placeholder: '1 (poor) to 5 (great)',
+      value: interactionQuality,
+      onChange: setInteractionQuality,
+      type: 'number'
+    },
+    {
+      title: 'how long have you known them?',
+      subtitle: 'helps us measure tenure (10%)',
+      placeholder: 'months',
+      value: relationshipMonths,
+      onChange: setRelationshipMonths,
+      type: 'number'
+    }
+  ];
+
+  const currentQuestion = questions[step];
+  const overallStatus = getScoreLabel(healthData.overall);
+
+  if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-gradient-to-br from-black/95 via-primary/5 to-black/95 border-primary/30 max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl iridescent-text">relationship health</DialogTitle>
-        </DialogHeader>
+    <div 
+      className="fixed z-50 bg-gradient-to-br from-black/95 via-primary/5 to-black/95 border border-primary/30 rounded-xl p-6 max-w-sm shadow-2xl"
+      style={{
+        left: position ? `${position.x + 20}px` : '50%',
+        top: position ? `${position.y}px` : '50%',
+        transform: position ? 'translateY(-50%)' : 'translate(-50%, -50%)'
+      }}
+    >
+      {/* Close Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onClose}
+        className="absolute top-2 right-2 h-8 w-8"
+      >
+        <X className="h-4 w-4" />
+      </Button>
 
-        <div className="space-y-6">
-          {/* Profile Section */}
-          <div className="flex items-center gap-4 pb-4 border-b border-primary/20">
-            <Avatar className="h-16 w-16 border-2 border-primary/30">
-              <AvatarImage src={profileData?.avatar_url} />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {person?.name?.charAt(0) || '?'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold">{profileData?.display_name || person?.name}</h3>
-              <p className="text-sm text-muted-foreground capitalize">{person?.circle}</p>
+      {/* Profile Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <Avatar className="h-12 w-12 border-2 border-primary/30">
+          <AvatarImage src={profileData?.avatar_url} />
+          <AvatarFallback className="bg-primary/10 text-primary">
+            {person?.name?.charAt(0) || '?'}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <h3 className="font-bold text-base">{profileData?.display_name || person?.name}</h3>
+          {healthData.overall > 0 && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-2xl font-black iridescent-text">{healthData.overall}</span>
+              <span className={`text-xs font-semibold ${overallStatus.color}`}>{overallStatus.label}</span>
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Question Flow */}
+      {step < questions.length ? (
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-sm font-semibold mb-1">{currentQuestion.title}</h4>
+            <p className="text-xs text-muted-foreground mb-3">{currentQuestion.subtitle}</p>
+            <Input
+              type={currentQuestion.type}
+              placeholder={currentQuestion.placeholder}
+              value={currentQuestion.value}
+              onChange={(e) => currentQuestion.onChange(e.target.value)}
+              className="bg-black/40 border-primary/20"
+              autoFocus
+            />
           </div>
-
-          {/* Overall Score */}
-          <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <div className="text-4xl font-black iridescent-text">{healthScores.overall}</div>
-            <div className={`text-sm font-semibold ${overallStatus.color}`}>{overallStatus.label}</div>
-          </div>
-
-          {/* Health Factors */}
-          <div className="space-y-4">
-            {/* Recency (30%) */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="font-semibold">Recency <span className="text-muted-foreground">(30%)</span></span>
-                <span className="text-primary">{healthScores.recency}</span>
-              </div>
-              <Slider
-                value={[healthScores.recency]}
-                onValueChange={(v) => handleScoreChange('recency', v)}
-                max={100}
-                step={1}
-                className="cursor-pointer"
-              />
-            </div>
-
-            {/* Frequency (25%) */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="font-semibold">Frequency <span className="text-muted-foreground">(25%)</span></span>
-                <span className="text-primary">{healthScores.frequency}</span>
-              </div>
-              <Slider
-                value={[healthScores.frequency]}
-                onValueChange={(v) => handleScoreChange('frequency', v)}
-                max={100}
-                step={1}
-                className="cursor-pointer"
-              />
-            </div>
-
-            {/* Reciprocity (20%) */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="font-semibold">Reciprocity <span className="text-muted-foreground">(20%)</span></span>
-                <span className="text-primary">{healthScores.reciprocity}</span>
-              </div>
-              <Slider
-                value={[healthScores.reciprocity]}
-                onValueChange={(v) => handleScoreChange('reciprocity', v)}
-                max={100}
-                step={1}
-                className="cursor-pointer"
-              />
-            </div>
-
-            {/* Sentiment (15%) */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="font-semibold">Sentiment <span className="text-muted-foreground">(15%)</span></span>
-                <span className="text-primary">{healthScores.sentiment}</span>
-              </div>
-              <Slider
-                value={[healthScores.sentiment]}
-                onValueChange={(v) => handleScoreChange('sentiment', v)}
-                max={100}
-                step={1}
-                className="cursor-pointer"
-              />
-            </div>
-
-            {/* Tenure (10%) */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="font-semibold">Tenure <span className="text-muted-foreground">(10%)</span></span>
-                <span className="text-primary">{healthScores.tenure}</span>
-              </div>
-              <Slider
-                value={[healthScores.tenure]}
-                onValueChange={(v) => handleScoreChange('tenure', v)}
-                max={100}
-                step={1}
-                className="cursor-pointer"
-              />
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-2 pt-4 border-t border-primary/20">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancel
+          
+          <div className="flex gap-2">
+            {step > 0 && (
+              <Button 
+                variant="outline" 
+                onClick={() => setStep(step - 1)}
+                className="flex-1"
+              >
+                back
+              </Button>
+            )}
+            <Button 
+              onClick={() => setStep(step + 1)}
+              className="flex-1"
+            >
+              {step === questions.length - 1 ? 'finish' : 'next'}
             </Button>
-            <Button onClick={handleSave} disabled={isSaving} className="flex-1">
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </Button>
+          </div>
+          
+          <div className="flex gap-1 justify-center mt-2">
+            {questions.map((_, idx) => (
+              <div 
+                key={idx} 
+                className={`h-1.5 w-1.5 rounded-full transition-colors ${
+                  idx === step ? 'bg-primary' : idx < step ? 'bg-primary/40' : 'bg-primary/10'
+                }`}
+              />
+            ))}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      ) : (
+        <div className="space-y-4">
+          <p className="text-sm text-center">calculating your relationship health...</p>
+          <Button 
+            onClick={handleCalculate}
+            disabled={isSaving}
+            className="w-full"
+          >
+            {isSaving ? 'calculating...' : 'calculate score'}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };

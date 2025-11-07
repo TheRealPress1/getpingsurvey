@@ -19,6 +19,7 @@ interface NetworkPerson {
   userId?: string;
   isConnected?: boolean;
   relationshipHealthScore?: number;
+  screenPosition?: { x: number; y: number };
 }
 
 export default function Home() {
@@ -152,8 +153,8 @@ export default function Home() {
     setPersonHealth(healthMap);
   };
 
-  const handlePersonClick = (person: NetworkPerson) => {
-    setSelectedPerson(person);
+  const handlePersonClick = (person: NetworkPerson, screenPosition?: { x: number; y: number }) => {
+    setSelectedPerson({ ...person, screenPosition });
     setShowHealthModal(true);
   };
 
@@ -206,6 +207,7 @@ export default function Home() {
               setSelectedPerson(null);
             }}
             userId={user.id}
+            position={(selectedPerson as any).screenPosition}
           />
         )}
       </div>

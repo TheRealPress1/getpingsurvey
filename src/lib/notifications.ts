@@ -9,6 +9,8 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   }
 
   if (Notification.permission !== 'denied') {
+    // Delay to ensure user is engaged first
+    await new Promise(resolve => setTimeout(resolve, 2000));
     const permission = await Notification.requestPermission();
     return permission === 'granted';
   }

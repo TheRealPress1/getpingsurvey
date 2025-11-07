@@ -5,156 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface HealthMetrics {
-  frequency: number;
-  recency: number;
-  reciprocity: number;
-  consistency: number;
-  overall: number;
-}
-
-function calculateFrequency(interactions: any[], targetDays: number): number {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
-  const recentInteractions = interactions.filter(
-    i => new Date(i.occurred_at) > thirtyDaysAgo
-  );
-
-  const expectedInteractions = 30 / targetDays;
-  const actualInteractions = recentInteractions.length;
-  
-  const score = Math.min(100, (actualInteractions / expectedInteractions) * 100);
-  return Math.round(score);
-}
-
-function calculateRecency(interactions: any[]): number {
-  const lastInteraction = interactions[0];
-  if (!lastInteraction) return 0;
-
-  const daysSince = getDaysSinceLastContact(interactions);
-  
-  let score = 100;
-  if (daysSince > 60) score = 0;
-  else if (daysSince > 30) score = 30;
-  else if (daysSince > 14) score = 60;
-  else if (daysSince > 7) score = 80;
-  else score = 100 - (daysSince * 5);
-  
-  return Math.max(0, Math.round(score));
-}
-
-function calculateReciprocity(interactions: any[]): number {
-  const sent = interactions.filter(i => i.direction === 'sent').length;
-  const received = interactions.filter(i => i.direction === 'received').length;
-  const mutual = interactions.filter(i => i.direction === 'mutual').length;
-
-  const total = sent + received + mutual;
-  if (total === 0) return 0;
-
-  const balance = received > 0 ? Math.min(sent / received, received / sent) : 0;
-  const mutualBonus = (mutual / total) * 20;
-  
-  const score = (balance * 80) + mutualBonus;
-  return Math.round(Math.min(100, score));
-}
-
-function calculateConsistency(interactions: any[]): number {
-  if (interactions.length < 2) return 0;
-
-  const gaps: number[] = [];
-  for (let i = 0; i < interactions.length - 1; i++) {
-    const gap = Math.abs(
-      new Date(interactions[i].occurred_at).getTime() - 
-      new Date(interactions[i + 1].occurred_at).getTime()
-    );
-    gaps.push(gap / (1000 * 60 * 60 * 24));
-  }
-
-  const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
-  const variance = gaps.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / gaps.length;
-  const stdDev = Math.sqrt(variance);
-
-  const score = Math.max(0, 100 - (stdDev * 3.33));
-  return Math.round(score);
-}
-
-function getDaysSinceLastContact(interactions: any[]): number {
-  if (interactions.length === 0) return 999;
-  
-  const lastInteraction = new Date(interactions[0].occurred_at);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - lastInteraction.getTime());
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-}
-
-async function calculateHealthScore(
-  supabase: any,
-  userId: string,
-  contactId: string
-): Promise<HealthMetrics> {
-  const { data: interactions } = await supabase
-    .from('interactions')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('contact_id', contactId)
-    .order('occurred_at', { ascending: false });
-
-  if (!interactions || interactions.length === 0) {
-    return {
-      frequency: 0,
-      recency: 0,
-      reciprocity: 0,
-      consistency: 0,
-      overall: 0
-    };
-  }
-
-  const { data: goals } = await supabase
-    .from('relationship_goals')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('contact_id', contactId)
-    .single();
-
-  const targetFrequency = goals?.contact_frequency_days || 14;
-
-  const frequency = calculateFrequency(interactions, targetFrequency);
-  const recency = calculateRecency(interactions);
-  const reciprocity = calculateReciprocity(interactions);
-  const consistency = calculateConsistency(interactions);
-
-  const overall = Math.round(
-    frequency * 0.3 +
-    recency * 0.3 +
-    reciprocity * 0.2 +
-    consistency * 0.2
-  );
-
-  await supabase.from('health_scores').upsert({
-    user_id: userId,
-    contact_id: contactId,
-    score: overall,
-    frequency_score: frequency,
-    recency_score: recency,
-    reciprocity_score: reciprocity,
-    consistency_score: consistency,
-    last_contact_days: getDaysSinceLastContact(interactions),
-    total_interactions: interactions.length,
-    calculated_at: new Date().toISOString()
-  }, {
-    onConflict: 'user_id,contact_id'
-  });
-
-  return {
-    frequency,
-    recency,
-    reciprocity,
-    consistency,
-    overall
-  };
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -163,28 +13,78 @@ Deno.serve(async (req) => {
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const { data: contacts } = await supabaseClient
-      .from('contacts')
-      .select('id, user_id');
+    const { userId, contactId } = await req.json();
 
-    if (!contacts) {
+    if (!userId || !contactId) {
       return new Response(
-        JSON.stringify({ message: 'No contacts found' }),
+        JSON.stringify({ error: 'userId and contactId are required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Fetch interactions for this contact
+    const { data: interactions } = await supabaseClient
+      .from('interactions')
+      .select('*')
+      .eq('contact_id', contactId)
+      .order('occurred_at', { ascending: false });
+
+    const { data: contact } = await supabaseClient
+      .from('contacts')
+      .select('first_contact_date')
+      .eq('id', contactId)
+      .single();
+
+    if (!interactions || interactions.length === 0) {
+      return new Response(
+        JSON.stringify({
+          recency: 0,
+          frequency: 0,
+          reciprocity: 0,
+          sentiment: 0,
+          tenure: 0,
+          overall: 0
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
 
-    console.log(`Calculating health scores for ${contacts.length} contacts`);
+    // Calculate scores using the 5-factor model
+    const recency = calculateRecency(interactions);
+    const frequency = calculateFrequency(interactions);
+    const reciprocity = calculateReciprocity(interactions);
+    const sentiment = calculateSentiment(interactions);
+    const tenure = calculateTenure(contact?.first_contact_date);
 
-    for (const contact of contacts) {
-      await calculateHealthScore(supabaseClient, contact.user_id, contact.id);
-    }
+    const overall = Math.round(
+      recency * 0.30 +
+      frequency * 0.25 +
+      reciprocity * 0.20 +
+      sentiment * 0.15 +
+      tenure * 0.10
+    );
+
+    // Store in database
+    await supabaseClient.from('health_scores').upsert({
+      user_id: userId,
+      contact_id: contactId,
+      score: overall,
+      recency_score: recency,
+      frequency_score: frequency,
+      reciprocity_score: reciprocity,
+      consistency_score: sentiment,
+      last_contact_days: getDaysSinceLastContact(interactions),
+      total_interactions: interactions.length,
+      calculated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id,contact_id'
+    });
 
     return new Response(
-      JSON.stringify({ message: `Health scores calculated for ${contacts.length} contacts` }),
+      JSON.stringify({ recency, frequency, reciprocity, sentiment, tenure, overall }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error) {
@@ -195,3 +95,67 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+function calculateRecency(interactions: any[]): number {
+  if (!interactions.length) return 0;
+  const daysSince = getDaysSinceLastContact(interactions);
+  if (daysSince <= 7) return 100;
+  if (daysSince <= 30) return 80;
+  if (daysSince <= 60) return 55;
+  if (daysSince <= 90) return 30;
+  return Math.max(0, 30 - (daysSince - 90) * 0.5);
+}
+
+function calculateFrequency(interactions: any[]): number {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentInteractions = interactions.filter(
+    i => new Date(i.occurred_at) > thirtyDaysAgo
+  );
+  const count = recentInteractions.length;
+  if (count >= 5) return 95;
+  if (count >= 2) return 75;
+  if (count >= 1) return 50;
+  return 20;
+}
+
+function calculateReciprocity(interactions: any[]): number {
+  const userInitiated = interactions.filter(i => i.direction === 'outgoing').length;
+  const contactInitiated = interactions.filter(i => i.direction === 'incoming').length;
+  const total = interactions.length;
+  if (total === 0) return 0;
+  const userPercent = (userInitiated / total) * 100;
+  if (userPercent >= 40 && userPercent <= 60) return 95;
+  if ((userPercent >= 20 && userPercent < 40) || (userPercent > 60 && userPercent <= 80)) return 75;
+  return 35;
+}
+
+function calculateSentiment(interactions: any[]): number {
+  const ratingsSum = interactions.reduce((sum, i) => {
+    if (i.quality_rating) return sum + i.quality_rating;
+    return sum + 4;
+  }, 0);
+  const avgRating = ratingsSum / interactions.length;
+  if (avgRating >= 4) return 95;
+  if (avgRating >= 3) return 75;
+  return 40;
+}
+
+function calculateTenure(firstContactDate: string | null): number {
+  if (!firstContactDate) return 50;
+  const start = new Date(firstContactDate);
+  const now = new Date();
+  const daysSince = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const monthsSince = daysSince / 30;
+  if (monthsSince >= 12) return 95;
+  if (monthsSince >= 3) return 80;
+  return 50;
+}
+
+function getDaysSinceLastContact(interactions: any[]): number {
+  if (!interactions || interactions.length === 0) return 999;
+  const lastInteraction = interactions[0];
+  const lastDate = new Date(lastInteraction.occurred_at);
+  const now = new Date();
+  return Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+}
