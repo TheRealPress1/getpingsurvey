@@ -129,7 +129,7 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
       ].filter(Boolean).join('\r\n');
 
       // Create blob and use native share API for contact transfer
-      const mime = 'text/vcard;charset=utf-8'
+      const mime = 'text/x-vcard;charset=utf-8'
       const blob = new Blob([vCard], { type: mime });
       const file = new File([blob], `${contactFileName}.vcf`, { type: mime });
       const url = window.URL.createObjectURL(blob);
@@ -152,17 +152,21 @@ export const SaveContactButton = ({ profile, userEmail }: SaveContactButtonProps
       // 2) Mobile-first: open the vCard directly so OS shows "Add to Contacts"
       if (isIOS || isAndroid) {
         // Use a data URL with filename hint; iOS/Android will typically route to Contacts
-        const dataUrl = `data:text/vcard;charset=utf-8;name=${encodeURIComponent(contactFileName)}.vcf,${encodeURIComponent(vCard)}`;
-        // Direct navigation attempt
-        window.location.href = dataUrl;
-        // Fallback via hidden iframe in case navigation is blocked
+        const dataUrl = `data:text/x-vcard;charset=utf-8;name=${encodeURIComponent(contactFileName)}.vcf,${encodeURIComponent(vCard)}`;
+
+        // Prefer opening via a user-gesture anchor click (more reliable on mobile)
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.target = '_self'; // allow OS intercept
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Fallback: try opening in a new tab if the browser blocked navigation
         setTimeout(() => {
           try {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = dataUrl;
-            document.body.appendChild(iframe);
-            setTimeout(() => document.body.removeChild(iframe), 3000);
+            window.open(dataUrl, '_blank');
           } catch {}
         }, 250);
 
