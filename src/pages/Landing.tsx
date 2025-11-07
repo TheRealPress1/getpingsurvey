@@ -121,8 +121,8 @@ const Landing = () => {
       <header className="border-b border-border p-4 relative z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold iridescent-text">ping!</h1>
-          <Link to="/auth">
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/50">
+          <Link to="/auth" className="relative z-20">
+            <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/50 cursor-pointer">
               sign in
             </Button>
           </Link>
