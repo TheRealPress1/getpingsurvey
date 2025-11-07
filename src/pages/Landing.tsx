@@ -122,7 +122,7 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold iridescent-text">ping!</h1>
           <Link to="/auth">
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2">
+            <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/50">
               sign in
             </Button>
           </Link>
