@@ -153,7 +153,7 @@ export const RecommendedPingsSidebar = ({
 
   return (
     <>
-      <div className="fixed top-20 right-4 w-80 max-h-[600px] bg-gradient-to-br from-black/95 via-primary/5 to-black/95 backdrop-blur-xl border border-primary/30 rounded-2xl shadow-2xl shadow-primary/20 flex flex-col overflow-hidden z-30">
+      <div className="fixed top-20 right-4 w-64 max-h-[400px] bg-gradient-to-br from-black/95 via-primary/5 to-black/95 backdrop-blur-xl border border-primary/30 rounded-2xl shadow-2xl shadow-primary/20 flex flex-col overflow-hidden z-30">
         {/* Header with glow effect */}
         <div className="bg-gradient-to-r from-primary/20 to-purple-500/20 p-3 border-b border-primary/30">
           <div className="flex items-center justify-center gap-2">
