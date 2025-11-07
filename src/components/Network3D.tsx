@@ -5,7 +5,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ChevronRight, X, User } from 'lucide-react';
-
 interface NetworkPerson {
   id: string;
   name: string;
@@ -14,7 +13,6 @@ interface NetworkPerson {
   userId?: string;
   isConnected?: boolean;
 }
-
 interface Network3DProps {
   people: NetworkPerson[];
   onPersonClick?: (person: NetworkPerson) => void;
@@ -23,23 +21,54 @@ interface Network3DProps {
   industries?: string[];
   events?: string[];
 }
-
-const CIRCLES = [
-  { id: 'family', label: 'Family', radius: 2, color: 0x4ade80 },
-  { id: 'friends', label: 'Close friends', radius: 3.5, color: 0x4ade80 },
-  { id: 'business', label: 'Business partners', radius: 5, color: 0x4ade80 },
-  { id: 'acquaintances', label: 'Associates', radius: 6.5, color: 0x4ade80 },
-  { id: 'network', label: 'Network', radius: 8, color: 0x4ade80 },
-  { id: 'extended', label: 'Extended', radius: 9.5, color: 0x4ade80 },
-];
-
-export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'my', industries, events }: Network3DProps) => {
+const CIRCLES = [{
+  id: 'family',
+  label: 'Family',
+  radius: 2,
+  color: 0x4ade80
+}, {
+  id: 'friends',
+  label: 'Close friends',
+  radius: 3.5,
+  color: 0x4ade80
+}, {
+  id: 'business',
+  label: 'Business partners',
+  radius: 5,
+  color: 0x4ade80
+}, {
+  id: 'acquaintances',
+  label: 'Associates',
+  radius: 6.5,
+  color: 0x4ade80
+}, {
+  id: 'network',
+  label: 'Network',
+  radius: 8,
+  color: 0x4ade80
+}, {
+  id: 'extended',
+  label: 'Extended',
+  radius: 9.5,
+  color: 0x4ade80
+}];
+export const Network3D = ({
+  people,
+  onPersonClick,
+  personHealth,
+  circleType = 'my',
+  industries,
+  events
+}: Network3DProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const isDraggingRef = useRef(false);
-  const previousMousePositionRef = useRef({ x: 0, y: 0 });
+  const previousMousePositionRef = useRef({
+    x: 0,
+    y: 0
+  });
   const spheresRef = useRef<Map<string, THREE.Mesh>>(new Map());
   const touchDistanceRef = useRef<number | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<NetworkPerson | null>(null);
@@ -47,7 +76,6 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
   const [showDemoNodes, setShowDemoNodes] = useState(false);
   const isZoomingRef = useRef(false);
   const navigate = useNavigate();
-
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -57,14 +85,14 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       CIRCLES_TO_USE = industries.map((industry, index) => ({
         id: industry.toLowerCase(),
         label: industry,
-        radius: 2 + (index * 2.5),
+        radius: 2 + index * 2.5,
         color: 0x4ade80
       }));
     } else if (circleType === 'event' && events) {
       CIRCLES_TO_USE = events.map((event, index) => ({
         id: `event-${index}`,
         label: event,
-        radius: 2 + (index * 2.5),
+        radius: 2 + index * 2.5,
         color: 0x4ade80
       }));
     } else {
@@ -73,31 +101,30 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
 
     // Add demo people to outer circles if showDemoNodes is enabled
     const demoPeople: NetworkPerson[] = [];
-    
     if (showDemoNodes) {
       if (circleType === 'industry' && industries) {
         // Populate each industry circle with demo people
         industries.forEach((industry, circleIndex) => {
-          const peopleCount = 6 + (circleIndex * 2); // More people in outer circles
+          const peopleCount = 6 + circleIndex * 2; // More people in outer circles
           for (let i = 0; i < peopleCount; i++) {
             demoPeople.push({
               id: `demo-${industry.toLowerCase()}-${i}`,
               name: `${industry} Contact ${i + 1}`,
               circle: industry.toLowerCase() as any,
-              angle: (360 / peopleCount) * i
+              angle: 360 / peopleCount * i
             });
           }
         });
       } else if (circleType === 'event' && events) {
         // Populate each event circle with demo people
         events.forEach((event, circleIndex) => {
-          const peopleCount = 6 + (circleIndex * 2); // More people in outer circles
+          const peopleCount = 6 + circleIndex * 2; // More people in outer circles
           for (let i = 0; i < peopleCount; i++) {
             demoPeople.push({
               id: `demo-event-${circleIndex}-${i}`,
               name: `${event.substring(0, 20)} Attendee ${i + 1}`,
               circle: `event-${circleIndex}` as any,
-              angle: (360 / peopleCount) * i
+              angle: 360 / peopleCount * i
             });
           }
         });
@@ -105,7 +132,6 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
         // Default "my circle" demo behavior
         const hasNetwork = people.some(p => p.circle === 'network');
         const hasExtended = people.some(p => p.circle === 'extended');
-        
         if (!hasNetwork) {
           // Add 8 demo dots to network circle
           for (let i = 0; i < 8; i++) {
@@ -113,11 +139,10 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
               id: `demo-network-${i}`,
               name: `Network ${i + 1}`,
               circle: 'network',
-              angle: (360 / 8) * i
+              angle: 360 / 8 * i
             });
           }
         }
-        
         if (!hasExtended) {
           // Add 12 demo dots to extended circle
           for (let i = 0; i < 12; i++) {
@@ -125,13 +150,12 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
               id: `demo-extended-${i}`,
               name: `Extended ${i + 1}`,
               circle: 'extended',
-              angle: (360 / 12) * i
+              angle: 360 / 12 * i
             });
           }
         }
       }
     }
-
     const allPeople = [...people, ...demoPeople];
 
     // Scene setup
@@ -144,12 +168,7 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
 
     // Camera setup - start at a high, top-down angle (~55°)
     const CAMERA_ANGLE_RATIO = 1.4; // y = ratio * z
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      containerRef.current.clientWidth / containerRef.current.clientHeight,
-      0.1,
-      1000
-    );
+    const camera = new THREE.PerspectiveCamera(75, containerRef.current.clientWidth / containerRef.current.clientHeight, 0.1, 1000);
     // Start further back on mobile to avoid cutoff
     const isMobile = window.innerWidth < 768;
     const initialZ = isMobile ? 15 : 10;
@@ -158,7 +177,9 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
     cameraRef.current = camera;
 
     // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     renderer.domElement.style.touchAction = 'none'; // Prevent default touch behaviors
     containerRef.current.appendChild(renderer.domElement);
@@ -167,7 +188,6 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
-
     const pointLight = new THREE.PointLight(0xffffff, 1);
     pointLight.position.set(10, 10, 10);
     scene.add(pointLight);
@@ -177,18 +197,18 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
     const centerMaterial = new THREE.MeshPhongMaterial({
       color: 0x4ade80,
       emissive: 0x4ade80,
-      emissiveIntensity: 0.8,
+      emissiveIntensity: 0.8
     });
     const centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
     scene.add(centerSphere);
 
     // Create horizontal concentric circles (torus rings) with labels
-    CIRCLES_TO_USE.forEach((circle) => {
+    CIRCLES_TO_USE.forEach(circle => {
       const torusGeometry = new THREE.TorusGeometry(circle.radius, 0.02, 16, 100);
       const torusMaterial = new THREE.MeshBasicMaterial({
         color: circle.color,
         transparent: true,
-        opacity: 0.4,
+        opacity: 0.4
       });
       const torus = new THREE.Mesh(torusGeometry, torusMaterial);
       torus.rotation.x = Math.PI / 2; // Make horizontal
@@ -204,10 +224,9 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
         context.font = 'bold 48px Arial';
         context.textAlign = 'center';
         context.fillText(circle.label, 256, 80);
-        
         const texture = new THREE.CanvasTexture(canvas);
-        const spriteMaterial = new THREE.SpriteMaterial({ 
-          map: texture, 
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture,
           transparent: true,
           opacity: 0.8
         });
@@ -226,21 +245,19 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       const dotMaterial = new THREE.MeshBasicMaterial({
         color: 0x4ade80,
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.35
       });
       const dot = new THREE.Mesh(dotGeometry, dotMaterial);
       const r = Math.random() * 18 + 4; // distance from center
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.random() * Math.PI;
-      dot.position.set(
-        r * Math.sin(phi) * Math.cos(theta),
-        (Math.random() - 0.5) * 6, // near the ring plane but varied
-        r * Math.sin(phi) * Math.sin(theta)
-      );
+      dot.position.set(r * Math.sin(phi) * Math.cos(theta), (Math.random() - 0.5) * 6,
+      // near the ring plane but varied
+      r * Math.sin(phi) * Math.sin(theta));
       dot.userData.velocity = {
         x: (Math.random() - 0.5) * 0.01,
         y: (Math.random() - 0.5) * 0.01,
-        z: (Math.random() - 0.5) * 0.01,
+        z: (Math.random() - 0.5) * 0.01
       };
       scene.add(dot);
       backgroundDots.push(dot);
@@ -250,23 +267,27 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
     const getHealthScore = (person: NetworkPerson): number => {
       // Randomly assign some relationships as needing attention (red)
       const needsAttention = Math.random() < 0.15; // 15% chance of being red
-      
+
       if (needsAttention) {
         return 15 + Math.random() * 25; // 15-40 (red - needs attention)
       }
-      
+
       // Mock health score based on person's circle - start with healthier relationships
       const baseScores: Record<string, number> = {
-        'family': 85 + Math.random() * 15,      // 85-100 (very healthy)
-        'friends': 75 + Math.random() * 20,     // 75-95 (healthy)
-        'business': 70 + Math.random() * 25,    // 70-95 (mostly healthy)
-        'acquaintances': 65 + Math.random() * 25, // 65-90 (good)
-        'network': 60 + Math.random() * 30,     // 60-90 (decent)
-        'extended': 55 + Math.random() * 30,    // 55-85 (fair)
+        'family': 85 + Math.random() * 15,
+        // 85-100 (very healthy)
+        'friends': 75 + Math.random() * 20,
+        // 75-95 (healthy)
+        'business': 70 + Math.random() * 25,
+        // 70-95 (mostly healthy)
+        'acquaintances': 65 + Math.random() * 25,
+        // 65-90 (good)
+        'network': 60 + Math.random() * 30,
+        // 60-90 (decent)
+        'extended': 55 + Math.random() * 30 // 55-85 (fair)
       };
       return baseScores[person.circle] || 70;
     };
-
     const getHealthColor = (score: number): number => {
       if (score >= 70) return 0x22c55e; // vibrant green
       if (score >= 40) return 0xeab308; // vibrant yellow
@@ -275,17 +296,25 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
 
     // Create people spheres and connections
     const spheres = new Map<string, THREE.Mesh>();
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 0x4ade80, transparent: true, opacity: 0.3 });
-    const interConnectionMaterial = new THREE.LineBasicMaterial({ color: 0x4ade80, transparent: true, opacity: 0.15 });
-
-    const peopleByCircle = new Map<string, Array<{person: NetworkPerson, position: THREE.Vector3}>>();
-
-    allPeople.forEach((person) => {
-      const circle = CIRCLES_TO_USE.find((c) => c.id === person.circle);
+    const lineMaterial = new THREE.LineBasicMaterial({
+      color: 0x4ade80,
+      transparent: true,
+      opacity: 0.3
+    });
+    const interConnectionMaterial = new THREE.LineBasicMaterial({
+      color: 0x4ade80,
+      transparent: true,
+      opacity: 0.15
+    });
+    const peopleByCircle = new Map<string, Array<{
+      person: NetworkPerson;
+      position: THREE.Vector3;
+    }>>();
+    allPeople.forEach(person => {
+      const circle = CIRCLES_TO_USE.find(c => c.id === person.circle);
       if (!circle) return;
-
       const radius = circle.radius;
-      const angle = (person.angle * Math.PI) / 180;
+      const angle = person.angle * Math.PI / 180;
       const x = radius * Math.cos(angle);
       const z = radius * Math.sin(angle);
       const y = 0; // Keep on horizontal plane
@@ -293,9 +322,7 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       const position = new THREE.Vector3(x, y, z);
 
       // Calculate health score and color (use provided map if available)
-      const initialScore = personHealth && personHealth[person.id] !== undefined 
-        ? personHealth[person.id]!
-        : getHealthScore(person);
+      const initialScore = personHealth && personHealth[person.id] !== undefined ? personHealth[person.id]! : getHealthScore(person);
       const healthColor = getHealthColor(initialScore);
 
       // Create person sphere with health-based color and pulsing glow
@@ -303,11 +330,16 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       const sphereMaterial = new THREE.MeshPhongMaterial({
         color: healthColor,
         emissive: healthColor,
-        emissiveIntensity: 0.5,
+        emissiveIntensity: 0.5
       });
       const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
       sphere.position.set(x, y, z);
-      sphere.userData = { person, baseEmissive: 0.5, healthScore: initialScore, healthColor };
+      sphere.userData = {
+        person,
+        baseEmissive: 0.5,
+        healthScore: initialScore,
+        healthColor
+      };
       scene.add(sphere);
       spheres.set(person.id, sphere);
 
@@ -315,7 +347,10 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       if (!peopleByCircle.has(person.circle)) {
         peopleByCircle.set(person.circle, []);
       }
-      peopleByCircle.get(person.circle)!.push({ person, position });
+      peopleByCircle.get(person.circle)!.push({
+        person,
+        position
+      });
 
       // Create connection line to center with health-based color
       // Only draw line if person is connected (or if it's "my circle" mode)
@@ -324,10 +359,10 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
         points.push(new THREE.Vector3(0, 0, 0));
         points.push(new THREE.Vector3(x, y, z));
         const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-        const healthLineMaterial = new THREE.LineBasicMaterial({ 
-          color: healthColor, 
-          transparent: true, 
-          opacity: 0.4 
+        const healthLineMaterial = new THREE.LineBasicMaterial({
+          color: healthColor,
+          transparent: true,
+          opacity: 0.4
         });
         const line = new THREE.Line(lineGeometry, healthLineMaterial);
         scene.add(line);
@@ -335,10 +370,9 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
     });
 
     // Create interconnections between people on different circles
-    allPeople.forEach((person) => {
-      const circle = CIRCLES_TO_USE.find((c) => c.id === person.circle);
+    allPeople.forEach(person => {
+      const circle = CIRCLES_TO_USE.find(c => c.id === person.circle);
       if (!circle) return;
-
       const personSphere = spheres.get(person.id);
       if (!personSphere) return;
 
@@ -346,7 +380,7 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       if (person.circle === 'friends') {
         // Connect to some people in business circle
         const businessPeople = peopleByCircle.get('business') || [];
-        businessPeople.slice(0, 2).forEach((bp) => {
+        businessPeople.slice(0, 2).forEach(bp => {
           const points = [personSphere.position.clone(), bp.position.clone()];
           const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
           const line = new THREE.Line(lineGeometry, interConnectionMaterial);
@@ -360,14 +394,12 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
           // Connect to next 2 friends in the circle
           const nextIndex = (currentIndex + 1) % friendsPeople.length;
           const next2Index = (currentIndex + 2) % friendsPeople.length;
-          
           if (friendsPeople[nextIndex]) {
             const points = [personSphere.position.clone(), friendsPeople[nextIndex].position.clone()];
             const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
             const line = new THREE.Line(lineGeometry, interConnectionMaterial);
             scene.add(line);
           }
-          
           if (friendsPeople[next2Index] && friendsPeople.length > 2) {
             const points = [personSphere.position.clone(), friendsPeople[next2Index].position.clone()];
             const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -393,7 +425,6 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
         }
       }
     });
-
     spheresRef.current = spheres;
 
     // Raycaster for click detection
@@ -403,89 +434,83 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
     // Mouse events
     const onMouseDown = (event: MouseEvent) => {
       isDraggingRef.current = true;
-      previousMousePositionRef.current = { x: event.clientX, y: event.clientY };
+      previousMousePositionRef.current = {
+        x: event.clientX,
+        y: event.clientY
+      };
     };
-
     const onMouseMove = (event: MouseEvent) => {
       if (isDraggingRef.current) {
         const deltaX = event.clientX - previousMousePositionRef.current.x;
         const deltaY = event.clientY - previousMousePositionRef.current.y;
-
         scene.rotation.y += deltaX * 0.005;
         scene.rotation.x += deltaY * 0.005;
-
-        previousMousePositionRef.current = { x: event.clientX, y: event.clientY };
+        previousMousePositionRef.current = {
+          x: event.clientX,
+          y: event.clientY
+        };
       }
     };
-
     const onMouseUp = () => {
       isDraggingRef.current = false;
     };
-
     const onClick = (event: MouseEvent) => {
       if (!containerRef.current || !camera || !scene) return;
-
       const rect = containerRef.current.getBoundingClientRect();
-      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.x = (event.clientX - rect.left) / rect.width * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(Array.from(spheres.values()));
-
       if (intersects.length > 0) {
         const clickedSphere = intersects[0].object as THREE.Mesh;
         const person = clickedSphere.userData.person as NetworkPerson;
-        
+
         // Show popup with person details
         setSelectedPerson(person);
         setShowMenu(true);
-        
+
         // Zoom in while maintaining the top-down viewing angle
         isZoomingRef.current = true;
         const targetPosition = clickedSphere.position.clone();
         const startCameraPosition = camera.position.clone();
-        const startSceneRotation = { x: scene.rotation.x, y: scene.rotation.y };
-        
+        const startSceneRotation = {
+          x: scene.rotation.x,
+          y: scene.rotation.y
+        };
+
         // Calculate target camera position - zoom in but maintain the angle ratio
         const targetZ = 4;
         const targetCameraPosition = new THREE.Vector3(0, CAMERA_ANGLE_RATIO * targetZ, targetZ);
-        
+
         // Calculate target scene rotation to center the sphere horizontally
         const targetSceneRotation = {
-          x: startSceneRotation.x, // Keep the same tilt
+          x: startSceneRotation.x,
+          // Keep the same tilt
           y: -Math.atan2(targetPosition.x, targetPosition.z) // Rotate horizontally to center
         };
-        
         let progress = 0;
         const duration = 1000;
         const startTime = Date.now();
-        
         const animateZoom = () => {
           const elapsed = Date.now() - startTime;
           progress = Math.min(elapsed / duration, 1);
           const eased = 1 - Math.pow(1 - progress, 3);
-          
           camera.position.lerpVectors(startCameraPosition, targetCameraPosition, eased);
           camera.lookAt(0, 0, 0);
-          
           scene.rotation.x = startSceneRotation.x;
           scene.rotation.y = startSceneRotation.y + (targetSceneRotation.y - startSceneRotation.y) * eased;
-          
           if (progress < 1) {
             requestAnimationFrame(animateZoom);
           } else {
             isZoomingRef.current = false;
           }
         };
-        
         animateZoom();
-        
         if (onPersonClick) {
           onPersonClick(person);
         }
       }
     };
-
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
       camera.position.z += event.deltaY * 0.01;
@@ -500,49 +525,43 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       const dy = touches[0].clientY - touches[1].clientY;
       return Math.sqrt(dx * dx + dy * dy);
     };
-
     const onTouchStart = (event: TouchEvent) => {
       event.preventDefault(); // Prevent scrolling
       if (event.touches.length === 1) {
         // Single finger drag
         isDraggingRef.current = true;
-        previousMousePositionRef.current = { 
-          x: event.touches[0].clientX, 
-          y: event.touches[0].clientY 
+        previousMousePositionRef.current = {
+          x: event.touches[0].clientX,
+          y: event.touches[0].clientY
         };
       } else if (event.touches.length === 2) {
         touchDistanceRef.current = getTouchDistance(event.touches);
       }
     };
-
     const onTouchMove = (event: TouchEvent) => {
       event.preventDefault(); // Prevent scrolling
       if (event.touches.length === 1 && isDraggingRef.current) {
         // Single finger rotation - more sensitive on mobile
         const deltaX = event.touches[0].clientX - previousMousePositionRef.current.x;
         const deltaY = event.touches[0].clientY - previousMousePositionRef.current.y;
-
         scene.rotation.y += deltaX * 0.008;
         scene.rotation.x += deltaY * 0.008;
-
-        previousMousePositionRef.current = { 
-          x: event.touches[0].clientX, 
-          y: event.touches[0].clientY 
+        previousMousePositionRef.current = {
+          x: event.touches[0].clientX,
+          y: event.touches[0].clientY
         };
       } else if (event.touches.length === 2 && touchDistanceRef.current !== null) {
         const currentDistance = getTouchDistance(event.touches);
         const delta = currentDistance - touchDistanceRef.current;
-        
+
         // More responsive zoom on mobile
         camera.position.z -= delta * 0.03;
         camera.position.y = camera.position.z * CAMERA_ANGLE_RATIO;
         camera.position.z = Math.max(5, Math.min(20, camera.position.z));
         camera.position.y = Math.max(5 * CAMERA_ANGLE_RATIO, Math.min(20 * CAMERA_ANGLE_RATIO, camera.position.y));
-        
         touchDistanceRef.current = currentDistance;
       }
     };
-
     const onTouchEnd = (event: TouchEvent) => {
       event.preventDefault(); // Prevent scrolling
       if (event.touches.length < 1) {
@@ -552,14 +571,17 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
         touchDistanceRef.current = null;
       }
     };
-
     renderer.domElement.addEventListener('mousedown', onMouseDown);
     renderer.domElement.addEventListener('mousemove', onMouseMove);
     renderer.domElement.addEventListener('mouseup', onMouseUp);
     renderer.domElement.addEventListener('click', onClick);
     renderer.domElement.addEventListener('wheel', onWheel);
-    renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
-    renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
+    renderer.domElement.addEventListener('touchstart', onTouchStart, {
+      passive: false
+    });
+    renderer.domElement.addEventListener('touchmove', onTouchMove, {
+      passive: false
+    });
     renderer.domElement.addEventListener('touchend', onTouchEnd);
 
     // Animation loop
@@ -573,14 +595,14 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
 
       // Pulsing glow effect for all spheres
       const time = Date.now() * 0.001;
-      spheres.forEach((sphere) => {
+      spheres.forEach(sphere => {
         const material = sphere.material as THREE.MeshPhongMaterial;
         const baseEmissive = sphere.userData.baseEmissive || 0.5;
         material.emissiveIntensity = baseEmissive + Math.sin(time * 2) * 0.3;
       });
 
       // Subtle motion for background dots
-      backgroundDots.forEach((dot) => {
+      backgroundDots.forEach(dot => {
         dot.position.x += dot.userData.velocity.x;
         dot.position.y += dot.userData.velocity.y;
         dot.position.z += dot.userData.velocity.z;
@@ -589,7 +611,6 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
         if (Math.abs(dot.position.y) > limit) dot.userData.velocity.y *= -1;
         if (Math.abs(dot.position.z) > limit) dot.userData.velocity.z *= -1;
       });
-
       renderer.render(scene, camera);
     };
     animate();
@@ -602,7 +623,6 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     };
     window.addEventListener('resize', handleResize);
-
     return () => {
       window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('mousedown', onMouseDown);
@@ -631,7 +651,6 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       mat.needsUpdate = true;
     });
   }, [personHealth]);
-
   const handleViewProfile = () => {
     if (selectedPerson?.userId) {
       navigate(`/u/${selectedPerson.userId}`);
@@ -639,33 +658,17 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       navigate('/profile');
     }
   };
-
-  return (
-    <div className="relative w-full h-full">
+  return <div className="relative w-full h-full">
       {/* View mode toggle */}
       <div className="fixed top-4 right-4 z-50 animate-fade-in">
-        <ToggleGroup
-          type="single"
-          value={showDemoNodes ? 'demo' : 'real'}
-          onValueChange={(v) => {
-            if (!v) return;
-            setShowDemoNodes(v === 'demo');
-          }}
-          className="bg-background/80 backdrop-blur px-1 py-1 rounded-lg border border-border flex"
-          aria-label="View mode"
-        >
-          <ToggleGroupItem
-            value="real"
-            className="px-3 py-1 text-sm rounded-md data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            aria-label="My circle"
-          >
+        <ToggleGroup type="single" value={showDemoNodes ? 'demo' : 'real'} onValueChange={v => {
+        if (!v) return;
+        setShowDemoNodes(v === 'demo');
+      }} className="bg-background/80 backdrop-blur px-1 py-1 rounded-lg border border-border flex" aria-label="View mode">
+          <ToggleGroupItem value="real" className="px-3 py-1 text-sm rounded-md data-[state=on]:bg-primary data-[state=on]:text-primary-foreground" aria-label="My circle">
             My circle
           </ToggleGroupItem>
-          <ToggleGroupItem
-            value="demo"
-            className="px-3 py-1 text-sm rounded-md data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            aria-label="Demo"
-          >
+          <ToggleGroupItem value="demo" className="px-3 py-1 text-sm rounded-md data-[state=on]:bg-primary data-[state=on]:text-primary-foreground" aria-label="Demo">
             Demo
           </ToggleGroupItem>
         </ToggleGroup>
@@ -674,34 +677,18 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
       <div ref={containerRef} className="w-full h-screen" />
 
       {/* Side menu toggle */}
-      {!showMenu && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="fixed top-1/2 right-4 -translate-y-1/2 bg-card/90 backdrop-blur border border-border hover:bg-card"
-          onClick={() => setShowMenu(true)}
-        >
-          <ChevronRight className="h-5 w-5" />
-        </Button>
-      )}
+      {!showMenu}
 
       {/* Side menu */}
-      {showMenu && (
-        <Card className="fixed top-1/2 right-4 -translate-y-1/2 w-64 bg-card/95 backdrop-blur border-border p-4">
+      {showMenu && <Card className="fixed top-1/2 right-4 -translate-y-1/2 w-64 bg-card/95 backdrop-blur border-border p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-sm">Network Info</h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowMenu(false)}
-              className="h-6 w-6"
-            >
+            <Button variant="ghost" size="icon" onClick={() => setShowMenu(false)} className="h-6 w-6">
               <X className="h-4 w-4" />
             </Button>
           </div>
 
-          {selectedPerson ? (
-            <div className="space-y-3">
+          {selectedPerson ? <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
                   <User className="h-5 w-5 text-primary" />
@@ -713,40 +700,29 @@ export const Network3D = ({ people, onPersonClick, personHealth, circleType = 'm
                   </p>
                 </div>
               </div>
-              <Button
-                onClick={handleViewProfile}
-                className="w-full"
-                size="sm"
-              >
+              <Button onClick={handleViewProfile} className="w-full" size="sm">
                 View Profile
               </Button>
-            </div>
-          ) : (
-            <div className="space-y-2 text-sm text-muted-foreground">
+            </div> : <div className="space-y-2 text-sm text-muted-foreground">
               <p>Total connections: {people.length}</p>
               <div className="space-y-1 text-xs">
-                {CIRCLES.map((circle) => {
-                  const count = people.filter((p) => p.circle === circle.id).length;
-                  return (
-                    <div key={circle.id} className="flex justify-between">
+                {CIRCLES.map(circle => {
+            const count = people.filter(p => p.circle === circle.id).length;
+            return <div key={circle.id} className="flex justify-between">
                       <span>{circle.label}:</span>
                       <span className="text-primary">{count}</span>
-                    </div>
-                  );
-                })}
+                    </div>;
+          })}
               </div>
               <p className="mt-4 pt-4 border-t border-border">
                 Click on a green sphere to view details
               </p>
-            </div>
-          )}
-        </Card>
-      )}
+            </div>}
+        </Card>}
 
       {/* Instructions */}
       <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur border border-border rounded-lg px-4 py-2 text-xs text-muted-foreground">
         <p>🖱️ Click & drag to rotate • Scroll to zoom • Click spheres for details</p>
       </div>
-    </div>
-  );
+    </div>;
 };
