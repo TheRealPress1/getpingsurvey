@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import Landing from "./pages/Landing";
+import Home from "./pages/Home";
 import Model3DUpload from "./pages/Model3DUpload";
 import Onboarding from "./pages/Onboarding";
 import Checkout from "./pages/Checkout";
@@ -39,7 +40,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/signup" element={<Onboarding />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
