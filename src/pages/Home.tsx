@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Network3D } from '@/components/Network3D';
-import { CircleStrengthTracker } from '@/components/CircleStrengthTracker';
 import { HomeNav } from '@/components/HomeNav';
 import { RecommendedPingsSidebar } from '@/components/RecommendedPingsSidebar';
 import { Button } from '@/components/ui/button';
@@ -93,7 +92,6 @@ export default function Home() {
 
     setPeople(networkPeople);
     
-    // Calculate health scores
     const healthMap: Record<string, number> = {};
     networkPeople.forEach(p => {
       healthMap[p.id] = p.relationshipHealthScore || 70;
@@ -120,7 +118,6 @@ export default function Home() {
                            circleIdx === 4 ? 55 + Math.random() * 35 :
                            45 + Math.random() * 40;
         
-        // Add some at-risk contacts
         const isAtRisk = Math.random() < 0.15;
         const finalScore = isAtRisk ? 15 + Math.random() * 25 : healthScore;
         
@@ -151,26 +148,14 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-foreground flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-black text-foreground flex flex-col relative overflow-hidden w-full">
       {/* Top Nav */}
       <HomeNav />
 
-      {/* Main Content */}
-      <div className="flex-1 relative flex">
-        {/* Circle Strength Tracker - Overlay on canvas */}
-        <div className="absolute top-4 left-4 z-30 pointer-events-none">
-          <div className="pointer-events-auto">
-            <CircleStrengthTracker 
-              people={people} 
-              personHealth={personHealth}
-              isDemoMode={isDemoMode}
-            />
-          </div>
-        </div>
-
-
-        {/* 3D Visualization Canvas */}
-        <div className="flex-1">
+      {/* Main Content - Full Screen 3D */}
+      <div className="flex-1 relative w-full">
+        {/* 3D Visualization Canvas - Full Screen */}
+        <div className="absolute inset-0 w-full h-full">
           <Network3D 
             people={people}
             onPersonClick={handlePersonClick}
@@ -181,7 +166,7 @@ export default function Home() {
           />
         </div>
 
-        {/* Right Sidebar */}
+        {/* Leaderboard Overlay */}
         <RecommendedPingsSidebar 
           selectedPerson={selectedPerson}
           onClose={() => setSelectedPerson(null)}
