@@ -44,9 +44,9 @@ const PaymentSuccess = () => {
       setShowProfile(true);
     }, 3000);
 
-    // Navigate to account setup after all animations
+    // Navigate to profile setup after animations
     const navTimer = setTimeout(() => {
-      navigate('/account-setup');
+      navigate('/profile-setup');
     }, 5000);
 
     return () => {
@@ -101,7 +101,7 @@ const PaymentSuccess = () => {
           }`}
         >
           <p className="text-2xl iridescent-text">
-            Let's create your account
+            Let's create your profile
           </p>
           <div className="mt-4 flex justify-center">
             <div className="w-8 h-8 border-2 border-primary rounded-full border-t-transparent animate-spin"></div>
