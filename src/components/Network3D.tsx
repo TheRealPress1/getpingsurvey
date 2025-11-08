@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three-stdlib';
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ChevronRight, X, User } from 'lucide-react';
+import characterModel from '@/assets/character-model.glb';
 interface NetworkPerson {
   id: string;
   name: string;
@@ -203,6 +205,31 @@ export const Network3D = ({
     const centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
     centerSphere.userData.isUserCharacter = true;
     scene.add(centerSphere);
+
+    // Load 3D character model floating above center sphere
+    const loader = new GLTFLoader();
+    let characterModelMesh: THREE.Group | null = null;
+    loader.load(
+      characterModel,
+      (gltf) => {
+        characterModelMesh = gltf.scene;
+        
+        // Scale and position above center sphere
+        characterModelMesh.scale.set(0.4, 0.4, 0.4);
+        characterModelMesh.position.set(0, 1.5, 0); // Floating above sphere
+        
+        // Mark as user character for click detection
+        characterModelMesh.userData.isUserCharacter = true;
+        characterModelMesh.userData.floatOffset = 0;
+        
+        scene.add(characterModelMesh);
+      },
+      undefined,
+      (error) => {
+        console.error('Error loading 3D character model:', error);
+        // Silently fail - center sphere is already visible
+      }
+    );
 
     // Create horizontal concentric circles (torus rings) with labels
     CIRCLES_TO_USE.forEach(circle => {
@@ -641,6 +668,12 @@ export const Network3D = ({
       // Gentle rotation when not dragging and not zooming
       if (!isDraggingRef.current && !isZoomingRef.current) {
         scene.rotation.y += 0.001;
+      }
+
+      // Floating animation for character model
+      if (characterModelMesh) {
+        characterModelMesh.userData.floatOffset += 0.01;
+        characterModelMesh.position.y = 1.5 + Math.sin(characterModelMesh.userData.floatOffset) * 0.1;
       }
 
       // Pulsing glow effect for all spheres

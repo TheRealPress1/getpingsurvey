@@ -654,6 +654,7 @@ export type Database = {
           last_name: string | null
           linkedin_url: string | null
           location: string | null
+          model_3d_url: string | null
           phone_number: string | null
           profile_completeness: number | null
           resume_filename: string | null
@@ -684,6 +685,7 @@ export type Database = {
           last_name?: string | null
           linkedin_url?: string | null
           location?: string | null
+          model_3d_url?: string | null
           phone_number?: string | null
           profile_completeness?: number | null
           resume_filename?: string | null
@@ -714,6 +716,7 @@ export type Database = {
           last_name?: string | null
           linkedin_url?: string | null
           location?: string | null
+          model_3d_url?: string | null
           phone_number?: string | null
           profile_completeness?: number | null
           resume_filename?: string | null
