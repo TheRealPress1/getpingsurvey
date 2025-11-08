@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  assetsInclude: ['**/*.glb'],
   plugins: [
     react(),
     mode === 'development' &&
@@ -59,7 +60,7 @@ export default defineConfig(({ mode }) => ({
         }
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,glb}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
         runtimeCaching: [
           {
