@@ -157,7 +157,7 @@ const AccountSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background relative overflow-y-auto overflow-x-hidden flex items-center justify-center p-4">
       <StarField />
       
       <Card className="w-full max-w-md relative z-10 bg-card/80 backdrop-blur-sm border border-border/50">
