@@ -183,8 +183,8 @@ export default function Home() {
           />
         </div>
 
-      {/* Circle Strength Bar - Hovering Above Center */}
-        <div className="absolute top-[20%] md:top-1/3 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4">
+      {/* Circle Strength Bar - Moved Up */}
+        <div className="absolute top-4 md:top-8 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4">
           <CircleStrengthBar people={people} personHealth={personHealth} />
         </div>
 

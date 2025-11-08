@@ -215,9 +215,9 @@ export const Network3D = ({
       loader.load(
         characterModel,
         (gltf) => {
-        characterMesh = gltf.scene;
-        characterMesh.scale.set(0.4, 0.4, 0.4);
-        characterMesh.position.set(0, 0.15, 0);
+          characterMesh = gltf.scene;
+          characterMesh.scale.set(1.2, 1.2, 1.2); // Much bigger
+          characterMesh.position.set(0, 0.15, 0);
         characterMesh.userData.isUserCharacter = true;
         
         // Traverse and make all child meshes clickable
@@ -529,7 +529,40 @@ export const Network3D = ({
         
         // Check if clicked on character model
         if (clickedObject.userData.isUserCharacter || clickedObject.parent?.userData.isUserCharacter) {
-          navigate('/profile');
+          // Zoom in to character and show profile popup
+          isZoomingRef.current = true;
+          const startCameraPosition = camera.position.clone();
+          const targetZ = 3; // Closer zoom
+          const targetCameraPosition = new THREE.Vector3(0, CAMERA_ANGLE_RATIO * targetZ, targetZ);
+          
+          let zoomProgress = 0;
+          const zoomDuration = 60; // frames
+          
+          const zoomAnimation = () => {
+            zoomProgress++;
+            const t = zoomProgress / zoomDuration;
+            const eased = 1 - Math.pow(1 - t, 3); // Ease out cubic
+            
+            camera.position.lerpVectors(startCameraPosition, targetCameraPosition, eased);
+            camera.lookAt(0, 0, 0);
+            
+            if (zoomProgress < zoomDuration) {
+              requestAnimationFrame(zoomAnimation);
+            } else {
+              isZoomingRef.current = false;
+              // Show profile popup
+              setSelectedPerson({
+                id: 'user',
+                name: 'You',
+                circle: 'family',
+                angle: 0,
+                userId: 'current-user'
+              });
+              setShowMenu(true);
+            }
+          };
+          
+          zoomAnimation();
           return;
         }
       }
