@@ -231,18 +231,8 @@ export const Network3D = ({
       }
     );
 
-    // Create horizontal concentric circles (torus rings) with labels
+    // Create text labels for each circle
     CIRCLES_TO_USE.forEach(circle => {
-      const torusGeometry = new THREE.TorusGeometry(circle.radius, 0.02, 16, 100);
-      const torusMaterial = new THREE.MeshBasicMaterial({
-        color: circle.color,
-        transparent: true,
-        opacity: 0.4
-      });
-      const torus = new THREE.Mesh(torusGeometry, torusMaterial);
-      torus.rotation.x = Math.PI / 2; // Make horizontal
-      scene.add(torus);
-
       // Create text label for each circle
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
