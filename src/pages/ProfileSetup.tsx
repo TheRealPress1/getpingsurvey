@@ -115,17 +115,18 @@ const ProfileSetup = () => {
       return;
     }
 
+    // Create and show preview IMMEDIATELY (before any async operations)
+    const previewUrl = URL.createObjectURL(file);
+    setProfileData(prev => ({
+      ...prev,
+      profilePhoto: file,
+      avatarUrl: previewUrl // Preview shows instantly
+    }));
+
+    // Now handle upload in background
     setLoading(true);
     
     try {
-      // Create preview URL immediately for better UX
-      const previewUrl = URL.createObjectURL(file);
-      setProfileData(prev => ({
-        ...prev,
-        profilePhoto: file,
-        avatarUrl: previewUrl // Show preview immediately
-      }));
-
       // Upload to Supabase storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
