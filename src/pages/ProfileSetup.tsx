@@ -337,9 +337,9 @@ const ProfileSetup = () => {
           });
         }
 
-        // Navigate to network visualization
+        // Navigate to profile page
         setTimeout(() => {
-          navigate('/network/visualize');
+          navigate('/profile');
         }, 500);
       }
       setLoading(false);
