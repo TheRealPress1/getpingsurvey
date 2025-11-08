@@ -41,13 +41,17 @@ export default function NetworkVisualization() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPerson, setSelectedPerson] = useState<NetworkPerson | null>(null);
   const [personHealth, setPersonHealth] = useState<Record<string, number>>({});
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [industries] = useState<string[]>(['AI', 'Tech', 'Sustainability']);
 
   useEffect(() => {
-    if (user) {
+    if (user && !isDemoMode) {
       loadRealConnections();
       loadUserEvents();
+    } else if (isDemoMode) {
+      loadDemoData();
     }
-  }, [user]);
+  }, [user, isDemoMode]);
 
   useEffect(() => {
     if (user && circleType === 'event' && userEvents.length > 0) {
@@ -254,6 +258,49 @@ export default function NetworkVisualization() {
     setPeople(networkPeople);
   };
 
+  const loadDemoData = () => {
+    const circles: Array<'family' | 'friends' | 'business' | 'acquaintances' | 'network' | 'extended'> = 
+      ['family', 'friends', 'business', 'acquaintances', 'network', 'extended'];
+    
+    const demoPeople: NetworkPerson[] = [];
+    const healthMap: Record<string, number> = {};
+
+    circles.forEach((circle, circleIdx) => {
+      const count = circleIdx === 0 ? 3 : circleIdx === 1 ? 8 : circleIdx === 2 ? 12 : circleIdx === 3 ? 15 : circleIdx === 4 ? 20 : 25;
+      
+      for (let i = 0; i < count; i++) {
+        const id = `demo-${circle}-${i}`;
+        const healthScore = circleIdx === 0 ? 85 + Math.random() * 15 :
+                           circleIdx === 1 ? 75 + Math.random() * 20 :
+                           circleIdx === 2 ? 70 + Math.random() * 25 :
+                           circleIdx === 3 ? 60 + Math.random() * 30 :
+                           circleIdx === 4 ? 55 + Math.random() * 35 :
+                           45 + Math.random() * 40;
+        
+        const isAtRisk = Math.random() < 0.15;
+        const finalScore = isAtRisk ? 15 + Math.random() * 25 : healthScore;
+        
+        const angle = (360 / count) * i;
+        const lat = (Math.sin(angle * Math.PI / 180) * 50) + (Math.random() * 10 - 5);
+        const lng = (Math.cos(angle * Math.PI / 180) * 120) + (Math.random() * 10 - 5);
+        
+        demoPeople.push({
+          id,
+          name: `${circle.charAt(0).toUpperCase() + circle.slice(1)} ${i + 1}`,
+          circle,
+          angle,
+          lat: Math.max(-85, Math.min(85, lat)),
+          lng,
+        });
+        
+        healthMap[id] = finalScore;
+      }
+    });
+
+    setPeople(demoPeople);
+    setPersonHealth(healthMap);
+  };
+
   const handlePersonClick = (person: NetworkPerson) => {
     console.log('Person clicked:', person);
     setSelectedPerson(person);
@@ -262,6 +309,7 @@ export default function NetworkVisualization() {
   const handleHealthChange = (id: string, score: number) => {
     setPersonHealth((prev) => ({ ...prev, [id]: score }));
   };
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -283,6 +331,18 @@ export default function NetworkVisualization() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            
+            {/* Demo Mode Toggle - only show in circles view */}
+            {viewMode === 'circles' && (
+              <Button
+                variant={isDemoMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsDemoMode(!isDemoMode)}
+                className="ml-2"
+              >
+                {isDemoMode ? "Demo Mode" : "My Circle"}
+              </Button>
+            )}
             
             <h1 className="text-4xl font-bold iridescent-text">
               {viewMode === 'chats' ? 'chats' : 'visualize your circle'}
