@@ -165,7 +165,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-foreground flex flex-col relative overflow-hidden w-full">
+    <div className="h-screen bg-black text-foreground flex flex-col relative overflow-hidden w-full touch-none overscroll-none">
       {/* Top Nav */}
       <HomeNav />
 
@@ -183,8 +183,8 @@ export default function Home() {
           />
         </div>
 
-        {/* Circle Strength Bar - Hovering Above Center */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+      {/* Circle Strength Bar - Hovering Above Center */}
+        <div className="absolute top-[20%] md:top-1/3 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4">
           <CircleStrengthBar people={people} personHealth={personHealth} />
         </div>
 
@@ -213,8 +213,8 @@ export default function Home() {
       </div>
 
       {/* Circle Filter - Bottom Center */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40">
-        <div className="flex gap-4 bg-black/80 backdrop-blur border border-primary/30 rounded-full px-6 py-3">
+      <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40">
+        <div className="flex gap-2 md:gap-4 bg-black/80 backdrop-blur border border-primary/30 rounded-full px-4 md:px-6 py-2 md:py-3">
           <Button
             variant={circleType === 'my' ? 'default' : 'ghost'}
             size="sm"
@@ -243,12 +243,12 @@ export default function Home() {
       </div>
 
       {/* Demo/Real Toggle - Bottom Right */}
-      <div className="fixed bottom-8 right-8 z-40">
+      <div className="fixed bottom-20 md:bottom-8 right-4 md:right-8 z-40">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setIsDemoMode(!isDemoMode)}
-          className="rounded-full bg-black/80 backdrop-blur border-primary/30"
+          className="rounded-full bg-black/80 backdrop-blur border-primary/30 text-xs md:text-sm"
         >
           {isDemoMode ? 'Demo' : 'Real'}
         </Button>
