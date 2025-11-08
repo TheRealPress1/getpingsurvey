@@ -93,7 +93,7 @@ const Landing = () => {
       setIsSubmitting(false);
     }
   };
-  return <div className="min-h-screen bg-background relative overflow-hidden">
+  return <div className="min-h-screen bg-background relative overflow-y-auto overflow-x-hidden">
       <StarField />
       
       {/* Header */}
@@ -109,7 +109,7 @@ const Landing = () => {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] p-6">
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] p-6 py-12">
         <div className="text-center space-y-12 max-w-4xl">
           {/* 3D Ring */}
           <div className="flex justify-center">
