@@ -11,12 +11,13 @@ import ImageCropper from '@/components/ImageCropper';
 
 const ProfileSetup = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
     phone: "",
+    location: "",
     question1: "",
     question2: "",
     question3: "",
@@ -232,11 +233,32 @@ const ProfileSetup = () => {
     if (!user) return;
 
     try {
+      // Update email if changed
+      if (profileData.email && profileData.email !== user.email) {
+        const { error: emailError } = await supabase.auth.updateUser({
+          email: profileData.email
+        });
+        if (emailError) {
+          toast({
+            variant: 'destructive',
+            title: 'Email update failed',
+            description: emailError.message
+          });
+        } else {
+          toast({
+            title: 'Email update sent',
+            description: 'Check your new email to confirm the change.'
+          });
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .upsert({
           user_id: user.id,
           display_name: profileData.name || (user.user_metadata as any)?.display_name,
+          phone_number: profileData.phone,
+          location: profileData.location,
           bio: `Q1: ${profileData.question1}\n\nQ2: ${profileData.question2}\n\nQ3: ${profileData.question3}\n\nQ4: ${profileData.question4}\n\nQ5: ${profileData.question5}`,
           avatar_url: profileData.avatarUrl,
           linkedin_url: profileData.linkedin,
@@ -395,6 +417,51 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-6">
             <div className="text-center">
+              <h2 className="text-2xl font-bold iridescent-text mb-2">contact information</h2>
+              <p className="text-muted-foreground iridescent-text">how can people reach you?</p>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium iridescent-text mb-2">email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={profileData.email}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
+                  placeholder="your@email.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium iridescent-text mb-2">phone number</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={profileData.phone}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium iridescent-text mb-2">location</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={profileData.location}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-secondary/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary iridescent-text"
+                  placeholder="City, State/Country"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
               <h2 className="text-2xl font-bold iridescent-text mb-2">let's get to know you</h2>
               <p className="text-muted-foreground iridescent-text">answer a few questions to help us create your perfect profile</p>
             </div>
@@ -468,7 +535,7 @@ const ProfileSetup = () => {
           </div>
         );
       
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -531,7 +598,7 @@ const ProfileSetup = () => {
           </div>
         );
       
-      case 4:
+      case 5:
         return (
           <div className="space-y-6">
             <div className="text-center">

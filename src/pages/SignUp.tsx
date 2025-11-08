@@ -38,7 +38,7 @@ const SignUp = () => {
     
     setLoading(true);
     
-const redirectUrl = `${window.location.origin}/auth/callback`;
+const redirectUrl = `${window.location.origin}/profile`;
     
     const { data, error } = await supabase.auth.signUp({
       email,

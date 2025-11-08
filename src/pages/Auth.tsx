@@ -87,7 +87,7 @@ const handleSignUp = async () => {
     }
   }
 
-  const redirectUrl = `${window.location.origin}/auth/callback`;
+  const redirectUrl = `${window.location.origin}/profile`;
   const normalizedEmail = email.trim().toLowerCase();
 
   const nameParts = displayName.trim().split(' ');
