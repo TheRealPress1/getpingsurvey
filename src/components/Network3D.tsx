@@ -229,7 +229,7 @@ export const Network3D = ({
             
             model.scale.setScalar(scale);
             model.position.set(0, 0, 0);
-            model.rotation.x = Math.PI / 2; // Make horizontal
+            // No rotation needed - keep it flat on the XZ plane
             
             scene.add(model);
           },
