@@ -211,7 +211,7 @@ export const Network3D = ({
       
       if (isOutermost) {
         // Create 3D ring for outermost circle - matching Ring3D component style
-        const ringGeometry = new THREE.TorusGeometry(circle.radius, 0.35, 16, 128);
+        const ringGeometry = new THREE.TorusGeometry(circle.radius, 0.15, 16, 128);
         const ringMaterial = new THREE.MeshStandardMaterial({ 
           color: 0x064e3b,
           metalness: 0.95,
