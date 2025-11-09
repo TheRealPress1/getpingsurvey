@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 
-
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ChevronRight, X, User } from 'lucide-react';
+import { FloatingProfilePreview } from './FloatingProfilePreview';
 interface NetworkPerson {
   id: string;
   name: string;
@@ -77,6 +77,8 @@ export const Network3D = ({
   const [showMenu, setShowMenu] = useState(false);
   const [showDemoNodes, setShowDemoNodes] = useState(false);
   const isZoomingRef = useRef(false);
+  const zoomTargetRef = useRef<THREE.Vector3 | null>(null);
+  const lastCameraPositionRef = useRef<THREE.Vector3 | null>(null);
   const navigate = useNavigate();
   useEffect(() => {
     if (!containerRef.current) return;
@@ -600,10 +602,14 @@ export const Network3D = ({
     };
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
-      camera.position.z += event.deltaY * 0.01;
-      camera.position.y = camera.position.z * CAMERA_ANGLE_RATIO;
-      camera.position.z = Math.max(5, Math.min(20, camera.position.z));
-      camera.position.y = Math.max(5 * CAMERA_ANGLE_RATIO, Math.min(20 * CAMERA_ANGLE_RATIO, camera.position.y));
+      
+      // Store current position for stable zooming
+      const currentZ = camera.position.z;
+      const newZ = Math.max(5, Math.min(20, currentZ + event.deltaY * 0.01));
+      
+      camera.position.z = newZ;
+      camera.position.y = newZ * CAMERA_ANGLE_RATIO;
+      camera.lookAt(0, 0, 0);
     };
 
     // Touch events for pinch-to-zoom
@@ -626,7 +632,8 @@ export const Network3D = ({
       }
     };
     const onTouchMove = (event: TouchEvent) => {
-      event.preventDefault(); // Prevent scrolling
+      event.preventDefault(); // Prevent scrolling and default behaviors
+      
       if (event.touches.length === 1 && isDraggingRef.current) {
         // Single finger rotation - more sensitive on mobile
         const deltaX = event.touches[0].clientX - previousMousePositionRef.current.x;
@@ -638,24 +645,45 @@ export const Network3D = ({
           y: event.touches[0].clientY
         };
       } else if (event.touches.length === 2 && touchDistanceRef.current !== null) {
+        // Pinch-to-zoom with stable positioning
         const currentDistance = getTouchDistance(event.touches);
         const delta = currentDistance - touchDistanceRef.current;
 
-        // More responsive zoom on mobile
-        camera.position.z -= delta * 0.03;
-        camera.position.y = camera.position.z * CAMERA_ANGLE_RATIO;
-        camera.position.z = Math.max(5, Math.min(20, camera.position.z));
-        camera.position.y = Math.max(5 * CAMERA_ANGLE_RATIO, Math.min(20 * CAMERA_ANGLE_RATIO, camera.position.y));
+        // Calculate zoom center point in screen space
+        const centerX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
+        const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+        
+        // Store the current camera position before zoom
+        const beforeZ = camera.position.z;
+        
+        // Apply zoom with smoother scaling
+        const zoomFactor = delta * 0.02;
+        const newZ = Math.max(5, Math.min(20, beforeZ - zoomFactor));
+        
+        camera.position.z = newZ;
+        camera.position.y = newZ * CAMERA_ANGLE_RATIO;
+        camera.lookAt(0, 0, 0);
+        
+        // Update stored distance for next iteration
         touchDistanceRef.current = currentDistance;
       }
     };
     const onTouchEnd = (event: TouchEvent) => {
-      event.preventDefault(); // Prevent scrolling
+      event.preventDefault(); // Prevent default behaviors
+      
+      // Reset dragging state
       if (event.touches.length < 1) {
         isDraggingRef.current = false;
       }
+      
+      // Reset zoom tracking
       if (event.touches.length < 2) {
         touchDistanceRef.current = null;
+      }
+      
+      // Store final camera position to prevent reorientation
+      if (event.touches.length === 0) {
+        lastCameraPositionRef.current = camera.position.clone();
       }
     };
     renderer.domElement.addEventListener('mousedown', onMouseDown);
@@ -764,49 +792,26 @@ export const Network3D = ({
       
       <div ref={containerRef} className="w-full h-screen" />
 
-      {/* Side menu toggle */}
-      {!showMenu}
-
-      {/* Side menu */}
-      {showMenu && <Card className="fixed top-1/2 right-4 -translate-y-1/2 w-64 bg-card/95 backdrop-blur border-border p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-sm">Network Info</h3>
-            <Button variant="ghost" size="icon" onClick={() => setShowMenu(false)} className="h-6 w-6">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {selectedPerson ? <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <User className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold">{selectedPerson.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {selectedPerson.circle.replace('_', ' ')}
-                  </p>
-                </div>
-              </div>
-              <Button onClick={handleViewProfile} className="w-full" size="sm">
-                View Profile
-              </Button>
-            </div> : <div className="space-y-2 text-sm text-muted-foreground">
-              <p>Total connections: {people.length}</p>
-              <div className="space-y-1 text-xs">
-                {CIRCLES.map(circle => {
-            const count = people.filter(p => p.circle === circle.id).length;
-            return <div key={circle.id} className="flex justify-between">
-                      <span>{circle.label}:</span>
-                      <span className="text-primary">{count}</span>
-                    </div>;
-          })}
-              </div>
-              <p className="mt-4 pt-4 border-t border-border">
-                Click on a green sphere to view details
-              </p>
-            </div>}
-        </Card>}
+      {/* Floating profile preview */}
+      {showMenu && selectedPerson && (
+        <FloatingProfilePreview
+          name={selectedPerson.name}
+          title="CEO"
+          company="Ping!"
+          location="Boston, MA"
+          email="contact@example.com"
+          phone="207-660-3626"
+          onClose={() => {
+            setShowMenu(false);
+            setSelectedPerson(null);
+          }}
+          onViewProfile={handleViewProfile}
+          onMessage={() => {
+            console.log('Message clicked');
+            // Add message functionality
+          }}
+        />
+      )}
 
       {/* Instructions */}
       <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur border border-border rounded-lg px-4 py-2 text-xs text-muted-foreground">
