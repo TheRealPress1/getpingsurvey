@@ -6,9 +6,9 @@ import { Network3D } from '@/components/Network3D';
 import { RelationshipHealthPanel } from '@/components/RelationshipHealthPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { PingLeaderboard } from '@/components/PingLeaderboard';
-import { ChatPreviewPopup } from '@/components/ChatPreviewPopup';
 import { NetworkSearchBar } from '@/components/NetworkSearchBar';
+import { LeaderboardCard } from '@/components/network/LeaderboardCard';
+import { ChatsCard } from '@/components/network/ChatsCard';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -372,20 +372,12 @@ export default function NetworkVisualization() {
         </div>
       </div>
 
-      {/* Leaderboard - Top Left - Hidden on mobile */}
-      <div className="fixed top-[220px] left-4 z-20 hidden md:block">
-        <PingLeaderboard />
-      </div>
-
-      {/* Chat Preview - Top Right - Hidden on mobile */}
-      <div className="fixed top-[220px] right-4 z-20 hidden md:block">
-        <ChatPreviewPopup />
-      </div>
-
-      {/* Mobile: Stack vertically with proper spacing */}
-      <div className="fixed top-[260px] left-0 right-0 z-20 md:hidden px-4 space-y-8 max-h-[70vh] overflow-y-auto pb-8">
-        <PingLeaderboard />
-        <ChatPreviewPopup />
+      {/* Panels container: responsive grid, no fixed offsets */}
+      <div className="absolute inset-x-0 top-0 z-20 px-4 md:px-6 pt-28 md:pt-40">
+        <div className="mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <LeaderboardCard prioritizedNames={["me","gaspard","josh","spencer"]} />
+          <ChatsCard />
+        </div>
       </div>
 
       {/* Relationship Health Panel */}

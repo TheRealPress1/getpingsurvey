@@ -178,9 +178,9 @@ export const Network3D = ({
     // Camera setup - start at a high, top-down angle (~55°)
     const CAMERA_ANGLE_RATIO = 1.4; // y = ratio * z
     const camera = new THREE.PerspectiveCamera(75, containerRef.current.clientWidth / containerRef.current.clientHeight, 0.1, 1000);
-    // Start further back on mobile to avoid cutoff
+    // Start further back on mobile to avoid cutoff and give more room
     const isMobile = window.innerWidth < 768;
-    const initialZ = isMobile ? 18 : 12;
+    const initialZ = isMobile ? 20 : 14;
     camera.position.set(0, CAMERA_ANGLE_RATIO * initialZ, initialZ);
     camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
