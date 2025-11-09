@@ -122,7 +122,7 @@ const Landing = () => {
 
           {/* Hero Text */}
           <div className={`space-y-6 transition-all duration-1000 ${visibleText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <h1 className="text-5xl md:text-7xl font-bold iridescent-text leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold iridescent-text leading-normal pb-4">
               ping!
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground iridescent-text max-w-2xl mx-auto">the future of connection is now.</p>
