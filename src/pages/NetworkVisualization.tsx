@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { PingLeaderboard } from '@/components/PingLeaderboard';
 import { ChatPreviewPopup } from '@/components/ChatPreviewPopup';
+import { NetworkSearchBar } from '@/components/NetworkSearchBar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -308,69 +309,76 @@ export default function NetworkVisualization() {
 
   return (
     <div className="relative min-h-screen bg-background">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate('/network')}
-          className="text-white hover:bg-white/10"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+      {/* Header with Search Bar */}
+      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 via-black/60 to-transparent pb-8">
+        <div className="flex items-center justify-between p-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/network')}
+            className="text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
 
-        <h1 className="text-2xl font-bold text-white">
-          {circleType === 'my' && 'My Network'}
-          {circleType === 'industry' && 'Industry Network'}
-          {circleType === 'event' && 'Event Network'}
-        </h1>
+          <h1 className="text-2xl font-bold text-white">
+            {circleType === 'my' && 'My Network'}
+            {circleType === 'industry' && 'Industry Network'}
+            {circleType === 'event' && 'Event Network'}
+          </h1>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full h-10 w-10 border-2 bg-black/50 border-primary/30 text-white hover:bg-white/10"
-            >
-              <Circle className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-card z-[100]" align="end">
-            <DropdownMenuItem onClick={() => {
-              setCircleType('my');
-              setSelectedIndustry(null);
-              setSelectedEvent(null);
-              loadRealConnections();
-            }}>
-              My circle
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem onClick={() => {
-              setCircleType('industry');
-              setSelectedIndustry(null);
-              setSelectedEvent(null);
-            }}>
-              Industry circle
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem onClick={() => {
-              setCircleType('event');
-              setSelectedIndustry(null);
-              setSelectedEvent(null);
-            }}>
-              Event circle
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full h-10 w-10 border-2 bg-black/50 border-primary/30 text-white hover:bg-white/10"
+              >
+                <Circle className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-card z-[100]" align="end">
+              <DropdownMenuItem onClick={() => {
+                setCircleType('my');
+                setSelectedIndustry(null);
+                setSelectedEvent(null);
+                loadRealConnections();
+              }}>
+                My circle
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => {
+                setCircleType('industry');
+                setSelectedIndustry(null);
+                setSelectedEvent(null);
+              }}>
+                Industry circle
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => {
+                setCircleType('event');
+                setSelectedIndustry(null);
+                setSelectedEvent(null);
+              }}>
+                Event circle
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Search Bar */}
+        <div className="px-4 pt-2">
+          <NetworkSearchBar />
+        </div>
       </div>
 
       {/* Leaderboard - Top Left */}
-      <div className="fixed top-20 left-4 z-20">
+      <div className="fixed top-[180px] left-4 z-20">
         <PingLeaderboard />
       </div>
 
       {/* Chat Preview - Top Right */}
-      <div className="fixed top-20 right-4 z-20">
+      <div className="fixed top-[180px] right-4 z-20">
         <ChatPreviewPopup />
       </div>
 
