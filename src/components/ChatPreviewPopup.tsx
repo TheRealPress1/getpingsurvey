@@ -133,12 +133,12 @@ export const ChatPreviewPopup = () => {
   }
 
   return (
-    <Card className="bg-black/80 backdrop-blur border-primary/30 p-5 w-full md:w-96 shadow-xl animate-fade-in">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+    <Card className="bg-black/80 backdrop-blur border-primary/30 p-4 md:p-5 w-full md:w-96 shadow-xl animate-fade-in">
+      <div className="space-y-3 md:space-y-4">
+        <div className="flex items-center justify-between pb-1 md:pb-0">
           <div className="flex items-center gap-2">
-            <MessageSquare className="h-6 w-6 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground">Recent Chats</h3>
+            <MessageSquare className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+            <h3 className="text-base md:text-lg font-semibold text-foreground">Recent Chats</h3>
           </div>
           
           {chats.length > 3 && (
@@ -160,7 +160,7 @@ export const ChatPreviewPopup = () => {
           )}
         </div>
 
-        <div className="space-y-3 max-h-[500px] overflow-y-auto">
+        <div className="space-y-2 md:space-y-3 max-h-[400px] md:max-h-[500px] overflow-y-auto">
           {chats.length === 0 ? (
             <p className="text-sm text-muted-foreground">No recent chats</p>
           ) : (
@@ -168,26 +168,26 @@ export const ChatPreviewPopup = () => {
               <div
                 key={chat.id}
                 onClick={() => handleChatClick(chat.id)}
-                className="flex items-start gap-3 p-4 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer group"
+                className="flex items-start gap-2 md:gap-3 p-3 md:p-4 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer group"
               >
-                <Avatar className="h-12 w-12 border border-primary/30">
+                <Avatar className="h-10 w-10 md:h-12 md:w-12 border border-primary/30 flex-shrink-0">
                   <AvatarImage src={chat.avatar} />
-                  <AvatarFallback className="bg-primary/20 text-primary">
+                  <AvatarFallback className="bg-primary/20 text-primary text-xs md:text-sm">
                     {chat.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-foreground truncate">
+                    <p className="text-xs md:text-sm font-medium text-foreground truncate">
                       {chat.name}
                     </p>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
                       {formatDistanceToNow(chat.timestamp, { addSuffix: true })}
                     </span>
                   </div>
                   
-                  <p className="text-xs text-muted-foreground truncate mt-1">
+                  <p className="text-[10px] md:text-xs text-muted-foreground truncate mt-0.5 md:mt-1">
                     {chat.lastMessage}
                   </p>
                 </div>

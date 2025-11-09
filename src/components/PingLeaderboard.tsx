@@ -104,27 +104,27 @@ export const PingLeaderboard = () => {
   }
 
   return (
-    <Card className="bg-black/80 backdrop-blur border-primary/30 p-5 w-full md:w-80 shadow-xl animate-fade-in">
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-6 w-6 text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">Most Pings</h3>
+    <Card className="bg-black/80 backdrop-blur border-primary/30 p-4 md:p-5 w-full md:w-80 shadow-xl animate-fade-in">
+      <div className="space-y-3 md:space-y-4">
+        <div className="flex items-center gap-2 pb-1 md:pb-0">
+          <Trophy className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+          <h3 className="text-base md:text-lg font-semibold text-foreground">Most Pings</h3>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {leaders.length === 0 ? (
             <p className="text-sm text-muted-foreground">No pings yet</p>
           ) : (
             leaders.map((leader) => (
               <div
                 key={leader.id}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
+                className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg hover:bg-primary/10 transition-colors"
               >
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">
+                <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 text-primary text-xs md:text-sm font-bold flex-shrink-0">
                   {leader.rank}
                 </div>
                 
-                <Avatar className="h-12 w-12 border border-primary/30">
+                <Avatar className="h-10 w-10 md:h-12 md:w-12 border border-primary/30 flex-shrink-0">
                   <AvatarImage src={leader.avatar} />
                   <AvatarFallback className="bg-primary/20 text-primary text-sm">
                     {leader.name.charAt(0)}
@@ -132,14 +132,14 @@ export const PingLeaderboard = () => {
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
+                  <p className="text-xs md:text-sm font-medium text-foreground truncate">
                     {leader.name}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1 text-primary">
-                  <TrendingUp className="h-3 w-3" />
-                  <span className="text-sm font-bold">{leader.pingCount}</span>
+                <div className="flex items-center gap-1 text-primary flex-shrink-0">
+                  <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
+                  <span className="text-xs md:text-sm font-bold">{leader.pingCount}</span>
                 </div>
               </div>
             ))
