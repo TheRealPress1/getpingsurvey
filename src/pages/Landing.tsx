@@ -111,14 +111,19 @@ const Landing = () => {
       <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] p-6 py-12">
         <div className="text-center space-y-12 max-w-4xl">
           {/* 3D Model */}
-          <div className="flex justify-center">
-            <Model3DViewer 
-              modelUrl="https://ahksxziueqkacyaqtgeu.supabase.co/storage/v1/object/public/3d-models/1762662113959-zieveh.glb"
-              autoRotate={true}
-              height="600px"
-              width="600px"
-              backgroundColor={0x001a0f}
-            />
+          <div className="flex justify-center relative">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-[500px] h-[500px] rounded-full bg-primary/20 blur-[100px] animate-pulse" />
+            </div>
+            <div className="relative z-10">
+              <Model3DViewer 
+                modelUrl="https://ahksxziueqkacyaqtgeu.supabase.co/storage/v1/object/public/3d-models/1762662113959-zieveh.glb"
+                autoRotate={true}
+                height="600px"
+                width="600px"
+                backgroundColor={0x001a0f}
+              />
+            </div>
           </div>
 
           {/* Hero Text */}
