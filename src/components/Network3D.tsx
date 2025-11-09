@@ -79,6 +79,9 @@ export const Network3D = ({
   const isZoomingRef = useRef(false);
   const zoomTargetRef = useRef<THREE.Vector3 | null>(null);
   const lastCameraPositionRef = useRef<THREE.Vector3 | null>(null);
+  const [personBio, setPersonBio] = useState<string>('');
+  const [isLoadingBio, setIsLoadingBio] = useState(false);
+  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | undefined>();
   const navigate = useNavigate();
   useEffect(() => {
     if (!containerRef.current) return;
@@ -554,11 +557,47 @@ export const Network3D = ({
         const clickedSphere = intersects[0].object as THREE.Mesh;
         const person = clickedSphere.userData.person as NetworkPerson;
 
+        // Calculate 2D screen position of the clicked sphere
+        const sphereWorldPos = clickedSphere.position.clone();
+        const sphereScreenPos = sphereWorldPos.project(camera);
+        
+        const canvasRect = containerRef.current!.getBoundingClientRect();
+        const screenX = ((sphereScreenPos.x + 1) / 2) * canvasRect.width + canvasRect.left;
+        const screenY = ((-sphereScreenPos.y + 1) / 2) * canvasRect.height + canvasRect.top;
+        
+        setPopupPosition({ top: screenY, left: screenX });
+
         // Show popup with person details
         setSelectedPerson(person);
         setShowMenu(true);
 
-        // Zoom in while maintaining the top-down viewing angle
+        // Generate AI bio
+        setIsLoadingBio(true);
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-person-bio`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            name: person.name,
+            title: 'CEO',
+            company: 'Ping!',
+            location: 'Boston, MA',
+            circle: person.circle,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            setPersonBio(data.bio || '');
+            setIsLoadingBio(false);
+          })
+          .catch((err) => {
+            console.error('Error generating bio:', err);
+            setIsLoadingBio(false);
+          });
+
+        // Always zoom in while maintaining the top-down viewing angle
         isZoomingRef.current = true;
         const targetPosition = clickedSphere.position.clone();
         const startCameraPosition = camera.position.clone();
@@ -801,9 +840,13 @@ export const Network3D = ({
           location="Boston, MA"
           email="contact@example.com"
           phone="207-660-3626"
+          bio={personBio}
+          isLoadingBio={isLoadingBio}
+          position={popupPosition}
           onClose={() => {
             setShowMenu(false);
             setSelectedPerson(null);
+            setPersonBio('');
           }}
           onViewProfile={handleViewProfile}
           onMessage={() => {

@@ -1,7 +1,8 @@
-import { X, MapPin, Building2, Mail, Phone } from 'lucide-react';
+import { X, MapPin, Building2, Mail, Phone, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FloatingProfilePreviewProps {
   name: string;
@@ -11,6 +12,9 @@ interface FloatingProfilePreviewProps {
   email?: string;
   phone?: string;
   avatarUrl?: string;
+  bio?: string;
+  isLoadingBio?: boolean;
+  position?: { top: number; left: number };
   onClose: () => void;
   onViewProfile: () => void;
   onMessage?: () => void;
@@ -24,12 +28,22 @@ export const FloatingProfilePreview = ({
   email,
   phone,
   avatarUrl,
+  bio,
+  isLoadingBio,
+  position,
   onClose,
   onViewProfile,
   onMessage
 }: FloatingProfilePreviewProps) => {
+  const positionStyles = position 
+    ? { top: `${position.top}px`, left: `${position.left}px`, transform: 'translate(-50%, calc(-100% - 20px))' }
+    : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+
   return (
-    <Card className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-sm bg-gradient-to-br from-card via-card to-card/95 backdrop-blur-xl border-primary/30 shadow-2xl shadow-primary/20 z-50 animate-scale-in">
+    <Card 
+      className="fixed w-[90vw] max-w-sm bg-gradient-to-br from-card via-card to-card/95 backdrop-blur-xl border-primary/30 shadow-2xl shadow-primary/20 z-50 animate-scale-in"
+      style={positionStyles}
+    >
       {/* Close button */}
       <Button
         variant="ghost"
@@ -88,6 +102,23 @@ export const FloatingProfilePreview = ({
             </div>
           )}
         </div>
+
+        {/* AI-generated bio */}
+        {(bio || isLoadingBio) && (
+          <div className="pt-3 border-t border-border/50">
+            {isLoadingBio ? (
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-4/5" />
+              </div>
+            ) : (
+              <div className="flex gap-2 items-start">
+                <Sparkles className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground italic leading-relaxed">{bio}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Action buttons */}
         <div className="flex gap-2 pt-2">
