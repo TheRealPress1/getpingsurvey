@@ -115,8 +115,9 @@ const Landing = () => {
             <Model3DViewer 
               modelUrl="https://ahksxziueqkacyaqtgeu.supabase.co/storage/v1/object/public/3d-models/1762662113959-zieveh.glb"
               autoRotate={true}
-              height="400px"
-              width="400px"
+              height="600px"
+              width="600px"
+              backgroundColor={0x001a0f}
             />
           </div>
 
