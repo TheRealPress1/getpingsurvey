@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 const Ring3D = () => {
@@ -7,6 +7,15 @@ const Ring3D = () => {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const ringRef = useRef<THREE.Mesh | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  
+  // State for gold transition
+  const [isGold, setIsGold] = useState(false);
+  const transitionProgressRef = useRef(0);
+  const isTransitioningRef = useRef(false);
+  
+  // Colors for transition
+  const blackColorRef = useRef(new THREE.Color(0x064e3b));
+  const goldColorRef = useRef(new THREE.Color(0xD4AF37));
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -54,10 +63,30 @@ const Ring3D = () => {
       metalness: 0.95,
       roughness: 0.1,
       envMapIntensity: 2.0,
+      emissive: 0x000000,
+      emissiveIntensity: 0,
     });
     const ring = new THREE.Mesh(ringGeometry, ringMaterial);
     ringRef.current = ring;
     scene.add(ring);
+    
+    // Click handler for gold transition
+    const onRingClick = () => {
+      if (isTransitioningRef.current) return;
+      
+      isTransitioningRef.current = true;
+      transitionProgressRef.current = 0;
+      
+      // Pulse scale animation
+      if (ring) {
+        ring.scale.setScalar(1.05);
+        setTimeout(() => {
+          if (ring) ring.scale.setScalar(1.0);
+        }, 150);
+      }
+    };
+    
+    renderer.domElement.addEventListener('click', onRingClick);
 
     // Mouse and touch interaction
     let isDragging = false;
@@ -143,6 +172,71 @@ const Ring3D = () => {
         ring.rotation.y += 0.005;
         ring.rotation.x += 0.002;
       }
+      
+      // Handle gold transition animation
+      if (isTransitioningRef.current && ring) {
+        transitionProgressRef.current += 0.01;
+        const progress = Math.min(transitionProgressRef.current, 1);
+        
+        // Determine direction based on current state
+        const effectiveProgress = isGold ? 1 - progress : progress;
+        
+        // Interpolate color
+        const material = ring.material as THREE.MeshStandardMaterial;
+        material.color.lerpColors(
+          blackColorRef.current,
+          goldColorRef.current,
+          effectiveProgress
+        );
+        
+        // Make it EXTRA shiny when gold
+        material.metalness = 0.95 + (effectiveProgress * 0.05); // Up to 1.0
+        material.roughness = 0.1 - (effectiveProgress * 0.05); // Down to 0.05
+        material.envMapIntensity = 2.0 + (effectiveProgress * 1.0); // Up to 3.0
+        
+        // Add emissive glow for gold
+        material.emissive.setHex(0x332200);
+        material.emissiveIntensity = effectiveProgress * 0.3;
+        
+        // Interpolate lights
+        const goldIntensity = effectiveProgress;
+        directionalLight1.color.lerpColors(
+          new THREE.Color(0x10b981),
+          new THREE.Color(0xFFD700),
+          goldIntensity
+        );
+        directionalLight1.intensity = 1.5 + (goldIntensity * 0.5);
+        
+        directionalLight2.color.lerpColors(
+          new THREE.Color(0x34d399),
+          new THREE.Color(0xFFC125),
+          goldIntensity
+        );
+        directionalLight2.intensity = 1.2 + (goldIntensity * 0.6);
+        
+        directionalLight3.color.lerpColors(
+          new THREE.Color(0x6ee7b7),
+          new THREE.Color(0xDAA520),
+          goldIntensity
+        );
+        directionalLight3.intensity = 0.8 + (goldIntensity * 0.7);
+        
+        rimLight.color.lerpColors(
+          new THREE.Color(0x059669),
+          new THREE.Color(0xFFE4B5),
+          goldIntensity
+        );
+        rimLight.intensity = 1.0 + (goldIntensity * 0.5);
+        
+        ambientLight.intensity = 0.3 + (goldIntensity * 0.2);
+        
+        // Check if animation is complete
+        if (progress >= 1) {
+          isTransitioningRef.current = false;
+          setIsGold(!isGold);
+          transitionProgressRef.current = 0;
+        }
+      }
 
       renderer.render(scene, camera);
     };
@@ -152,6 +246,7 @@ const Ring3D = () => {
     return () => {
       renderer.domElement.removeEventListener('mousedown', onMouseDown);
       renderer.domElement.removeEventListener('touchstart', onTouchStart);
+      renderer.domElement.removeEventListener('click', onRingClick);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('touchmove', onTouchMove);
       document.removeEventListener('mouseup', onMouseUp);
@@ -162,7 +257,7 @@ const Ring3D = () => {
       }
       renderer.dispose();
     };
-  }, []);
+  }, [isGold]);
 
   return (
     <div className="flex items-center justify-center">

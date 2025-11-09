@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StarField } from "@/components/StarField";
 import { Link } from "react-router-dom";
-import Model3DViewer from "@/components/Model3DViewer";
+import Ring3D from "@/components/Ring3D";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -116,7 +116,7 @@ const Landing = () => {
               <div className="w-[500px] h-[500px] rounded-full bg-primary/20 blur-[100px] animate-pulse" />
             </div>
             <div className="relative z-10">
-              <Model3DViewer modelUrl="https://ahksxziueqkacyaqtgeu.supabase.co/storage/v1/object/public/3d-models/1762662113959-zieveh.glb" autoRotate={true} height="600px" width="600px" backgroundColor={0x001a0f} />
+              <Ring3D />
             </div>
           </div>
 
