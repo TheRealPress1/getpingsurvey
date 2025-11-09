@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ArrowLeft, Globe, Circle, Search, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Circle } from 'lucide-react';
 import { Network3D } from '@/components/Network3D';
-import { NetworkGlobe } from '@/components/NetworkGlobe';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ChatList } from '@/components/ChatList';
-import { MessageCircle } from 'lucide-react';
 import { RelationshipHealthPanel } from '@/components/RelationshipHealthPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { PingLeaderboard } from '@/components/PingLeaderboard';
+import { ChatPreviewPopup } from '@/components/ChatPreviewPopup';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,12 +30,10 @@ export default function NetworkVisualization() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [people, setPeople] = useState<NetworkPerson[]>([]);
-  const [viewMode, setViewMode] = useState<'chats' | 'circles'>('chats');
   const [circleType, setCircleType] = useState<'my' | 'event' | 'industry'>('my');
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [userEvents, setUserEvents] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedPerson, setSelectedPerson] = useState<NetworkPerson | null>(null);
   const [personHealth, setPersonHealth] = useState<Record<string, number>>({});
   const [isDemoMode, setIsDemoMode] = useState(false);
@@ -312,139 +307,104 @@ export default function NetworkVisualization() {
 
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="relative min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-background border-b border-border z-50">
-        <div className="p-4 flex items-center gap-4 justify-between">
-          <div className="flex items-center gap-4">
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate('/network')}
+          className="text-white hover:bg-white/10"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+
+        <h1 className="text-2xl font-bold text-white">
+          {circleType === 'my' && 'My Network'}
+          {circleType === 'industry' && 'Industry Network'}
+          {circleType === 'event' && 'Event Network'}
+        </h1>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              onClick={() => {
-                if (viewMode === 'chats') {
-                  navigate('/profile');
-                } else {
-                  setViewMode('chats');
-                }
-              }}
-              className="hover:bg-primary/10"
+              className="rounded-full h-10 w-10 border-2 bg-black/50 border-primary/30 text-white hover:bg-white/10"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <Circle className="h-5 w-5" />
             </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-card z-[100]" align="end">
+            <DropdownMenuItem onClick={() => {
+              setCircleType('my');
+              setSelectedIndustry(null);
+              setSelectedEvent(null);
+              loadRealConnections();
+            }}>
+              My circle
+            </DropdownMenuItem>
             
-            <h1 className="text-4xl font-bold iridescent-text">
-              {viewMode === 'chats' ? 'chats' : 'visualize your circle'}
-            </h1>
+            <DropdownMenuItem onClick={() => {
+              setCircleType('industry');
+              setSelectedIndustry(null);
+              setSelectedEvent(null);
+            }}>
+              Industry circle
+            </DropdownMenuItem>
             
-            {/* Circle selector dropdown - next to title */}
-            {viewMode === 'circles' && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full h-10 w-10 border-2"
-                  >
-                    <Circle className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-card z-[100]" align="start">
-                  <DropdownMenuItem onClick={() => {
-                    setCircleType('my');
-                    setSelectedIndustry(null);
-                    setSelectedEvent(null);
-                    loadRealConnections();
-                  }}>
-                    My circle
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem onClick={() => {
-                    setCircleType('industry');
-                    setSelectedIndustry(null);
-                    setSelectedEvent(null);
-                  }}>
-                    Industry circle
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem onClick={() => {
-                    setCircleType('event');
-                    setSelectedIndustry(null);
-                    setSelectedEvent(null);
-                  }}>
-                    Event circle
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-        
-        {/* Search bar - only show in chats view */}
-        {viewMode === 'chats' && (
-          <div className="px-4 pb-4">
-            <div className="relative max-w-2xl mx-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search conversations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-        )}
+            <DropdownMenuItem onClick={() => {
+              setCircleType('event');
+              setSelectedIndustry(null);
+              setSelectedEvent(null);
+            }}>
+              Event circle
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'chats' | 'circles')} className="flex-1 flex flex-col w-full h-full">
-        <TabsContent value="chats" className="flex-1 m-0 h-full">
-          <ChatList searchQuery={searchQuery} />
-        </TabsContent>
-        
-        <TabsContent value="circles" className="flex-1 m-0 h-full overflow-hidden touch-none">
-          <Network3D 
-            people={people} 
-            onPersonClick={handlePersonClick} 
-            personHealth={personHealth}
-            circleType={circleType}
-            industries={circleType === 'industry' ? ['AI', 'Tech', 'Sustainability'] : undefined}
-            events={circleType === 'event' ? userEvents.map(e => e.name) : undefined}
-          />
-        </TabsContent>
+      {/* Leaderboard - Top Left */}
+      <div className="fixed top-20 left-4 z-20">
+        <PingLeaderboard />
+      </div>
 
-        {/* View toggle at bottom */}
-        <div className="fixed bottom-20 sm:bottom-8 left-1/2 -translate-x-1/2 sm:-translate-x-[60%] z-50 pb-2">
-          <TabsList className="bg-card/95 backdrop-blur border border-border shadow-lg">
-            <TabsTrigger value="chats" className="gap-2">
-              <MessageCircle className="h-4 w-4" />
-              Chats
-            </TabsTrigger>
-            <TabsTrigger value="circles" className="gap-2">
-              <Circle className="h-4 w-4" />
-              My circle
-            </TabsTrigger>
-          </TabsList>
-        </div>
-      </Tabs>
+      {/* Chat Preview - Top Right */}
+      <div className="fixed top-20 right-4 z-20">
+        <ChatPreviewPopup />
+      </div>
 
       {/* Relationship Health Panel */}
-      <RelationshipHealthPanel 
-        person={selectedPerson} 
-        onClose={() => setSelectedPerson(null)} 
-        onHealthChange={handleHealthChange}
-      />
-
-      {/* Demo Mode Toggle - bottom right */}
-      {viewMode === 'circles' && (
-        <div className="fixed bottom-8 right-8 z-50">
-          <Button
-            variant={isDemoMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsDemoMode(!isDemoMode)}
-          >
-            {isDemoMode ? "Demo Mode" : "My Circle"}
-          </Button>
+      {selectedPerson && (
+        <div className="fixed top-1/2 -translate-y-1/2 right-4 z-30">
+          <RelationshipHealthPanel
+            person={selectedPerson}
+            onClose={() => setSelectedPerson(null)}
+            onHealthChange={handleHealthChange}
+          />
         </div>
       )}
+
+      {/* Demo Mode Toggle - bottom right */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <Button
+          variant={isDemoMode ? "default" : "outline"}
+          size="sm"
+          onClick={() => setIsDemoMode(!isDemoMode)}
+        >
+          {isDemoMode ? "Demo Mode" : "My Circle"}
+        </Button>
+      </div>
+
+      {/* 3D Network Visualization */}
+      <Network3D
+        people={people}
+        onPersonClick={handlePersonClick}
+        personHealth={personHealth}
+        circleType={circleType}
+        industries={circleType === 'industry' ? industries : undefined}
+        events={circleType === 'event' ? userEvents.map(e => e.name) : undefined}
+      />
     </div>
   );
 }
