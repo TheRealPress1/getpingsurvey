@@ -88,9 +88,10 @@ export const LeaderboardCard = ({ prioritizedNames = [] }: LeaderboardCardProps)
       const allEntries: LeaderboardEntry[] = [];
       allProfilesMap.forEach((p) => {
         const count = senderCounts.get(p.user_id) || 0;
+        const firstName = (p.display_name || 'User').split(' ')[0];
         allEntries.push({
           id: p.user_id,
-          name: p.display_name || 'User',
+          name: firstName,
           avatar: p.avatar_url || undefined,
           pingCount: count,
         });
@@ -98,9 +99,10 @@ export const LeaderboardCard = ({ prioritizedNames = [] }: LeaderboardCardProps)
 
       // If still missing prioritized names (no profile found), add placeholders
       prioritizedNames.forEach((name) => {
-        const exists = allEntries.some((e) => (e.name || '').toLowerCase().includes(name.toLowerCase()));
+        const firstName = name.split(' ')[0];
+        const exists = allEntries.some((e) => (e.name || '').toLowerCase().includes(firstName.toLowerCase()));
         if (!exists) {
-          allEntries.push({ id: `placeholder-${name}`, name, pingCount: 0 });
+          allEntries.push({ id: `placeholder-${firstName}`, name: firstName, pingCount: 0 });
         }
       });
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Circle } from 'lucide-react';
+import { ArrowLeft, Circle, Trophy } from 'lucide-react';
 import { Network3D } from '@/components/Network3D';
 import { RelationshipHealthPanel } from '@/components/RelationshipHealthPanel';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { NetworkSearchBar } from '@/components/NetworkSearchBar';
 import { LeaderboardCard } from '@/components/network/LeaderboardCard';
 import { ChatsCard } from '@/components/network/ChatsCard';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -459,9 +460,22 @@ export default function NetworkVisualization() {
         </div>
       </div>
 
-      {/* Leaderboard - Left side */}
-      <div className="absolute left-3 md:left-6 top-28 md:top-40 z-20 w-64 md:w-72">
-        <LeaderboardCard prioritizedNames={["me","gaspard","josh","spencer"]} />
+      {/* Leaderboard Pullout Tab - Top Left */}
+      <div className="absolute left-0 top-28 md:top-40 z-20">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="icon"
+              className="rounded-r-lg rounded-l-none border-l-0 bg-black/80 backdrop-blur border-primary/30 hover:bg-primary/20"
+            >
+              <Trophy className="h-4 w-4 text-primary" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-80 bg-black/95 backdrop-blur border-primary/30">
+            <LeaderboardCard prioritizedNames={["me","gaspard","josh","spencer"]} />
+          </SheetContent>
+        </Sheet>
       </div>
 
       {/* Chats - Right side */}
