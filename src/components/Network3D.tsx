@@ -83,7 +83,7 @@ export const Network3D = ({
   const lastCameraPositionRef = useRef<THREE.Vector3 | null>(null);
   const [personBio, setPersonBio] = useState<string>('');
   const [isLoadingBio, setIsLoadingBio] = useState(false);
-  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | undefined>();
+  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number; preferRight?: boolean } | undefined>();
   const [selectedPersonProfile, setSelectedPersonProfile] = useState<any>(null);
   const navigate = useNavigate();
   useEffect(() => {
@@ -577,7 +577,36 @@ export const Network3D = ({
         const screenX = ((sphereScreenPos.x + 1) / 2) * canvasRect.width + canvasRect.left;
         const screenY = ((-sphereScreenPos.y + 1) / 2) * canvasRect.height + canvasRect.top;
         
-        setPopupPosition({ top: screenY, left: screenX });
+        // Determine if popup should be on left or right based on screen position
+        const preferRight = screenX < window.innerWidth / 2;
+        
+        // Zoom animation to the clicked sphere
+        isZoomingRef.current = true;
+        const startCameraPosition = camera.position.clone();
+        const targetZ = 12; // Closer zoom level
+        const targetCameraPosition = new THREE.Vector3(0, CAMERA_ANGLE_RATIO * targetZ, targetZ);
+        
+        let zoomProgress = 0;
+        const zoomDuration = 40; // frames for smooth animation
+        
+        const zoomAnimation = () => {
+          zoomProgress++;
+          const t = zoomProgress / zoomDuration;
+          const eased = 1 - Math.pow(1 - t, 3); // Ease out cubic
+          
+          camera.position.lerpVectors(startCameraPosition, targetCameraPosition, eased);
+          camera.lookAt(0, 0, 0);
+          
+          if (zoomProgress < zoomDuration) {
+            requestAnimationFrame(zoomAnimation);
+          } else {
+            isZoomingRef.current = false;
+          }
+        };
+        
+        zoomAnimation();
+        
+        setPopupPosition({ top: screenY, left: screenX, preferRight });
 
         // Show popup with person details
         setSelectedPerson(person);
@@ -628,43 +657,6 @@ export const Network3D = ({
           setIsLoadingBio(false);
         }
 
-        // Always zoom in while maintaining the top-down viewing angle
-        isZoomingRef.current = true;
-        const targetPosition = clickedSphere.position.clone();
-        const startCameraPosition = camera.position.clone();
-        const startSceneRotation = {
-          x: scene.rotation.x,
-          y: scene.rotation.y
-        };
-
-        // Calculate target camera position - zoom in but maintain the angle ratio
-        const targetZ = 4;
-        const targetCameraPosition = new THREE.Vector3(0, CAMERA_ANGLE_RATIO * targetZ, targetZ);
-
-        // Calculate target scene rotation to center the sphere horizontally
-        const targetSceneRotation = {
-          x: startSceneRotation.x,
-          // Keep the same tilt
-          y: -Math.atan2(targetPosition.x, targetPosition.z) // Rotate horizontally to center
-        };
-        let progress = 0;
-        const duration = 1000;
-        const startTime = Date.now();
-        const animateZoom = () => {
-          const elapsed = Date.now() - startTime;
-          progress = Math.min(elapsed / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          camera.position.lerpVectors(startCameraPosition, targetCameraPosition, eased);
-          camera.lookAt(0, 0, 0);
-          scene.rotation.x = startSceneRotation.x;
-          scene.rotation.y = startSceneRotation.y + (targetSceneRotation.y - startSceneRotation.y) * eased;
-          if (progress < 1) {
-            requestAnimationFrame(animateZoom);
-          } else {
-            isZoomingRef.current = false;
-          }
-        };
-        animateZoom();
         if (onPersonClick) {
           onPersonClick(person);
         }
