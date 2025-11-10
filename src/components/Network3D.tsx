@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
+import centerProfileImage from '@/assets/center-profile.jpeg';
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -203,10 +204,16 @@ export const Network3D = ({
 
     // Center sphere (represents the user)
     const centerGeometry = new THREE.SphereGeometry(0.4, 32, 32);
+    
+    // Load profile texture
+    const textureLoader = new THREE.TextureLoader();
+    const profileTexture = textureLoader.load(centerProfileImage);
+    profileTexture.colorSpace = THREE.SRGBColorSpace;
+    
     const centerMaterial = new THREE.MeshPhongMaterial({
-      color: 0x4ade80,
+      map: profileTexture,
       emissive: 0x4ade80,
-      emissiveIntensity: 0.8
+      emissiveIntensity: 0.3
     });
     const centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
     centerSphere.userData.isUserCharacter = true;
