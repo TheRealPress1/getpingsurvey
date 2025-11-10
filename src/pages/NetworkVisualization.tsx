@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Circle, Trophy } from 'lucide-react';
+import { Circle, Trophy, MessageCircle } from 'lucide-react';
 import { Network3D } from '@/components/Network3D';
 import { RelationshipHealthPanel } from '@/components/RelationshipHealthPanel';
 import { supabase } from '@/integrations/supabase/client';
@@ -335,22 +335,11 @@ export default function NetworkVisualization() {
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
-      {/* Header with Search Bar */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 via-black/60 to-transparent pb-4 md:pb-8">
-        <div className="flex items-center justify-between p-3 md:p-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/network')}
-            className="text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-10"
-          >
-            <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
-          </Button>
-
-          <h1 className="text-lg md:text-2xl font-bold text-white">
-            {circleType === 'my' && 'my circle'}
-            {circleType === 'industry' && 'industry circle'}
-            {circleType === 'event' && 'event circle'}
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 via-black/60 to-transparent pb-2">
+        <div className="flex items-center justify-between p-2 md:p-3">
+          <h1 className="text-sm md:text-lg font-bold text-white">
+            visualize my circle
           </h1>
 
           <DropdownMenu>
@@ -358,9 +347,9 @@ export default function NetworkVisualization() {
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-full h-8 w-8 md:h-10 md:w-10 border-2 bg-black/50 border-primary/30 text-white hover:bg-white/10"
+                className="rounded-full h-7 w-7 md:h-9 md:w-9 border bg-black/50 border-primary/30 text-white hover:bg-white/10"
               >
-                <Circle className="h-4 w-4 md:h-5 md:w-5" />
+                <Circle className="h-3 w-3 md:h-4 md:w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-card z-[100]" align="end">
@@ -398,94 +387,29 @@ export default function NetworkVisualization() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
-        {/* Filter Dropdowns */}
-        <div className="px-3 md:px-4 pt-2 flex gap-2 items-center justify-center">
-          {circleType === 'industry' && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="bg-black/50 border-primary/30 text-white hover:bg-white/10">
-                  {selectedIndustry || 'Select Industry'}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-card z-[100]">
-                {industries.map((industry) => (
-                  <DropdownMenuItem 
-                    key={industry}
-                    onClick={() => {
-                      setSelectedIndustry(industry);
-                      loadIndustryConnections(industry);
-                    }}
-                  >
-                    {industry}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-
-          {circleType === 'event' && userEvents.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="bg-black/50 border-primary/30 text-white hover:bg-white/10">
-                  {selectedEvent || 'All Events'}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-card z-[100]">
-                <DropdownMenuItem onClick={() => {
-                  setSelectedEvent(null);
-                  loadEventAttendees();
-                }}>
-                  All Events
-                </DropdownMenuItem>
-                {userEvents.map((event) => (
-                  <DropdownMenuItem 
-                    key={event.id}
-                    onClick={() => {
-                      setSelectedEvent(event.name);
-                      loadEventAttendees();
-                    }}
-                  >
-                    {event.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-
-        {/* Search Bar - Hidden on mobile */}
-        <div className="px-3 md:px-4 pt-2 hidden md:block">
-          <NetworkSearchBar />
-        </div>
       </div>
 
       {/* Leaderboard Pullout Tab - Top Left */}
-      <div className="absolute left-0 top-28 md:top-40 z-20">
+      <div className="absolute left-0 top-12 md:top-14 z-20">
         <Sheet>
           <SheetTrigger asChild>
             <Button 
               variant="outline" 
               size="icon"
-              className="rounded-r-lg rounded-l-none border-l-0 bg-black/80 backdrop-blur border-primary/30 hover:bg-primary/20"
+              className="rounded-r-lg rounded-l-none border-l-0 bg-black/80 backdrop-blur border-primary/30 hover:bg-primary/20 h-8 w-8"
             >
-              <Trophy className="h-4 w-4 text-primary" />
+              <Trophy className="h-3 w-3 md:h-4 md:w-4 text-primary" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-80 bg-black/95 backdrop-blur border-primary/30">
+          <SheetContent side="left" className="w-64 p-3 bg-black/95 backdrop-blur border-primary/30">
             <LeaderboardCard prioritizedNames={["me","gaspard","josh","spencer"]} />
           </SheetContent>
         </Sheet>
       </div>
 
-      {/* Chats - Right side */}
-      <div className="absolute right-3 md:right-6 top-28 md:top-40 z-20 w-64 md:w-72">
-        <ChatsCard />
-      </div>
-
-      {/* Relationship Health Panel */}
+      {/* Simplified Health Panel */}
       {selectedPerson && (
-        <div className="fixed top-1/2 -translate-y-1/2 right-4 z-30">
+        <div className="fixed bottom-20 md:bottom-24 left-1/2 -translate-x-1/2 z-30 w-[90%] max-w-xs">
           <RelationshipHealthPanel
             person={selectedPerson}
             onClose={() => setSelectedPerson(null)}
@@ -494,16 +418,29 @@ export default function NetworkVisualization() {
         </div>
       )}
 
-      {/* Demo Mode Toggle - bottom right */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <Button
-          variant={isDemoMode ? "default" : "outline"}
-          size="sm"
-          onClick={() => setIsDemoMode(!isDemoMode)}
-        >
-          {isDemoMode ? "Demo Mode" : "My Circle"}
-        </Button>
+      {/* Chats Pullout - Bottom Right */}
+      <div className="fixed bottom-20 md:bottom-24 right-2 md:right-4 z-20">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="icon"
+              className="rounded-lg bg-black/80 backdrop-blur border-primary/30 hover:bg-primary/20 h-10 w-10 shadow-lg"
+            >
+              <MessageCircle className="h-4 w-4 text-primary" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-72 p-3 bg-black/95 backdrop-blur border-primary/30">
+            <ChatsCard />
+          </SheetContent>
+        </Sheet>
       </div>
+
+      {/* Search Bar - Bottom */}
+      <div className="fixed bottom-20 md:bottom-24 left-1/2 -translate-x-1/2 z-20 w-[90%] max-w-md">
+        <NetworkSearchBar />
+      </div>
+
 
       {/* 3D Network Visualization */}
       <Network3D
