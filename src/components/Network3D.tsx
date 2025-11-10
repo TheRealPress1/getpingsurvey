@@ -28,32 +28,32 @@ interface Network3DProps {
 const CIRCLES = [{
   id: 'family',
   label: 'Family',
-  radius: 2,
+  radius: 3,
   color: 0x4ade80
 }, {
   id: 'friends',
   label: 'Close friends',
-  radius: 3.5,
+  radius: 5.5,
   color: 0x4ade80
 }, {
   id: 'business',
   label: 'Business partners',
-  radius: 5,
+  radius: 8,
   color: 0x4ade80
 }, {
   id: 'acquaintances',
   label: 'Associates',
-  radius: 6.5,
+  radius: 10,
   color: 0x4ade80
 }, {
   id: 'network',
   label: 'Network',
-  radius: 8,
+  radius: 12,
   color: 0x4ade80
 }, {
   id: 'extended',
   label: 'Extended',
-  radius: 9.5,
+  radius: 14,
   color: 0x4ade80
 }];
 export const Network3D = ({
@@ -217,6 +217,9 @@ export const Network3D = ({
     });
     const centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
     centerSphere.userData.isUserCharacter = true;
+    // Rotate sphere to face camera from top diagonal angle
+    centerSphere.rotation.x = -0.4;
+    centerSphere.rotation.y = 0.3;
     scene.add(centerSphere);
 
 
