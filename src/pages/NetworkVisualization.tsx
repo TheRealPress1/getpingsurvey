@@ -423,17 +423,23 @@ export default function NetworkVisualization() {
         </div>
       </div>
 
-
-      {/* Simplified Health Panel */}
-      {selectedPerson && (
-        <div className="fixed bottom-24 md:bottom-28 left-1/2 -translate-x-1/2 z-30 w-[90%] max-w-xs">
-          <RelationshipHealthPanel
-            person={selectedPerson}
-            onClose={() => setSelectedPerson(null)}
-            onHealthChange={handleHealthChange}
-          />
-        </div>
-      )}
+      {/* Leaderboard Pullout Tab - Top Left */}
+      <div className="absolute left-0 top-12 md:top-14 z-20">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="icon"
+              className="rounded-r-lg rounded-l-none border-l-0 bg-black/80 backdrop-blur border-primary/30 hover:bg-primary/20 h-8 w-8"
+            >
+              <Trophy className="h-3 w-3 md:h-4 md:w-4 text-primary" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64 p-3 bg-black/95 backdrop-blur border-primary/30">
+            <LeaderboardCard prioritizedNames={["me","gaspard","josh","spencer"]} />
+          </SheetContent>
+        </Sheet>
+      </div>
 
       {/* Bottom Chats Drawer */}
       <div 
