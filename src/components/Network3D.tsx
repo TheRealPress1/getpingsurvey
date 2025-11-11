@@ -866,6 +866,13 @@ export const Network3D = ({
         />
       )}
 
+      {/* Circle description text */}
+      <div className="absolute bottom-[15%] left-1/2 -translate-x-1/2 text-center">
+        <p className="text-[10px] text-primary/60 font-light tracking-wide">
+          every circle is a connection, click to explore
+        </p>
+      </div>
+
       {/* Instructions */}
       <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur border border-border rounded-lg px-4 py-2 text-xs text-muted-foreground">
         <p>🖱️ Click & drag to rotate • Scroll to zoom • Click spheres for details</p>
