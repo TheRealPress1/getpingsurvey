@@ -225,6 +225,7 @@ export const Network3D = ({
 
     // Create horizontal concentric circles (torus rings) with labels
     const innerRings: THREE.Mesh[] = [];
+    const outerRings: THREE.Mesh[] = [];
     CIRCLES_TO_USE.forEach((circle, index) => {
       const isOutermost = index === CIRCLES_TO_USE.length - 1;
       
@@ -240,7 +241,10 @@ export const Network3D = ({
         });
         const ring = new THREE.Mesh(ringGeometry, ringMaterial);
         ring.rotation.x = Math.PI / 2;
+        ring.userData.baseY = 0;
+        ring.userData.floatOffset = index * 0.2;
         scene.add(ring);
+        outerRings.push(ring);
         
         // Add green directional lights for iridescent effect
         const directionalLight1 = new THREE.DirectionalLight(0x10b981, 1.5);
@@ -784,24 +788,27 @@ export const Network3D = ({
         material.emissiveIntensity = baseEmissive + Math.sin(time * 2) * 0.3;
       });
 
-      // Animate inner rings with wave and float effect
-      innerRings.forEach((ring, index) => {
+      // Animate ALL rings (inner and outer) with gentle levitating motion
+      [...innerRings, ...outerRings].forEach((ring, index) => {
         const waveOffset = ring.userData.waveOffset || 0;
         const floatOffset = ring.userData.floatOffset || 0;
         
-        // Gentle up and down floating motion
-        ring.position.y = Math.sin(time * 0.5 + floatOffset) * 0.15;
+        // Gentle up and down floating motion (less dramatic for outer ring)
+        const floatAmount = index >= innerRings.length ? 0.08 : 0.15; // Outer rings float less
+        ring.position.y = Math.sin(time * 0.5 + floatOffset) * floatAmount;
         
-        // Apply wavy deformation to the torus geometry
-        const positions = ring.geometry.attributes.position;
-        for (let i = 0; i < positions.count; i++) {
-          const x = positions.getX(i);
-          const z = positions.getZ(i);
-          const angle = Math.atan2(z, x);
-          const wave = Math.sin(time * 1.5 + angle * 3 + waveOffset) * 0.08;
-          positions.setY(i, wave);
+        // Apply wavy deformation only to inner rings
+        if (index < innerRings.length) {
+          const positions = ring.geometry.attributes.position;
+          for (let i = 0; i < positions.count; i++) {
+            const x = positions.getX(i);
+            const z = positions.getZ(i);
+            const angle = Math.atan2(z, x);
+            const wave = Math.sin(time * 1.5 + angle * 3 + waveOffset) * 0.08;
+            positions.setY(i, wave);
+          }
+          positions.needsUpdate = true;
         }
-        positions.needsUpdate = true;
       });
 
       // Subtle motion for background dots
