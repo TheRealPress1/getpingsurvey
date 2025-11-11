@@ -265,10 +265,14 @@ export const Network3D = ({
       } else {
         // Regular thin green rings for inner circles - with wave animation
         const torusGeometry = new THREE.TorusGeometry(circle.radius, 0.04, 16, 100);
-        const torusMaterial = new THREE.MeshBasicMaterial({
-          color: circle.color,
+        const torusMaterial = new THREE.MeshStandardMaterial({
+          color: 0x10b981,
+          emissive: 0x10b981,
+          emissiveIntensity: 0.5,
+          metalness: 0.3,
+          roughness: 0.7,
           transparent: true,
-          opacity: 0.7
+          opacity: 0.8
         });
         const torus = new THREE.Mesh(torusGeometry, torusMaterial);
         torus.rotation.x = Math.PI / 2; // Make horizontal
