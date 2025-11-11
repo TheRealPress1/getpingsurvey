@@ -21,6 +21,26 @@ export const ChatsCard = () => {
 
   useEffect(() => {
     loadChats();
+
+    // Subscribe to real-time message updates
+    const channel = supabase
+      .channel('chat-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          loadChats(); // Reload when any message changes
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadChats = async () => {
@@ -75,11 +95,12 @@ export const ChatsCard = () => {
         const otherParticipant = allParticipants?.find(p => p.conversation_id === conv.conversationId && p.user_id !== user.id);
         const profile = profiles?.find(p => p.user_id === otherParticipant?.user_id);
         const content = conv.lastMessage.content || '';
+        const displayName = profile?.display_name || profile?.user_id?.substring(0, 8) || 'User';
         return {
           id: conv.conversationId,
-          name: profile?.display_name || 'User',
+          name: displayName,
           avatar: profile?.avatar_url,
-          lastMessage: content.substring(0, 60) + (content.length > 60 ? '...' : ''),
+          lastMessage: content.substring(0, 50) + (content.length > 50 ? '...' : ''),
           timestamp: new Date(conv.lastMessage.created_at),
         };
       });
@@ -112,17 +133,20 @@ export const ChatsCard = () => {
             <button
               key={chat.id}
               onClick={() => navigate(`/chat?connection=${chat.id}`)}
-              className="w-full text-left flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 bg-black/40"
+              className="w-full text-left flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 bg-black/40 transition-colors"
             >
-              <Avatar className="h-7 w-7">
+              <Avatar className="h-8 w-8 border border-primary/20">
                 <AvatarImage src={chat.avatar} alt={`${chat.name} avatar`} />
                 <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                  {chat.name.charAt(0)}
+                  {chat.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-foreground truncate">{chat.name}</p>
+                <p className="text-xs font-semibold text-foreground truncate">{chat.name}</p>
                 <p className="text-[10px] text-muted-foreground truncate">{chat.lastMessage}</p>
+                <p className="text-[9px] text-muted-foreground/60 mt-0.5">
+                  {formatDistanceToNow(chat.timestamp, { addSuffix: true })}
+                </p>
               </div>
             </button>
           ))}
