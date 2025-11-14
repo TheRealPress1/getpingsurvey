@@ -15,7 +15,7 @@ type SliderProps = {
   onChange: (value: number) => void
   min?: number
   max?: number
-  labels?: string[]
+  labels?: readonly string[]
   className?: string
 }
 
