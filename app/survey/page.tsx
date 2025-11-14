@@ -296,43 +296,48 @@ function QuestionScreen({
       case 'single-select':
       case 'multi-select':
         const currentValue = getAnswer(question.id.replace('q', 'q') as any)
-        return (
-          <>
-            <ChipSelect
-              options={question.options ? [...question.options] : []}
-              value={currentValue || (question.type === 'multi-select' ? [] : '')}
-              onChange={handleAnswerChange}
-              mode={question.type === 'multi-select' ? 'multi' : 'single'}
-            />
-          </>
-            {/* Conditional follow-up for Q5 */}
-            {question.id === 'q5' && showFollowup && question.followup && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-6 pt-6 border-t border-grid"
-              >
-                <label htmlFor="q5-followup" className="block text-sm font-medium text-text mb-2">
-                  {question.followup.title}
-                </label>
-                <textarea
-                  id="q5-followup"
-                  value={(getAnswer('q5_hesitation_note') as string) || ''}
-                  onChange={(e) => setAnswer('q5_hesitation_note', e.target.value)}
-                  placeholder={question.followup.placeholder}
-                  maxLength={question.followup.maxLength}
-                  rows={3}
-                  className="w-full px-4 py-3 rounded-lg bg-bg border-2 border-grid focus:border-ring text-text placeholder-muted/50 resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg"
-                />
-                <p className="mt-1 text-xs text-muted text-right">
-                  {((getAnswer('q5_hesitation_note') as string) || '').length} /{' '}
-                  {question.followup.maxLength}
-                </p>
-              </motion.div>
-            )}
-          </>
-        )
+      return (
+  <>
+    <ChipSelect
+      options={question.options ? [...question.options] : []}
+      value={currentValue || (question.type === 'multi-select' ? [] : '')}
+      onChange={handleAnswerChange}
+      mode={question.type === 'multi-select' ? 'multi' : 'single'}
+    />
+
+    {/* Conditional follow-up for Q5 */}
+    {question.id === 'q5' && showFollowup && question.followup && (
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        className="mt-6 pt-6 border-t border-grid"
+      >
+        <label
+          htmlFor="q5-followup"
+          className="block text-sm font-medium text-text mb-2"
+        >
+          {question.followup.title}
+        </label>
+
+        <textarea
+          id="q5-followup"
+          value={(getAnswer('q5_hesitation_note') as string) || ''}
+          onChange={(e) => setAnswer('q5_hesitation_note', e.target.value)}
+          placeholder={question.followup.placeholder}
+          maxLength={question.followup.maxLength}
+          rows={3}
+          className="w-full px-4 py-3 rounded-lg bg-bg border-2 border-grid focus:border-ring text-text placeholder-muted outline-none transition-colors"
+        />
+
+        <p className="mt-1 text-xs text-muted text-right">
+          {((getAnswer('q5_hesitation_note') as string) || '').length}{' '}
+          / {question.followup.maxLength}
+        </p>
+      </motion.div>
+    )}
+  </>
+);
 
       case 'slider':
         return (
