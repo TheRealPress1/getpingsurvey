@@ -15,6 +15,7 @@ const config: Config = {
         grid: '#0E1414',
         text: '#D6F5E8',
         muted: '#7AE4C0',
+        border: '#1E2626',
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
