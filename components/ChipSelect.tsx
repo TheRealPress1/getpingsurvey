@@ -17,7 +17,7 @@ type Option = {
 }
 
 type ChipSelectProps = {
-  options: Option[]
+  options: readonly Option[]
   value: string | string[]
   onChange: (value: string | string[]) => void
   maxSelect?: number
