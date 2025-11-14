@@ -346,7 +346,7 @@ function QuestionScreen({
             onChange={handleAnswerChange}
             min={question.min}
             max={question.max}
-            labels={question.labels}
+            labels={question.labels ? [...question.labels] : []}
           />
         )
 
