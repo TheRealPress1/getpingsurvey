@@ -344,7 +344,7 @@ export const SURVEY_CONFIG = {
   get totalSteps() {
     return this.questions.length + 1; // +1 for welcome
   },
-} as const
+}
 
 // Export types derived from config
 export type QuestionId = typeof SURVEY_CONFIG.questions[number]['id']
