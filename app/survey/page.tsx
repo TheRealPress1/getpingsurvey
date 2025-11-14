@@ -298,12 +298,17 @@ function QuestionScreen({
         const currentValue = getAnswer(question.id.replace('q', 'q') as any)
       return (
   <>
-    <ChipSelect
-      options={question.options ? [...question.options] : []}
-      value={currentValue || (question.type === 'multi-select' ? [] : '')}
-      onChange={handleAnswerChange}
-      mode={question.type === 'multi-select' ? 'multi' : 'single'}
-    />
+  <ChipSelect
+  options={question.options ? [...question.options] : []}
+  value={currentValue || (question.type === 'multi-select' ? [] : '')}
+  onChange={handleAnswerChange}
+  mode={question.type === 'multi-select' ? 'multi' : 'single'}
+  maxSelect={
+    question.type === 'multi-select' && 'maxSelect' in question
+      ? question.maxSelect!
+      : 1
+  }
+/>
 
     {/* Conditional follow-up for Q5 */}
     {question.id === 'q5' && showFollowup && question.followup && (
